@@ -8,7 +8,7 @@
     --bg: #0b1220;
     --surface: #111a2e;
     --surface-2: #16223d;
-    --border: #1f2c4a;
+    --border: #2a3a5a;
     --text: #e6ecf5;
     --muted: #95a3bd;
     --primary: #2563eb;
@@ -232,6 +232,7 @@
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99;
   }
   .backdrop.show { display: block; }
+
 
 
 
