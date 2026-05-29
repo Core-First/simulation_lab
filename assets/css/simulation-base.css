@@ -1,0 +1,145 @@
+/* Simulation Base Styles */
+
+/* Canvas Container */
+.simulation-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--surface, #111a2e);
+}
+
+/* Canvas Wrapper */
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  background-color: var(--bg, #0b1220);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Canvas */
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+}
+
+/* Controls Panel */
+.controls-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  background-color: var(--surface-2, #16223d);
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* Control Groups */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 150px;
+}
+
+.control-group label {
+  font-size: 0.875rem;
+  color: var(--muted, #95a3bd);
+}
+
+.control-group input,
+.control-group select {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Buttons in controls */
+.controls-panel .btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* AI Panel */
+.ai-panel {
+  flex: 0 0 300px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.ai-panel h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.ai-panel .chat-messages {
+  flex: 1;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: var(--bg);
+  border-radius: 4px;
+  overflow-y: auto;
+}
+
+.ai-panel .chat-messages .message {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.ai-panel .chat-messages .message.user {
+  background-color: rgba(37, 99, 235, 0.2);
+  border-left: 3px solid var(--primary);
+}
+
+.ai-panel .chat-messages .message.ai {
+  background-color: rgba(34, 197, 94, 0.2);
+  border-left: 3px solid var(--success);
+}
+
+.ai-panel .input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-panel .input-group input {
+  flex: 1;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.ai-panel .input-group button {
+  padding: 0.5rem 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .simulation-container {
+    flex-direction: column;
+  }
+  
+  .ai-panel {
+    flex: 0 0 auto;
+    height: 200px;
+  }
+  
+  .controls-panel {
+    flex-wrap: wrap;
+  }
+}
