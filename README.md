@@ -1,7 +1,7 @@
 # Simulation Lab Project Structure
 
 ```
-📦 dsa-practical-guides/
+📦 simulation_lab/
 ├── 📂 assets/
 │   ├── 📂 css/
 │   │   ├── main.css               # Shared styles (Bootstrap overrides, dark/light theme)
