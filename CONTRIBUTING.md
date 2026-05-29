@@ -75,19 +75,6 @@ Open index.html (the main dashboard) in your browser.
 
 Use Live Server (VS Code extension) or any HTTP server for best results (some simulations use fetch or modules).
 
-Folder Structure
-text
-dsa-practical-guides/
-├── assets/ # Shared CSS, JS utilities, icons
-├── part-1-sorting/ # Sorting algorithm simulations
-├── part-2-searching/ # Searching simulations
-├── part-3-linear-data-structures/
-├── part-4-recursive-data-structures/
-├── part-5-graphs/
-├── part-6-algorithm-design/
-├── index.html # Main dashboard
-└── contributing.md
-
 Pull Request Process
 Fork the repository and create your feature branch (git checkout -b feature/amazing-simulation).
 
