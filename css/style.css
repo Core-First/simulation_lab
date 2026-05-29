@@ -68,7 +68,7 @@
     transition: background .15s, color .15s;
   }
   .nav-link-custom i { width: 18px; text-align: center; }
-  .nav-link-custom:hover { background: var(--surface-2); color: var(--text); }
+  .nav-link-custom:hover { background: var(--surface-2); color: var(--primary); }
   .nav-link-custom.active { background: var(--active-bg); color: var(--active-text); }
   .sidebar-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 
@@ -232,6 +232,7 @@
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99;
   }
   .backdrop.show { display: block; }
+
 
 
 

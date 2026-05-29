@@ -1,450 +1,346 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ATC SimLab – Interactive Project Summary</title>
-    <!-- Mermaid for diagrams -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #311052;
-            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-            line-height: 1.5;
-            color: #1e293b;
-            padding: 2rem 1rem;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
-            border-radius: 24px;
-            overflow: hidden;
-            padding: 2rem 2rem 3rem 2rem;
-        }
-        /* print styles for PDF */
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .container {
-                box-shadow: none;
-                padding: 1rem;
-                max-width: 100%;
-            }
-            .no-print {
-                display: none;
-            }
-            a {
-                text-decoration: none;
-                color: black;
-            }
-            .toc a {
-                color: black;
-            }
-            .page-break {
-                page-break-before: always;
-            }
-            .card, .milestone-card {
-                break-inside: avoid;
-            }
-            h2, h3 {
-                break-after: avoid;
-            }
-            pre, .mermaid {
-                break-inside: avoid;
-            }
-        }
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        .subhead {
-            color: #475569;
-            border-left: 4px solid #2a5298;
-            padding-left: 1rem;
-            margin: 1rem 0 1.5rem 0;
-            font-size: 1rem;
-        }
-        h2 {
-            font-size: 1.7rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            color: #0f172a;
-        }
-        h3 {
-            font-size: 1.3rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-            color: #1e293b;
-        }
-        h4 {
-            font-size: 1.1rem;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            color: #2d3a5e;
-        }
-        .badge {
-            display: inline-block;
-            background: #e2e8f0;
-            padding: 0.2rem 0.6rem;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-right: 0.5rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0 1.5rem 0;
-            font-size: 0.85rem;
-        }
-        th, td {
-            border: 1px solid #cbd5e1;
-            padding: 0.6rem 0.8rem;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background: #f1f5f9;
-            font-weight: 700;
-        }
-        caption {
-            text-align: left;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            caption-side: top;
-            font-size: 0.85rem;
-            color: #2c3e66;
-        }
-        .mermaid {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 16px;
-            margin: 1.2rem 0;
-            text-align: center;
-        }
-        .callout {
-            padding: 1rem 1.2rem;
-            border-radius: 12px;
-            margin: 1.2rem 0;
-            background: #eef2ff;
-            border-left: 5px solid #3b82f6;
-        }
-        .callout-warning {
-            background: #fff9e6;
-            border-left-color: #eab308;
-        }
-        .milestone-card {
-            background: #fef9e3;
-            border-radius: 16px;
-            padding: 1rem;
-            margin: 1rem 0;
-            border: 1px solid #fde047;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.2rem;
-            margin: 1.2rem 0;
-        }
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #1e3c72;
-        }
-        .footer {
-            margin-top: 3rem;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #64748b;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 1.5rem;
-        }
-        button.print-btn {
-            background: #0f172a;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            float: right;
-        }
-        button.print-btn:hover {
-            background: #1e293b;
-        }
-        .toc {
-            background: #f8fafc;
-            padding: 1rem 1.5rem;
-            border-radius: 20px;
-            margin: 1rem 0 2rem;
-        }
-        .toc ul {
-            columns: 2;
-            list-style: none;
-        }
-        .toc li {
-            margin: 0.3rem 0;
-        }
-        .toc a {
-            text-decoration: none;
-            color: #2c3e66;
-        }
-        .toc a:hover {
-            text-decoration: underline;
-        }
-        code {
-            background: #eef2ff;
-            padding: 0.2rem 0.4rem;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.85rem;
-        }
-        hr {
-            margin: 1.5rem 0;
-        }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1" />\n    <meta charset="UTF-8" />
+<title>ATC SimLab â€” Student Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="css/style.css" rel="stylesheet" />
+
 </head>
 <body>
-<div class="container">
-    <button class="print-btn no-print" onclick="window.print();"><i class="fas fa-print"></i> Save as PDF / Print</button>
-    <div style="clear:both"></div>
-    <div style="margin-bottom: 0.5rem;"><span class="badge">AI-Augmented</span><span class="badge">Open Source</span><span class="badge">NTA Level 5/6</span></div>
-    <div class="subhead">Browser‑based educational simulation platform for CS students – Arusha Technical College, Tanzania. Built by 7 students (Core‑First Engineering).</div>
-    
-    <!-- TOC -->
-    <div class="toc no-print">
-        <strong><i class="fas fa-list-ul"></i> Interactive summary – jump to section</strong>
-        <ul>
-            <li><a href="#exec">1. Executive summary</a></li>
-            <li><a href="#landscape">2. Competitive landscape</a></li>
-            <li><a href="#roadmap">3. Roadmap & milestones</a></li>
-            <li><a href="#arch">4. Technical architecture</a></li>
-            <li><a href="#team">5. Roles & RACI</a></li>
-            <li><a href="#agile">6. Agile & testing</a></li>
-            <li><a href="#cost">7. Cost & sustainability</a></li>
-            <li><a href="#conclusion">8. Conclusion & call to action</a></li>
-            <li><a href="#appendix">Best Wishes on todays test (full documentation)</a></li>
-        </ul>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-atom"></i></div>
+      <div class="brand-name">ATC SimLab</div>
     </div>
+    <nav id="sideNav">
+      <a href="#" class="nav-link-custom active"><i class="fa-solid fa-house"></i> Dashboard</a>
 
-    <!-- 1. EXECUTIVE SUMMARY -->
-    <h2 id="exec">1. Executive summary</h2>
-    <p><strong>What:</strong> ATC SimLab delivers interactive, AI‑powered computer science simulations (sorting, networking, memory) for NTA Level 5/6. Students manipulate algorithms, ask Mistral‑powered tutor, and receive auto‑generated quizzes. <strong>Cost:</strong> ~$0.80 / semester for 200 students (Mistral small).</p>
-    <div class="grid-2">
-        <div><i class="fas fa-chalkboard-teacher"></i> <strong>27% avg learning gain</strong><br>based on PhET Rwanda study</div>
-        <div><i class="fas fa-mobile-alt"></i> <strong>Offline‑first PWA</strong><br>works on 3G / low‑end devices</div>
-        <div><i class="fas fa-graduation-cap"></i> <strong>200+ ATC students</strong><br>target pilot cohort</div>
-        <div><i class="fas fa-users"></i> <strong>7 roles</strong><br>student‑led agile team</div>
-    </div>
-    <div class="mermaid">
-    mindmap
-      root((ATC SimLab))
-        Problem
-          No NTA‑aligned sims
-          Abstract CS hard to grasp
-          Expensive Western tools
-        Solution
-          Sorting Visualiser (5 sorts)
-          Network Topology (Star/Ring/Mesh)
-          Memory/Stack visualiser
-          AI Tutor + Quiz Generator
-        Tech
-          BOOM BOOM + PixiJS/Canvas
-          FastAPI + Supabase
-          Mistral AI + Codestral
-          Cloudflare + Render
-        Impact
-          1,000,000 students Year 1
-          Open source MIT
-          Expand to UDOM/DIT
-          VETA/TVET recognition
-    </div>
-    <div class="callout">📌 <strong>MVP exit criteria (Week 20):</strong> 3 simulations, AI tutor, quiz generator, 50+ students, 1 lecturer assigned, handover docs complete.</div>
+      <div class="nav-group">
+        <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="false">
+          <i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides
+          <i class="fa-solid fa-chevron-right chev"></i>
+        </button>
+        <div class="collapse" id="dsaMenu">
+          <ul class="submenu">
+            <!-- Parts injected by JS -->
+          </ul>
+        </div>
+      </div>
 
-    <!-- 2. COMPETITIVE LANDSCAPE -->
-    <h2 id="landscape">2. Competitive landscape analysis</h2>
-    <p>ATC SimLab benchmarks against 16 platforms (PhET, uCertify, Labster, Virtual Labs India, etc.). Unique position: <strong>high CS specificity + low cost/open source + NTA alignment</strong>.</p>
-    <div class="mermaid">
-    quadrantChart
-        title Platform positioning (CS specificity vs openness)
-        x-axis "Low CS specificity" --> "High CS specificity"
-        y-axis "High Cost / Closed" --> "Low Cost / Open"
-        quadrant-1 "Open niche"
-        quadrant-2 "Open general"
-        quadrant-3 "Closed general"
-        quadrant-4 "Closed niche"
-        "PhET": [0.2, 0.85]
-        "uCertify": [0.8, 0.2]
-        "Labster": [0.15, 0.25]
-        "Virtual Labs India": [0.75, 0.7]
-        "ATC SimLab": [0.92, 0.95]
-    </div>
-    <table>
-        <caption><strong>Table 1:</strong> Key differences – ATC SimLab vs. alternatives</caption>
-        <thead><tr><th>Platform</th><th>CS‑specific</th><th>AI tutor</th><th>Low bandwidth</th><th>Open source</th><th>Suitable for ATC</th></tr></thead>
-        <tbody>
-            <tr><td>PhET</td><td>❌</td><td>❌</td><td>✅</td><td>Partial</td><td>No (not CS)</td></tr>
-            <tr><td>uCertify</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>Cost prohibitive</td></tr>
-            <tr><td>Virtual Labs India</td><td>✅</td><td>❌</td><td>✅</td><td>❌</td><td>Aging tech, no AI</td></tr>
-            <tr><td><strong>ATC SimLab</strong></td><td>✅✅</td><td>✅ Mistral</td><td>✅ PWA</td><td>✅ MIT</td><td>Built for NTA</td></tr>
-        </tbody>
-    </table>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
+    </nav>
 
-    <!-- 3. ROADMAP -->
-    <h2 id="roadmap">3. 20‑week roadmap & interactive milestones</h2>
-    <div class="mermaid">
-    gantt
-        title ATC SimLab MVP Timeline (20 weeks)
-        dateFormat YYYY-MM-DD
-        axisFormat %b %d
-        section Phase 0: Foundation
-        GitHub + Supabase + FastAPI + React scaffold :p0, 2026-01-08, 21d
-        section Phase 1: Sorting Sim MVP
-        Canvas + Bubble Sort + 5 sorts + AI Tutor + Quiz :p1, after p0, 49d
-        Student validation (20 users) :milestone, m1, after p1, 3d
-        section Phase 2: Network + Memory
-        Network Topology, Memory/Stack, AI Narrator :p2, after m1, 42d
-        Formal assessment (40 students) :milestone, m2, after p2, 5d
-        section Phase 3: Institutionalise
-        Dept presentation, lecturer onboarding, handover :p3, after m2, 28d
-        MVP complete :milestone, m3, after p3, 1d
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help & Support</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
     </div>
-    <div class="milestone-card">
-        <i class="fas fa-flag-checkered"></i> <strong>Milestone M4 (MVP complete)</strong><br>
-        Week 20 – 3 sims live, 50+ students, 1 lecturer assigned, assessment data shows improvement, new contributor can onboard from wiki.
-    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
 
-    <!-- 4. ARCHITECTURE -->
-    <h2 id="arch">4. Technical architecture summary</h2>
-    <div class="mermaid">
-    graph TB
-        subgraph Client
-            Browser[React PWA]
-            Mobile[Flutter wrapper Phase2+]
-        end
-        subgraph Edge
-            CF[Cloudflare Pages]
-        end
-        subgraph Backend
-            API[FastAPI on Render]
-            Cache[Redis cache]
-        end
-        subgraph AI
-            Mistral[Mistral AI]
-            Codestral[Codestral debug]
-        end
-        subgraph Data
-            Supabase[(Supabase PG + Auth)]
-        end
-        Browser --> CF --> API
-        API --> Cache
-        API --> Mistral
-        API --> Codestral
-        API --> Supabase
-        Mobile -.-> API
-    </div>
-    <p><strong>Key design choices:</strong> 3‑tier (React/FastAPI/Supabase), offline PWA, per‑student rate limiting, AI response caching (Redis). All API keys secured on backend.</p>
-    <div class="callout"><i class="fas fa-database"></i> <strong>Database:</strong> 15 tables (users, simulation_sessions, quiz_attempts, ai_interactions, etc.) with Row Level Security.</div>
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <strong>Dashboard</strong>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="themeToggle">
+          <i class="fa-solid fa-moon"></i><span>Dark Mode</span>
+        </button>
+        <div class="profile">
+          <div class="avatar">AJ</div>
+          <div class="profile-text">
+            <div class="profile-name">Amina J.</div>
+            <div class="profile-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <!-- 5. ROLES -->
-    <h2 id="team">5. Team of 7 – roles & RACI</h2>
-    <div class="grid-2">
-        <div><i class="fas fa-code-branch"></i> <strong>Tech Lead</strong><br>Architecture, merges, CI/CD</div>
-        <div><i class="fas fa-chalkboard"></i> <strong>Frontend Sim</strong><br>Canvas, algorithms, animation</div>
-        <div><i class="fas fa-mobile-alt"></i> <strong>Frontend UI/UX</strong><br>React, PWA, responsive</div>
-        <div><i class="fas fa-server"></i> <strong>Backend</strong><br>FastAPI, Supabase, Redis</div>
-        <div><i class="fas fa-robot"></i> <strong>AI/Prompt Eng</strong><br>Mistral prompts, caching, fallback</div>
-        <div><i class="fas fa-book"></i> <strong>Content & Curriculum</strong><br>NTA mapping, validation, UAT</div>
-        <div><i class="fas fa-vial"></i> <strong>QA & DevOps</strong><br>Playwright, GitHub Actions, monitoring</div>
-    </div>
-    <table>
-        <caption><strong>RACI example:</strong> selected activities</caption>
-        <thead><tr><th>Activity</th><th>Tech Lead</th><th>Frontend Sim</th><th>Backend</th><th>AI Eng</th><th>Content</th><th>QA</th></tr></thead>
-        <tbody>
-            <tr><td>Sorting sim Canvas</td><td>C</td><td>A/R</td><td>I</td><td>I</td><td>C</td><td>R</td></tr>
-            <tr><td>AI Tutor API</td><td>C</td><td>I</td><td>C</td><td>A/R</td><td>I</td><td>R</td></tr>
-            <tr><td>Formal assessment</td><td>C</td><td>I</td><td>I</td><td>I</td><td>A/R</td><td>I</td></tr>
-            <tr><td>CI/CD pipeline</td><td>A</td><td>I</td><td>R</td><td>I</td><td>I</td><td>R</td></tr>
-        </tbody>
-    </table>
+    <div class="content">
+      <div class="welcome mb-4">
+        <h2>Welcome back, Amina! ðŸŽ‰</h2>
+        <p>Continue your learning journey.</p>
+      </div>
 
-    <!-- 6. AGILE & TESTING -->
-    <h2 id="agile">6. Agile project management & testing</h2>
-    <p><strong>1‑week sprints</strong>, asynchronous daily standups (GitHub Discussions), Sunday 30‑min review/retro. Definition of Done includes unit tests + peer review + CI pass. Testing pyramid: 100+ unit tests (Vitest/pytest), integration tests for AI proxy, E2E with Playwright (8 critical journeys).</p>
-    <div class="mermaid">
-    graph TD
-        subgraph "Testing pyramid"
-            A[E2E – Playwright] --> B[Integration – API + Supabase mocks]
-            B --> C[Unit – Vitest, pytest]
-        end
-    </div>
-    <div class="callout callout-warning"><i class="fas fa-shield-alt"></i> <strong>Risk mitigation:</strong> team attrition (handover docs from week1), offline fallback, Mistral free tier with Redis caching, scope lock (one sim before expanding).</div>
+      <!-- Row 1 -->
+      <div class="row g-3 mb-3">
+        <div class="col-lg-5">
+          <div class="card-x">
+            <div class="card-title-x">
+              <h6>Continue Learning</h6>
+              <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="cl-row">
+              <div class="cl-thumb"><i class="fa-solid fa-chart-column"></i></div>
+              <div class="cl-body">
+                <p class="cl-title">Sorting Visualiser</p>
+                <p class="cl-sub">Bubble Sort â€¢ Step 7 of 28</p>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1"><div class="progress-bar" style="width:65%"></div></div>
+                  <small class="text-muted" style="color:var(--muted)!important">65%</small>
+                </div>
+              </div>
+              <button class="btn-primary-x">Continue</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card-x">
+            <div class="card-title-x">
+              <h6>My Modules</h6>
+              <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="row g-2">
+              <div class="col-6 col-md-3">
+                <div class="module">
+                  <div class="module-icon ic-blue"><i class="fa-solid fa-chart-column"></i></div>
+                  <h6>Sorting Visualiser</h6>
+                  <p>Master sorting algorithms</p>
+                  <div class="progress"><div class="progress-bar" style="width:65%"></div></div>
+                  <div class="pct">65%</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="module">
+                  <div class="module-icon ic-orange"><i class="fa-solid fa-diagram-project"></i></div>
+                  <h6>Network Topology</h6>
+                  <p>Design & analyse networks</p>
+                  <div class="progress"><div class="progress-bar" style="width:40%; background:#f59e0b"></div></div>
+                  <div class="pct">40%</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="module">
+                  <div class="module-icon ic-purple"><i class="fa-solid fa-layer-group"></i></div>
+                  <h6>Memory Stack</h6>
+                  <p>Understand memory operations</p>
+                  <div class="progress"><div class="progress-bar" style="width:20%; background:#a78bfa"></div></div>
+                  <div class="pct">20%</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="module">
+                  <div class="module-icon ic-green"><i class="fa-solid fa-code"></i></div>
+                  <h6>DSA Refresher</h6>
+                  <p>Quick recap of essentials</p>
+                  <div class="progress"><div class="progress-bar" style="width:80%; background:#22c55e"></div></div>
+                  <div class="pct">80%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- 7. COST -->
-    <h2 id="cost">7. Cost analysis & sustainability</h2>
-    <table>
-        <caption><strong>Monthly infrastructure (MVP):</strong> ~$0.10</caption>
-        <thead><tr><th>Service</th><th>Tier</th><th>Monthly cost</th></tr></thead>
-        <tbody>
-            <tr><td>Cloudflare Pages</td><td>Free</td><td>$0</td></tr>
-            <tr><td>Render backend</td><td>Free (sleep)</td><td>$0</td></tr>
-            <tr><td>Supabase</td><td>Free</td><td>$0</td></tr>
-            <tr><td>Upstash Redis</td><td>Free</td><td>$0</td></tr>
-            <tr><td>Mistral AI (200 students)</td><td>Pay as you go</td><td>~$0.17</td></tr>
-        </tbody>
-    </table>
-    <p><strong>AI semester cost:</strong> 20.4M input + 10.2M output tokens → Mistral Small: <strong>$1.73 total</strong>. GPT‑4o Mini would be $9.18.</p>
-    <div class="mermaid">
-    pie title "Semester AI cost ($1.73)"
-        "Input tokens (20.4M)" : 0.61
-        "Output tokens (10.2M)" : 1.12
-    </div>
-    <p><strong>Scaling:</strong> 1,000 students → $25.85/month (Supabase Pro). 10,000 students → $58.50/month. Mistral startup credits ($30k) can be applied for in Phase 3.</p>
+      <!-- Row 2 -->
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="card-x">
+            <div class="card-title-x"><h6>Overall Progress</h6></div>
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg viewBox="0 0 120 120" width="130" height="130">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#22c55e" stroke-width="12"
+                    stroke-dasharray="182 314" stroke-dashoffset="0" transform="rotate(-90 60 60)" stroke-linecap="round"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#f59e0b" stroke-width="12"
+                    stroke-dasharray="78 314" stroke-dashoffset="-182" transform="rotate(-90 60 60)" stroke-linecap="round"/>
+                </svg>
+                <div class="donut-label"><strong>58%</strong><span>Course Completion</span></div>
+              </div>
+              <div class="legend">
+                <div><span class="dot" style="background:#22c55e"></span><div>Completed<small>7 Modules</small></div></div>
+                <div><span class="dot" style="background:#f59e0b"></span><div>In Progress<small>5 Modules</small></div></div>
+                <div><span class="dot" style="background:#64748b"></span><div>Not Started<small>4 Modules</small></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- 8. CONCLUSION
-    <h2 id="conclusion">8. Conclusion & call to action</h2>
-    <p>ATC SimLab is not a speculative prototype — it is a production‑grade, AI‑augmented learning platform designed for the real constraints of Tanzanian education. The open‑source stack, offline PWA, and Mistral AI keep costs near zero. The evidence from PhET and local pilots confirms that interactive simulations boost learning by 27% or more.</p>
-    <div class="callout" style="background:#e6f7e6;">
-        <i class="fas fa-rocket"></i> <strong>Day 1 actions for the team:</strong><br>
-        1. Create GitHub repository & add all 7 members.<br>
-        2. Tech Lead volunteers and sets branch protection.<br>
-        3. Run `npm create vite` & deploy blank page to Cloudflare Pages.<br>
-        4. Merge first PR within 72 hours.<br>
-        5. Weekly sync – every Sunday 5pm EAT.
-    </div> -->
-    <p>The full documentation (<strong>30+ sections</strong>) includes complete API specs, database ERD, simulation design details, CI/CD workflows, risk register, and onboarding guides. This summary gives you the strategic compass. Now execute.</p>
-    <hr>
-    <div class="footer">
-        <i class="fas fa-code"></i> ATC SimLab – Core‑First Engineering Team | Arusha Technical College | MIT License | Version 1.0 (May 2026)<br>
-        📄 Download / print this page as PDF using browser’s “Save as PDF” (Ctrl+P / Cmd+P) – diagrams are vector‑ready.
+        <div class="col-lg-4">
+          <div class="card-x">
+            <div class="card-title-x">
+              <h6>Weekly Activity</h6>
+              <select class="form-select form-select-sm w-auto" style="background:var(--surface-2);color:var(--text);border-color:var(--border)">
+                <option>This Week</option><option>Last Week</option>
+              </select>
+            </div>
+            <svg class="chart-svg" viewBox="0 0 320 200" preserveAspectRatio="none">
+              <g class="chart-grid">
+                <line x1="30" y1="20" x2="320" y2="20"/>
+                <line x1="30" y1="65" x2="320" y2="65"/>
+                <line x1="30" y1="110" x2="320" y2="110"/>
+                <line x1="30" y1="155" x2="320" y2="155"/>
+              </g>
+              <g class="chart-axis">
+                <text x="5" y="24">100</text><text x="10" y="69">75</text>
+                <text x="10" y="114">50</text><text x="10" y="159">25</text><text x="20" y="180">0</text>
+              </g>
+              <polyline fill="none" stroke="#2563eb" stroke-width="2.5"
+                points="50,120 90,90 130,135 170,75 210,110 250,55 290,70"/>
+              <g fill="#2563eb">
+                <circle cx="50" cy="120" r="4"/><circle cx="90" cy="90" r="4"/>
+                <circle cx="130" cy="135" r="4"/><circle cx="170" cy="75" r="4"/>
+                <circle cx="210" cy="110" r="4"/><circle cx="250" cy="55" r="4"/>
+                <circle cx="290" cy="70" r="4"/>
+              </g>
+              <g class="chart-axis" text-anchor="middle">
+                <text x="50" y="195">Mon</text><text x="90" y="195">Tue</text>
+                <text x="130" y="195">Wed</text><text x="170" y="195">Thu</text>
+                <text x="210" y="195">Fri</text><text x="250" y="195">Sat</text>
+                <text x="290" y="195">Sun</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card-x">
+            <div class="card-title-x"><h6>Achievements</h6><a href="#" class="view-all">View All</a></div>
+            <div class="ach">
+              <div class="ach-icon" style="background:rgba(245,158,11,.15);color:#f59e0b"><i class="fa-solid fa-medal"></i></div>
+              <div class="ach-body"><h6>First Steps</h6><small>Completed your first simulation</small></div>
+              <span class="xp">+100 XP</span>
+            </div>
+            <div class="ach">
+              <div class="ach-icon" style="background:rgba(37,99,235,.15);color:#3b82f6"><i class="fa-solid fa-bolt"></i></div>
+              <div class="ach-body"><h6>Quick Learner</h6><small>Completed 5 quizzes</small></div>
+              <span class="xp">+200 XP</span>
+            </div>
+            <div class="ach">
+              <div class="ach-icon" style="background:rgba(139,92,246,.15);color:#a78bfa"><i class="fa-solid fa-puzzle-piece"></i></div>
+              <div class="ach-body"><h6>Problem Solver</h6><small>Solved 10 challenges</small></div>
+              <span class="xp">+300 XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
+
 <script>
-    mermaid.initialize({ startOnLoad: true, theme: 'base', securityLevel: 'loose', flowchart: { useMaxWidth: true } });
-    window.addEventListener('load', () => {
-        // re-render mermaid if needed (already done by mermaid)
-        console.log("ATC SimLab summary ready – print to PDF for full report");
+  // Theme toggle
+  const themeBtn = document.getElementById('themeToggle');
+  const applyTheme = (theme) => {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+      themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i><span>Light Mode</span>';
+    } else {
+      document.body.classList.remove('light-theme');
+      themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';
+    }
+  };
+  applyTheme(localStorage.getItem('theme') || 'dark');
+  themeBtn.addEventListener('click', () => {
+    const next = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  });
+
+  // Sidebar active state (top-level links only â€” skip nested submenu links here)
+  document.querySelectorAll('nav > .nav-link-custom, .sidebar-footer .nav-link-custom').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.submenu .sub-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('backdrop').classList.remove('show');
     });
+  });
+
+
+  // Hamburger
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('backdrop');
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+  });
+  backdrop.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+  });
+
+  // Build DSA Practical Guides nested dropdown
+  const dsaData = [
+    { part: 'Part 1: Sorting Algorithms Lab Suite', sims: [
+      'Simulation 1: Bubble Sort',
+      'Simulation 2: Selection Sort',
+      'Simulation 3: Insertion Sort',
+      'Simulation 4: Merge Sort',
+      'Simulation 5: Quick Sort',
+    ]},
+    { part: 'Part 2: Searching Algorithms Lab Suite', sims: [
+      'Simulation 6: Linear vs Binary Search',
+      'Simulation 7: Hashing and Collision Resolution',
+    ]},
+    { part: 'Part 3: Linear Data Structures Lab Suite', sims: [
+      'Simulation 8: Singly Linked List Visualiser',
+      'Simulation 9: Stack and Queue Visualiser',
+    ]},
+    { part: 'Part 4: Recursive Data Structures Lab Suite', sims: [
+      'Simulation 10: Binary Search Tree (BST) Visualiser',
+      'Simulation 11: AVL Tree / Red-Black Tree',
+      'Simulation 12: Heap / Priority Queue',
+    ]},
+    { part: 'Part 5: Graph Algorithms Lab Suite', sims: [
+      'Simulation 13: BFS vs DFS Graph Traversal',
+      "Simulation 14: Dijkstra's Algorithm (Shortest Path)",
+    ]},
+    { part: 'Part 6: Algorithm Design Paradigms', sims: [
+      'Simulation 15: Dynamic Programming (Memoization)',
+      'Simulation 16: Backtracking (N-Queens / Sudoku Solver)',
+    ]},
+  ];
+
+  const dsaRoot = document.querySelector('#dsaMenu .submenu');
+  dsaData.forEach((p, i) => {
+    const partId = `dsaPart${i}`;
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
+        <i class="fa-solid fa-book lead-icon"></i> ${p.part}
+        <i class="fa-solid fa-chevron-right chev"></i>
+      </button>
+      <div class="collapse" id="${partId}">
+        <ul class="submenu">
+          ${p.sims.map(s => `<li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> ${s}</a></li>`).join('')}
+        </ul>
+      </div>
+    `;
+    dsaRoot.appendChild(li);
+  });
+
+  // Simulation click handling
+  document.querySelectorAll('#dsaMenu .sub-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.submenu .sub-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      console.log('Navigating to:', link.textContent.trim());
+      if (window.innerWidth < 992) {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+      }
+    });
+  });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
