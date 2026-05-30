@@ -75,6 +75,14 @@ Open index.html (the main dashboard) in your browser.
 
 Use Live Server (VS Code extension) or any HTTP server for best results (some simulations use fetch or modules).
 
+### Working with Parts
+
+1. Determine which part you are working on (part-1 through part-6) based on the issue or feature you are addressing.
+2. Switch to the `develop` branch: `git checkout develop` (ensure it's up to date).
+3. Create a feature branch for your part: `git checkout -b feature/part-X-short-description` where X is the part number.
+4. Work inside the corresponding folder: `part-X-<topic>/` (e.g., `part-1-sorting/`).
+5. Make your changes, test, then commit and push.
+
 Pull Request Process
 Fork the repository and create your feature branch (git checkout -b feature/amazing-simulation).
 
