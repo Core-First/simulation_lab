@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sim-15-dp-memoization - ATC SimLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-panel: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --accent-blue: #2563eb;
+            --accent-green: #22c55e;
+            --accent-yellow: #fbbf24;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+        }
+        body { background: var(--bg-main); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Layout */
+        .sidebar { width: 260px; background: #1e293b; border-right: 1px solid var(--border); padding: 20px 15px; overflow-y: auto; flex-shrink: 0; display: none; }
+        @media(min-width: 992px){ .sidebar { display: block; } }
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Top Bar */
+        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--bg-main); }
+        .page-title { font-weight: 600; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .page-title i { color: var(--accent-blue); }
+        .back-btn { background: #1e293b; border: 1px solid var(--border); color: var(--text); padding: 4px 14px; border-radius: 4px; text-decoration: none; font-size: 12px; transition: all 0.3s ease; }
+        .back-btn:hover { background: var(--accent-blue); border-color: var(--accent-blue); }
+
+        /* Simulation Content */
+        .sim-body { display: flex; flex: 1; overflow: hidden; }
+        .left-panel { flex: 0 0 70%; padding: 20px; overflow-y: auto; overflow-x: hidden; border-right: 1px solid var(--border); }
+        .right-panel { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
+
+        /* Cards */
+        .panel-card { background: #1e293b; border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .panel-card:hover { box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
+        .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Tree Visualization */
+        .tree-container { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: visible; }
+        .tree-svg { width: 100%; display: block; }
+        .node-circle { fill: #4b5563; stroke: #6b7280; stroke-width: 2; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .node-circle:hover { filter: brightness(1.2); }
+        .node-text { fill: white; font-size: 14px; font-family: monospace; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        .node-current { fill: var(--accent-blue); stroke: #3b82f6; animation: pulse-blue 1.5s ease-in-out infinite; }
+        .node-computed { fill: #6b7280; stroke: #9ca3af; }
+        .node-memo { fill: var(--accent-green); stroke: #4ade80; animation: pulse-green 1s ease-in-out infinite; }
+        .edge-line { stroke: #6b7280; stroke-width: 2; transition: all 0.4s ease; }
+        .memo-edge { stroke: var(--accent-green); stroke-width: 2; stroke-dasharray: 4; animation: dash 1s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -8; } }
+        @keyframes pulse-blue { 0%, 100% { filter: drop-shadow(0 0 8px rgba(37,99,235,0.6)); } 50% { filter: drop-shadow(0 0 16px rgba(37,99,235,0.9)); } }
+        @keyframes pulse-green { 0%, 100% { filter: drop-shadow(0 0 8px rgba(34,197,94,0.6)); } 50% { filter: drop-shadow(0 0 16px rgba(34,197,94,0.9)); } }
+
+        /* Memo Table */
+        .memo-table { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; margin-top: 15px; overflow-x: auto; }
+        .memo-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .memo-table th { background: #1e293b; padding: 12px 8px; text-align: center; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 600; }
+        .memo-table td { padding: 12px 8px; text-align: center; border-bottom: 1px solid var(--border); transition: all 0.3s ease; position: relative; }
+        .memo-table tr:last-child td { border-bottom: none; }
+        .computed { color: var(--accent-green); font-weight: bold; background: rgba(34,197,94,.15); animation: fade-in 0.5s ease; }
+        .computing { color: var(--accent-yellow); font-weight: bold; background: rgba(251,191,36,.15); animation: pulse-yellow 0.5s ease; }
+        .uninitialized { color: var(--muted); font-style: italic; }
+        @keyframes fade-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse-yellow { 0%, 100% { background: rgba(251,191,36,.15); } 50% { background: rgba(251,191,36,.3); } }
+
+        /* Code Editor */
+        .code-editor { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; position: relative; line-height: 1.6; min-height: 280px; }
+        .code-editor[contenteditable="true"] { outline: none; cursor: text; }
+        .code-editor[contenteditable="true"]:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+        .code-line { display: block; color: #e2e8f0; padding: 4px 12px; border-radius: 4px; transition: all 0.3s ease; position: relative; }
+        .code-line::before { content: attr(data-line-num); position: absolute; left: -25px; color: var(--muted); font-size: 11px; width: 20px; text-align: right; user-select: none; }
+        .code-line.error { background: rgba(239,68,68,0.2); border-left: 4px solid var(--accent-red); }
+        .code-line.warning { background: rgba(251,191,36,0.2); border-left: 4px solid var(--accent-yellow); }
+        .code-highlight { background: rgba(251,191,36,0.25); border-left: 4px solid var(--accent-yellow); animation: slide-in 0.3s ease; }
+        @keyframes slide-in { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .code-keyword { color: #ff79c6; font-weight: bold; }
+        .code-number { color: #bd93f9; }
+        .code-comment { color: #6272a4; font-style: italic; }
+        .code-func { color: #50fa7b; }
+        .code-type { color: #8be9fd; }
+        .code-macro { color: #ffb86c; }
+        .code-preproc { color: #ff79c6; }
+        .code-editor { padding-left: 35px; }
+        .code-editor-wrapper { position: relative; }
+
+        /* Error Notifications */
+        .error-panel { background: rgba(239,68,68,0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
+        .error-panel.show { display: block; animation: slide-down 0.3s ease; }
+        @keyframes slide-down { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .error-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+        .error-item:last-child { margin-bottom: 0; }
+        .error-item i { color: var(--accent-red); margin-top: 2px; }
+        .error-item.error { color: #fca5a5; }
+        .error-item.warning { color: #fcd34d; }
+        .error-item.info { color: #93c5fd; }
+
+        /* Status Indicator */
+        .editor-status { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 10px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.valid { background: var(--accent-green); }
+        .status-dot.invalid { background: var(--accent-red); animation: pulse-red 1s ease-in-out infinite; }
+        .status-dot.warning { background: var(--accent-yellow); }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Controls */
+        .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .btn-control { border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-control:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn-control:active:not(:disabled) { transform: translateY(0); }
+        .btn-control:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-step { background: var(--accent-blue); color: white; }
+        .btn-step:hover:not(:disabled) { background: #1d4ed8; }
+        .btn-play { background: var(--accent-green); color: white; }
+        .btn-play:hover:not(:disabled) { background: #16a34a; }
+        .btn-pause { background: var(--accent-yellow); color: #0f172a; }
+        .btn-pause:hover:not(:disabled) { background: #f59e0b; }
+        .btn-reset { background: #4b5563; color: white; }
+        .btn-reset:hover:not(:disabled) { background: #374151; }
+        .toggle-wrap { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .toggle-switch { width: 44px; height: 24px; background: #4b5563; border-radius: 24px; position: relative; cursor: pointer; transition: all 0.3s ease; }
+        .toggle-switch.active { background: var(--accent-blue); }
+        .toggle-switch::after { content: ''; width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle-switch.active::after { left: 22px; }
+        .stats { display: flex; gap: 20px; font-size: 14px; font-weight: 500; margin-top: 15px; }
+        .stat-item { display: flex; align-items: center; gap: 8px; }
+        .stat-value { background: #0f172a; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-family: monospace; font-size: 16px; min-width: 40px; text-align: center; transition: all 0.3s ease; }
+        .stat-value.updated { animation: stat-pop 0.3s ease; }
+        @keyframes stat-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* Input Fields */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+        .input-group input { width: 100%; background: #0f172a; border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; }
+        .input-group input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+        .input-group input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* AI Assistant */
+        .ai-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; }
+        .ai-question { color: #f8fafc; line-height: 1.5; }
+        .ai-response { color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-style: italic; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-bars d-md-none" style="cursor:pointer;"></i>
+                <div class="page-title">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <div>
+                        <div>sim-15-dp-memoization.html</div>
+                        <div style="font-weight:400; font-size:12px; color:var(--muted);">Dynamic Programming with Memoization � Fibonacci Sequence (C)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
+                <button class="btn btn-outline-secondary btn-sm text-white border-secondary"><i class="fa-solid fa-moon"></i></button>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="background:var(--accent-blue); width:30px; height:30px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:12px;">AJ</div>
+                    <div style="font-size:13px;">Lipweche A. <i class="fa-solid fa-chevron-down" style="font-size:10px; color:var(--muted);"></i></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Simulation Body -->
+        <div class="sim-body">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="panel-title" style="margin-bottom:5px;">
+                    Recursive Tree Visualization
+                    <div style="font-weight:400; font-size:12px; display:flex; gap:15px;">
+                        <span><span style="color:var(--accent-blue);">?</span> Current</span>
+                        <span><span style="color:#6b7280;">?</span> Computed</span>
+                        <span><span style="color:var(--accent-green);">?</span> Memoized</span>
+                    </div>
+                </div>
+                <!-- Tree SVG -->
+                <div class="tree-container">
+                    <svg class="tree-svg" id="treeSvg" viewBox="0 0 700 320"></svg>
+                </div>
+
+                <!-- Memo Table -->
+                <div class="panel-title" style="margin-top:20px; margin-bottom:10px;">Memo Table (C Array)</div>
+                <div class="memo-table">
+                    <table id="memoTable">
+                        <tr>
+                            <th>Index (i)</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                        </tr>
+                        <tr>
+                            <th style="background:#1e293b; color:var(--muted);">memo[i]</th>
+                            <td id="memo-0">-1</td>
+                            <td id="memo-1">-1</td>
+                            <td id="memo-2">-1</td>
+                            <td id="memo-3">-1</td>
+                            <td id="memo-4">-1</td>
+                            <td id="memo-5">-1</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Input Parameters -->
+                <div class="panel-card">
+                    <div class="panel-title"><i class="fa-solid fa-sliders text-primary"></i> Parameters</div>
+                    <div class="input-group">
+                        <label for="inputN">Fibonacci Number (n)</label>
+                        <input type="number" id="inputN" value="5" min="0" max="10">
+                    </div>
+                    <div class="input-group">
+                        <label for="inputMax">MAX Array Size</label>
+                        <input type="number" id="inputMax" value="100" min="10" max="1000" disabled>
+                    </div>
+                </div>
+
+                <!-- Code Editor -->
+                <div class="panel-card" style="flex: 1;">
+                    <div class="panel-title">
+                        <span><i class="fa-solid fa-code text-primary"></i> C Code Editor</span>
+                        <span style="font-size:11px; color:var(--muted);"><i class="fa-solid fa-pen-to-square"></i> Editable</span>
+                    </div>
+                    <div class="editor-status">
+                        <div class="status-dot valid" id="editorStatusDot"></div>
+                        <span id="editorStatusText">Code is valid</span>
+                    </div>
+                    <div class="code-editor-wrapper">
+                        <div class="code-editor" id="codeEditor" contenteditable="true" spellcheck="false"></div>
+                    </div>
+                    <div class="error-panel" id="errorPanel"></div>
+                </div>
+
+                <!-- Controls -->
+                <div class="panel-card">
+                    <div class="panel-title"><i class="fa-solid fa-gamepad text-primary"></i> Controls</div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between"><span>Speed</span><span id="speedValue">1.5x</span></div>
+                        <input type="range" class="form-range" id="speedSlider" min="0.5" max="3" step="0.5" value="1.5">
+                        <div class="d-flex justify-content-between text-muted" style="font-size:11px;"><span>0.5x</span><span>1x</span><span>1.5x</span><span>2x</span><span>3x</span></div>
+                    </div>
+                    <div class="controls-row mb-3">
+                        <button class="btn-control btn-step" id="btnStep"><i class="fa-solid fa-arrow-right-to-bracket"></i> Step</button>
+                        <button class="btn-control btn-play" id="btnPlay"><i class="fa-solid fa-play"></i> Play</button>
+                        <button class="btn-control btn-pause" id="btnPause" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+                        <button class="btn-control btn-reset" id="btnReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="toggle-wrap">
+                            <span>Toggle Memoization</span>
+                            <div class="toggle-switch active" id="memoToggle"></div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-item"><i class="fa-solid fa-circle-check text-success"></i> Calls <span class="stat-value" id="callCount">0</span></div>
+                            <div class="stat-item"><i class="fa-solid fa-star text-warning"></i> Hits <span class="stat-value" id="memoHits">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Assistant -->
+                <div class="panel-card">
+                    <div class="panel-title"><i class="fa-solid fa-robot text-primary"></i> AI Assistant</div>
+                    <div class="ai-box mb-3">
+                        <div class="ai-question">Edit the C code above to experiment with different implementations. The editor will validate your changes in real-time.</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ask a follow-up question...">
+                        <button class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Simulation State
+    const state = {
+        n: 5,
+        max: 100,
+        memo: [],
+        memoEnabled: true,
+        callCount: 0,
+        memoHits: 0,
+        currentStep: 0,
+        isPlaying: false,
+        speed: 1.5,
+        steps: [],
+        treeNodes: [],
+        currentNode: null,
+        codeErrors: [],
+        originalCode: ''
+    };
+
+    // DOM Elements
+    const treeSvg = document.getElementById('treeSvg');
+    const codeEditor = document.getElementById('codeEditor');
+    const btnStep = document.getElementById('btnStep');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnPause = document.getElementById('btnPause');
+    const btnReset = document.getElementById('btnReset');
+    const memoToggle = document.getElementById('memoToggle');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+    const callCountEl = document.getElementById('callCount');
+    const memoHitsEl = document.getElementById('memoHits');
+    const inputN = document.getElementById('inputN');
+    const inputMax = document.getElementById('inputMax');
+    const errorPanel = document.getElementById('errorPanel');
+    const editorStatusDot = document.getElementById('editorStatusDot');
+    const editorStatusText = document.getElementById('editorStatusText');
+
+    // Original C code
+    const originalCCode = `<span class="code-line" data-line="1" data-line-num="1"><span class="code-preproc">#include</span> <span class="code-number">&lt;stdio.h&gt;</span></span>
+<span class="code-line" data-line="2" data-line-num="2"><span class="code-macro">#define</span> <span class="code-type">MAX</span> <span class="code-number">100</span></span>
+<span class="code-line" data-line="3" data-line-num="3"></span>
+<span class="code-line" data-line="4" data-line-num="4"><span class="code-type">int</span> <span class="code-keyword">memo</span>[<span class="code-type">MAX</span>];</span>
+<span class="code-line" data-line="5" data-line-num="5"></span>
+<span class="code-line" data-line="6" data-line-num="6"><span class="code-type">void</span> <span class="code-func">init_memo</span>() {</span>
+<span class="code-line" data-line="7" data-line-num="7" style="padding-left:20px;"><span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i < <span class="code-type">MAX</span>; i++) <span class="code-keyword">memo</span>[i] = <span class="code-number">-1</span>;</span>
+<span class="code-line" data-line="8" data-line-num="8">}</span>
+<span class="code-line" data-line="9" data-line-num="9"></span>
+<span class="code-line" data-line="10" data-line-num="10"><span class="code-type">int</span> <span class="code-func">fib</span>(<span class="code-type">int</span> n) {</span>
+<span class="code-line" data-line="11" data-line-num="11" style="padding-left:20px;"><span class="code-keyword">if</span> (n <= <span class="code-number">1</span>) <span class="code-keyword">return</span> n;</span>
+<span class="code-line" data-line="12" data-line-num="12" style="padding-left:20px;"><span class="code-keyword">if</span> (<span class="code-keyword">memo</span>[n] != <span class="code-number">-1</span>) <span class="code-keyword">return</span> <span class="code-keyword">memo</span>[n];</span>
+<span class="code-line" data-line="13" data-line-num="13" style="padding-left:20px;"><span class="code-keyword">memo</span>[n] = <span class="code-func">fib</span>(n-<span class="code-number">1</span>) + <span class="code-func">fib</span>(n-<span class="code-number">2</span>);</span>
+<span class="code-line" data-line="14" data-line-num="14" style="padding-left:20px;"><span class="code-keyword">return</span> <span class="code-keyword">memo</span>[n];</span>
+<span class="code-line" data-line="15" data-line-num="15">}</span>`;
+
+    // Initialize memo array with -1 (C-style)
+    function initMemoArray() {
+        state.memo = new Array(state.max).fill(-1);
+    }
+
+    // C Syntax Validation
+    function validateCCode(htmlContent) {
+        const errors = [];
+        const warnings = [];
+        
+        // Convert HTML back to plain text for validation
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        // Check for required components
+        if (!plainText.includes('#include')) {
+            errors.push({ line: 1, type: 'error', message: 'Missing #include directive' });
+        }
+        
+        if (!plainText.includes('#define')) {
+            warnings.push({ line: 2, type: 'warning', message: 'Missing #define directive for MAX' });
+        }
+        
+        if (!plainText.includes('memo[')) {
+            errors.push({ line: 4, type: 'error', message: 'Missing memo array declaration' });
+        }
+        
+        if (!plainText.includes('init_memo')) {
+            warnings.push({ line: 6, type: 'warning', message: 'Missing init_memo function' });
+        }
+        
+        if (!plainText.includes('fib(')) {
+            errors.push({ line: 10, type: 'error', message: 'Missing fib function' });
+        }
+        
+        if (!plainText.includes('return')) {
+            errors.push({ line: 11, type: 'error', message: 'Missing return statement' });
+        }
+        
+        // Check for common C syntax errors
+        if (plainText.match(/if\s*\(/g) && !plainText.match(/if\s*\([^)]*\)\s*{/g)) {
+            warnings.push({ line: 11, type: 'warning', message: 'if statement may be missing opening brace' });
+        }
+        
+        if (plainText.includes('memo[n]') && !plainText.includes('memo[n] != -1')) {
+            warnings.push({ line: 12, type: 'warning', message: 'Memo check may be missing -1 comparison' });
+        }
+        
+        // Check for balanced braces
+        const openBraces = (plainText.match(/{/g) || []).length;
+        const closeBraces = (plainText.match(/}/g) || []).length;
+        if (openBraces !== closeBraces) {
+            errors.push({ line: 0, type: 'error', message: `Unbalanced braces: ${openBraces} opening, ${closeBraces} closing` });
+        }
+        
+        // Check for balanced parentheses
+        const openParens = (plainText.match(/\(/g) || []).length;
+        const closeParens = (plainText.match(/\)/g) || []).length;
+        if (openParens !== closeParens) {
+            errors.push({ line: 0, type: 'error', message: `Unbalanced parentheses: ${openParens} opening, ${closeParens} closing` });
+        }
+        
+        return { errors, warnings };
+    }
+
+    // Update error display
+    function updateErrorDisplay(validation) {
+        const { errors, warnings } = validation;
+        state.codeErrors = [...errors, ...warnings];
+        
+        // Update status indicator
+        if (errors.length > 0) {
+            editorStatusDot.className = 'status-dot invalid';
+            editorStatusText.textContent = `${errors.length} error(s)`;
+            editorStatusText.style.color = 'var(--accent-red)';
+        } else if (warnings.length > 0) {
+            editorStatusDot.className = 'status-dot warning';
+            editorStatusText.textContent = `${warnings.length} warning(s)`;
+            editorStatusText.style.color = 'var(--accent-yellow)';
+        } else {
+            editorStatusDot.className = 'status-dot valid';
+            editorStatusText.textContent = 'Code is valid';
+            editorStatusText.style.color = 'var(--accent-green)';
+        }
+        
+        // Update error panel
+        errorPanel.innerHTML = '';
+        if (errors.length === 0 && warnings.length === 0) {
+            errorPanel.classList.remove('show');
+        } else {
+            errorPanel.classList.add('show');
+            
+            errors.forEach(err => {
+                const div = document.createElement('div');
+                div.className = 'error-item error';
+                div.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span><strong>Line ${err.line}:</strong> ${err.message}</span>`;
+                errorPanel.appendChild(div);
+            });
+            
+            warnings.forEach(warn => {
+                const div = document.createElement('div');
+                div.className = 'error-item warning';
+                div.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span><strong>Line ${warn.line}:</strong> ${warn.message}</span>`;
+                errorPanel.appendChild(div);
+            });
+        }
+        
+        // Highlight error lines in editor
+        document.querySelectorAll('.code-line').forEach(line => {
+            line.classList.remove('error', 'warning');
+        });
+        
+        errors.forEach(err => {
+            const lineEl = document.querySelector(`.code-line[data-line="${err.line}"]`);
+            if (lineEl) lineEl.classList.add('error');
+        });
+        
+        warnings.forEach(warn => {
+            const lineEl = document.querySelector(`.code-line[data-line="${warn.line}"]`);
+            if (lineEl) lineEl.classList.add('warning');
+        });
+        
+        // Disable controls if there are errors
+        const hasErrors = errors.length > 0;
+        btnStep.disabled = hasErrors;
+        btnPlay.disabled = hasErrors;
+        btnReset.disabled = hasErrors;
+    }
+
+    // Re-apply syntax highlighting to edited content
+    function reapplySyntaxHighlighting() {
+        const content = codeEditor.innerHTML;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        // Simple syntax highlighting for edited content
+        const lines = tempDiv.querySelectorAll('.code-line');
+        lines.forEach(line => {
+            let text = line.innerHTML;
+            
+            // Highlight keywords
+            const keywords = ['int', 'void', 'if', 'else', 'for', 'while', 'return'];
+            keywords.forEach(kw => {
+                const regex = new RegExp(`\\b${kw}\\b`, 'g');
+                text = text.replace(regex, `<span class="code-keyword">${kw}</span>`);
+            });
+            
+            // Highlight numbers
+            text = text.replace(/\b(\d+)\b/g, '<span class="code-number">$1</span>');
+            
+            // Highlight preprocessor directives
+            text = text.replace(/(#include|#define)/g, '<span class="code-preproc">$1</span>');
+            
+            // Highlight function calls
+            text = text.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="code-func">$1</span>(');
+            
+            line.innerHTML = text;
+        });
+        
+        codeEditor.innerHTML = tempDiv.innerHTML;
+    }
+
+    // Handle code editor changes
+    function handleCodeChange() {
+        const validation = validateCCode(codeEditor.innerHTML);
+        updateErrorDisplay(validation);
+        
+        // Re-apply syntax highlighting after a short delay
+        setTimeout(() => {
+            reapplySyntaxHighlighting();
+        }, 100);
+    }
+
+    // Initialize
+    function init() {
+        initMemoArray();
+        codeEditor.innerHTML = originalCCode;
+        state.originalCode = originalCCode;
+        generateSteps();
+        resetSimulation();
+        setupEventListeners();
+    }
+
+    // Generate all execution steps
+    function generateSteps() {
+        state.steps = [];
+        state.callCount = 0;
+        state.memoHits = 0;
+        initMemoArray();
+        
+        // Track execution
+        const executionLog = [];
+        
+        function fib(n, depth = 0, path = []) {
+            state.callCount++;
+            const currentPath = [...path, n];
+            
+            executionLog.push({
+                type: 'call',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 10
+            });
+
+            if (n <= 1) {
+                executionLog.push({
+                    type: 'base',
+                    n: n,
+                    depth: depth,
+                    path: currentPath,
+                    line: 11,
+                    value: n
+                });
+                return n;
+            }
+
+            executionLog.push({
+                type: 'check_memo',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 12
+            });
+
+            if (state.memoEnabled && state.memo[n] !== -1) {
+                state.memoHits++;
+                executionLog.push({
+                    type: 'memo_hit',
+                    n: n,
+                    depth: depth,
+                    path: currentPath,
+                    line: 12,
+                    value: state.memo[n]
+                });
+                return state.memo[n];
+            }
+
+            executionLog.push({
+                type: 'compute_left',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 13
+            });
+
+            const left = fib(n - 1, depth + 1, currentPath);
+
+            executionLog.push({
+                type: 'compute_right',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 13
+            });
+
+            const right = fib(n - 2, depth + 1, currentPath);
+
+            const result = left + right;
+            state.memo[n] = result;
+
+            executionLog.push({
+                type: 'store_memo',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 13,
+                value: result
+            });
+
+            executionLog.push({
+                type: 'return',
+                n: n,
+                depth: depth,
+                path: currentPath,
+                line: 14,
+                value: result
+            });
+
+            return result;
+        }
+
+        fib(state.n);
+        state.steps = executionLog;
+    }
+
+    // Reset simulation
+    function resetSimulation() {
+        state.currentStep = 0;
+        state.isPlaying = false;
+        initMemoArray();
+        state.callCount = 0;
+        state.memoHits = 0;
+        state.treeNodes = [];
+        state.currentNode = null;
+        
+        // Reset UI
+        btnPlay.disabled = false;
+        btnPause.disabled = true;
+        btnStep.disabled = false;
+        inputN.disabled = false;
+        
+        // Reset memo table
+        for (let i = 0; i <= 5; i++) {
+            const cell = document.getElementById(`memo-${i}`);
+            cell.textContent = '-1';
+            cell.className = '';
+        }
+        
+        // Reset code highlighting
+        document.querySelectorAll('.code-line').forEach(line => {
+            line.classList.remove('code-highlight');
+        });
+        
+        // Clear tree
+        treeSvg.innerHTML = '';
+        
+        // Reset stats
+        callCountEl.textContent = '0';
+        memoHitsEl.textContent = '0';
+        
+        // Regenerate steps
+        generateSteps();
+        
+        // Draw initial tree
+        drawTree();
+    }
+
+    // Draw tree visualization
+    function drawTree() {
+        treeSvg.innerHTML = '';
+        let maxDepth = 0;
+        state.steps.forEach(step => {
+            if (step.depth > maxDepth) maxDepth = step.depth;
+        });
+        const dynamicHeight = Math.max(320, 80 + maxDepth * 60);
+        treeSvg.setAttribute('viewBox', '0 0 700 ' + dynamicHeight);
+        treeSvg.style.height = dynamicHeight + 'px';
+        
+        const nodes = new Map();
+        const edges = [];
+        
+        // Build tree structure from steps
+        const visited = new Set();
+        
+        state.steps.forEach(step => {
+            const key = `${step.n}-${step.depth}`;
+            if (!visited.has(key)) {
+                visited.add(key);
+                
+                // Calculate position based on path
+                let x = 350;
+                
+                for (let i = 0; i < step.path.length - 1; i++) {
+                    const direction = step.path[i + 1] < step.path[i] ? -1 : 1;
+                    x += direction * (700 / Math.pow(2, i + 3));
+                }
+                
+                const y = 50 + step.depth * 50;
+                
+                if (!nodes.has(key)) {
+                    nodes.set(key, { n: step.n, depth: step.depth, x, y, computed: false, memo: false });
+                }
+            }
+        });
+
+        // Draw edges
+        nodes.forEach((node, key) => {
+            const pathParts = key.split('-');
+            const n = parseInt(pathParts[0]);
+            const depth = parseInt(pathParts[1]);
+            
+            if (depth > 0) {
+                // Find parent
+                for (const [parentKey, parentNode] of nodes) {
+                    const parentParts = parentKey.split('-');
+                    const parentDepth = parseInt(parentParts[1]);
+                    if (parentDepth === depth - 1) {
+                        // Check if this is a valid parent (n-1 or n-2)
+                        if (parentNode.n === n + 1 || parentNode.n === n + 2) {
+                            // Check path continuity
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', parentNode.x);
+                            line.setAttribute('y1', parentNode.y);
+                            line.setAttribute('x2', node.x);
+                            line.setAttribute('y2', node.y);
+                            line.setAttribute('class', 'edge-line');
+                            treeSvg.appendChild(line);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Draw nodes
+        nodes.forEach((node, key) => {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', Math.max(18, 28 - node.depth * 2));
+            circle.setAttribute('class', 'node-circle');
+            circle.setAttribute('data-key', key);
+            treeSvg.appendChild(circle);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', node.x);
+            text.setAttribute('y', node.y);
+            text.setAttribute('class', 'node-text');
+            text.setAttribute('style', `font-size: ${Math.max(10, 14 - node.depth)}px`);
+            text.textContent = `fib(${node.n})`;
+            treeSvg.appendChild(text);
+        });
+
+        state.treeNodes = nodes;
+    }
+
+    // Update visualization for current step
+    function updateVisualization() {
+        if (state.currentStep >= state.steps.length) {
+            state.isPlaying = false;
+            btnPlay.disabled = false;
+            btnPause.disabled = true;
+            inputN.disabled = false;
+            return;
+        }
+
+        const step = state.steps[state.currentStep];
+        
+        // Update code highlighting
+        document.querySelectorAll('.code-line').forEach(line => {
+            line.classList.remove('code-highlight');
+            if (parseInt(line.dataset.line) === step.line) {
+                line.classList.add('code-highlight');
+            }
+        });
+
+        // Update tree node states
+        document.querySelectorAll('.node-circle').forEach(circle => {
+            circle.classList.remove('node-current', 'node-computed', 'node-memo');
+        });
+
+        const currentKey = `${step.n}-${step.depth}`;
+        const currentCircle = document.querySelector(`.node-circle[data-key="${currentKey}"]`);
+        
+        if (currentCircle) {
+            if (step.type === 'memo_hit') {
+                currentCircle.classList.add('node-memo');
+            } else if (step.type === 'return' || step.type === 'base') {
+                currentCircle.classList.add('node-computed');
+            } else {
+                currentCircle.classList.add('node-current');
+            }
+        }
+
+        // Update memo table
+        if (step.type === 'store_memo' || step.type === 'memo_hit' || step.type === 'base') {
+            const cell = document.getElementById(`memo-${step.n}`);
+            if (cell) {
+                cell.textContent = step.value;
+                cell.className = step.type === 'memo_hit' ? 'computed' : 'computing';
+                setTimeout(() => {
+                    cell.className = 'computed';
+                }, 300);
+            }
+        }
+
+        // Update stats with animation
+        callCountEl.textContent = state.callCount;
+        memoHitsEl.textContent = state.memoHits;
+        callCountEl.classList.add('updated');
+        memoHitsEl.classList.add('updated');
+        setTimeout(() => {
+            callCountEl.classList.remove('updated');
+            memoHitsEl.classList.remove('updated');
+        }, 300);
+    }
+
+    // Step forward
+    function stepForward() {
+        if (state.currentStep < state.steps.length) {
+            state.currentStep++;
+            updateVisualization();
+        }
+    }
+
+    // Play simulation
+    function playSimulation() {
+        state.isPlaying = true;
+        btnPlay.disabled = true;
+        btnPause.disabled = false;
+        btnStep.disabled = true;
+        inputN.disabled = true;
+        
+        const delay = 1000 / state.speed;
+        
+        function playStep() {
+            if (!state.isPlaying) return;
+            
+            if (state.currentStep < state.steps.length) {
+                stepForward();
+                setTimeout(playStep, delay);
+            } else {
+                state.isPlaying = false;
+                btnPlay.disabled = false;
+                btnPause.disabled = true;
+                btnStep.disabled = false;
+                inputN.disabled = false;
+            }
+        }
+        
+        playStep();
+    }
+
+    // Pause simulation
+    function pauseSimulation() {
+        state.isPlaying = false;
+        btnPlay.disabled = false;
+        btnPause.disabled = true;
+        btnStep.disabled = false;
+        inputN.disabled = false;
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+        btnStep.addEventListener('click', stepForward);
+        btnPlay.addEventListener('click', playSimulation);
+        btnPause.addEventListener('click', pauseSimulation);
+        btnReset.addEventListener('click', resetSimulation);
+        
+        memoToggle.addEventListener('click', () => {
+            state.memoEnabled = !state.memoEnabled;
+            memoToggle.classList.toggle('active', state.memoEnabled);
+            resetSimulation();
+        });
+        
+        speedSlider.addEventListener('input', (e) => {
+            state.speed = parseFloat(e.target.value);
+            speedValue.textContent = `${state.speed}x`;
+        });
+
+        inputN.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value);
+            if (val >= 0 && val <= 10) {
+                state.n = val;
+                resetSimulation();
+            } else {
+                e.target.value = state.n;
+            }
+        });
+
+        // Code editor reactive validation
+        codeEditor.addEventListener('input', handleCodeChange);
+        codeEditor.addEventListener('blur', handleCodeChange);
+        
+        // Prevent Enter from creating divs, use line breaks instead
+        codeEditor.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.execCommand('insertLineBreak');
+            }
+        });
+    }
+
+    // Start
+    init();
+</script>
+</body>
+</html>

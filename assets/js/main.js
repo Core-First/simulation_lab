@@ -1,4 +1,3 @@
-
   // Theme toggle
   const themeBtn = document.getElementById('themeToggle');
   const applyTheme = (theme) => {
@@ -28,7 +27,6 @@
       document.getElementById('backdrop').classList.remove('show');
     });
   });
-
 
   // Hamburger
   const sidebar = document.getElementById('sidebar');
@@ -74,6 +72,12 @@
     ]},
   ];
 
+  // Simulation file path mapping
+  const simPaths = {
+    'Simulation 15: Dynamic Programming (Memoization)': 'part-6-algorithm-design/sim-15-dp-memoization.html',
+    'Simulation 16: Backtracking (N-Queens / Sudoku Solver)': 'part-6-algorithm-design/sim-16-backtracking-nqueens.html',
+  };
+
   const dsaRoot = document.querySelector('#dsaMenu .submenu');
   dsaData.forEach((p, i) => {
     const partId = `dsaPart${i}`;
@@ -85,7 +89,10 @@
       </button>
       <div class="collapse" id="${partId}">
         <ul class="submenu">
-          ${p.sims.map(s => `<li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> ${s}</a></li>`).join('')}
+          ${p.sims.map(s => {
+            const href = simPaths[s] || '#';
+            return `<li><a href="${href}" class="sub-link"><i class="fa-solid fa-circle"></i> ${s}</a></li>`;
+          }).join('')}
         </ul>
       </div>
     `;
@@ -95,6 +102,11 @@
   // Simulation click handling
   document.querySelectorAll('#dsaMenu .sub-link').forEach(link => {
     link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href !== '#') {
+        // Allow navigation to simulation files
+        return;
+      }
       e.preventDefault();
       document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.submenu .sub-link').forEach(l => l.classList.remove('active'));
@@ -106,4 +118,3 @@
       }
     });
   });
-
