@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BST Traversal - Interactive Code & Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1f2937;
+    --border:    #30363d;
+    --accent:    #3b82f6;
+    --accent2:   #6366f1;
+    --green:     #22c55e;
+    --yellow:    #f59e0b;
+    --red:       #ef4444;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --node-r:    26;
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .breadcrumb span { color: var(--accent); }
+  .sim-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+  .back-btn {
+    margin-left: auto;
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    transition: all .15s;
+  }
+  .back-btn:hover {
+    background: var(--border);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Code panel */
+  .code-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .code-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .code-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .code-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .code-line {
+    margin: 4px 0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all .2s;
+  }
+  .code-line:hover {
+    background: rgba(59,130,246,0.1);
+  }
+
+  .line-num {
+    display: inline-block;
+    min-width: 40px;
+    color: var(--muted);
+    margin-right: 12px;
+    text-align: right;
+  }
+
+  .keyword { color: #f97316; }
+  .comment { color: var(--muted); font-style: italic; }
+  .function { color: #60a5fa; }
+
+  /* Sim panel */
+  .sim-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sim-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sim-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sim-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .trav-btn {
+    padding: 4px 10px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .trav-btn:hover {
+    background: #60a5fa;
+  }
+  .load-btn {
+    padding: 4px 10px;
+    background: var(--yellow);
+    border: none;
+    color: #000;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  #bst-canvas {
+    flex: 1;
+    width: 100%;
+    cursor: default;
+  }
+
+  .log-area {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb">
+    Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>BST Traversal Code</span>
+  </div>
+  <a href="sim-10-bst.html" class="back-btn">← Back to Simulation</a>
+  <div class="sim-badge">Interactive Learning</div>
+</header>
+
+<div class="container">
+  <!-- CODE PANEL -->
+  <div class="code-panel scrollbar-thin">
+    <div class="code-header">
+      <h2>Python Implementation</h2>
+    </div>
+    <div class="code-content" id="code-content">
+      <div id="inorder" class="code-line" data-segment="inorder-def">
+        <span class="line-num">1</span>
+        <span><span class="keyword">def</span> <span class="function">inorder</span>(node, result=[]):</span>
+      </div>
+      <div class="code-line" data-segment="inorder-def">
+        <span class="line-num">2</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># In-order: Left → Root → Right (produces sorted output)</span></span>
+      </div>
+      <div class="code-line" data-segment="inorder-step">
+        <span class="line-num">3</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node:</span>
+      </div>
+      <div class="code-line" data-segment="inorder-step">
+        <span class="line-num">4</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inorder(node.left, result)</span>
+      </div>
+      <div class="code-line" data-segment="inorder-step">
+        <span class="line-num">5</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.append(node.val)</span>
+      </div>
+      <div class="code-line" data-segment="inorder-step">
+        <span class="line-num">6</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inorder(node.right, result)</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">7</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> result</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">8</span>
+        <span></span>
+      </div>
+      <div id="preorder" class="code-line" data-segment="preorder-def">
+        <span class="line-num">9</span>
+        <span><span class="keyword">def</span> <span class="function">preorder</span>(node, result=[]):</span>
+      </div>
+      <div class="code-line" data-segment="preorder-def">
+        <span class="line-num">10</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Pre-order: Root → Left → Right (good for copying)</span></span>
+      </div>
+      <div class="code-line" data-segment="preorder-step">
+        <span class="line-num">11</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node:</span>
+      </div>
+      <div class="code-line" data-segment="preorder-step">
+        <span class="line-num">12</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.append(node.val)</span>
+      </div>
+      <div class="code-line" data-segment="preorder-step">
+        <span class="line-num">13</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;preorder(node.left, result)</span>
+      </div>
+      <div class="code-line" data-segment="preorder-step">
+        <span class="line-num">14</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;preorder(node.right, result)</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">15</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> result</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">16</span>
+        <span></span>
+      </div>
+      <div id="postorder" class="code-line" data-segment="postorder-def">
+        <span class="line-num">17</span>
+        <span><span class="keyword">def</span> <span class="function">postorder</span>(node, result=[]):</span>
+      </div>
+      <div class="code-line" data-segment="postorder-def">
+        <span class="line-num">18</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Post-order: Left → Right → Root (good for deletion)</span></span>
+      </div>
+      <div class="code-line" data-segment="postorder-step">
+        <span class="line-num">19</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node:</span>
+      </div>
+      <div class="code-line" data-segment="postorder-step">
+        <span class="line-num">20</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;postorder(node.left, result)</span>
+      </div>
+      <div class="code-line" data-segment="postorder-step">
+        <span class="line-num">21</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;postorder(node.right, result)</span>
+      </div>
+      <div class="code-line" data-segment="postorder-step">
+        <span class="line-num">22</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.append(node.val)</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">23</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> result</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIM PANEL -->
+  <div class="sim-panel">
+    <div class="sim-header">
+      <h2>Live Simulation</h2>
+      <div class="sim-controls">
+        <button class="load-btn" onclick="loadPreset()">Load Tree</button>
+        <button class="trav-btn" onclick="runTraversal('inorder')">▶ In-order</button>
+        <button class="trav-btn" onclick="runTraversal('preorder')">▶ Pre-order</button>
+        <button class="trav-btn" onclick="runTraversal('postorder')">▶ Post-order</button>
+      </div>
+    </div>
+    <canvas id="bst-canvas"></canvas>
+    <div class="log-area" id="log-area">
+      Load a tree, then hover over code to see the traversal order. Click a button to animate the traversal.
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── BST Data Structure ───────────────────────────────────────────────────────
+class BSTNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+    this.x = 0;
+    this.y = 0;
+    this.traversed = false;
+  }
+}
+
+let root = null;
+let animating = false;
+const canvas = document.getElementById('bst-canvas');
+const ctx = canvas.getContext('2d');
+const R = 22;
+const V_GAP = 70;
+const animSpeed = 400;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  layoutTree();
+  draw();
+}
+
+function layoutTree() {
+  if (!root) return;
+  const nodes = inorder(root);
+  const n = nodes.length;
+  const usableW = canvas.width - 60;
+  const startX = 30;
+  nodes.forEach((node, i) => {
+    node.x = startX + (usableW / (n + 1)) * (i + 1);
+  });
+  function setY(node, depth) {
+    if (!node) return;
+    node.y = 50 + depth * V_GAP;
+    setY(node.left, depth + 1);
+    setY(node.right, depth + 1);
+  }
+  setY(root, 0);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!root) {
+    ctx.fillStyle = '#30363d';
+    ctx.font = "14px 'Sora', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText('Load a tree to get started', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+  drawEdges(root);
+  drawNodes(root);
+}
+
+function drawEdges(node) {
+  if (!node) return;
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1.5;
+  if (node.left) {
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.left.x, node.left.y);
+    ctx.stroke();
+    drawEdges(node.left);
+  }
+  if (node.right) {
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.right.x, node.right.y);
+    ctx.stroke();
+    drawEdges(node.right);
+  }
+}
+
+function drawNodes(node) {
+  if (!node) return;
+  let fill = '#1f2937';
+  let stroke = '#3b82f6';
+  let textColor = '#e6edf3';
+
+  if (node.traversed) {
+    fill = 'rgba(99,102,241,0.25)';
+    stroke = '#6366f1';
+    textColor = '#a5b4fc';
+  }
+
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, R, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = stroke;
+  ctx.stroke();
+
+  ctx.fillStyle = textColor;
+  ctx.font = "bold 13px 'JetBrains Mono', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(node.val, node.x, node.y);
+
+  drawNodes(node.left);
+  drawNodes(node.right);
+}
+
+// ─── Traversal Functions ───────────────────────────────────────────────────
+function inorder(node, arr = []) {
+  if (node) {
+    inorder(node.left, arr);
+    arr.push(node);
+    inorder(node.right, arr);
+  }
+  return arr;
+}
+
+function preorder(node, arr = []) {
+  if (node) {
+    arr.push(node);
+    preorder(node.left, arr);
+    preorder(node.right, arr);
+  }
+  return arr;
+}
+
+function postorder(node, arr = []) {
+  if (node) {
+    postorder(node.left, arr);
+    postorder(node.right, arr);
+    arr.push(node);
+  }
+  return arr;
+}
+
+function insert(node, val) {
+  if (node === null) return new BSTNode(val);
+  if (val < node.val) node.left = insert(node.left, val);
+  else node.right = insert(node.right, val);
+  return node;
+}
+
+// ─── UI Functions ───────────────────────────────────────────────────────────
+function log(msg) {
+  document.getElementById('log-area').textContent = msg;
+}
+
+function loadPreset() {
+  root = null;
+  [50, 25, 75, 12, 37, 62, 87].forEach(v => { root = insert(root, v); });
+  layoutTree();
+  draw();
+  log('Tree loaded: 50, 25, 75, 12, 37, 62, 87');
+}
+
+async function runTraversal(type) {
+  if (!root || animating) return;
+  animating = true;
+  clearTraversed(root);
+  draw();
+
+  let nodes;
+  if (type === 'inorder') nodes = inorder(root);
+  else if (type === 'preorder') nodes = preorder(root);
+  else nodes = postorder(root);
+
+  const result = nodes.map(n => n.val).join(' → ');
+  
+  for (let i = 0; i < nodes.length; i++) {
+    nodes[i].traversed = true;
+    log(`Visiting: ${nodes[i].val} (${i + 1}/${nodes.length})`);
+    draw();
+    await new Promise(r => setTimeout(r, animSpeed));
+  }
+
+  log(`${type.toUpperCase()} traversal: ${result}`);
+  animating = false;
+}
+
+function clearTraversed(node) {
+  if (!node) return;
+  node.traversed = false;
+  clearTraversed(node.left);
+  clearTraversed(node.right);
+}
+
+// Code highlighting
+document.querySelectorAll('[data-segment]').forEach(line => {
+  line.addEventListener('mouseenter', () => {
+    const segment = line.dataset.segment;
+    clearTraversed(root);
+    
+    if (segment === 'inorder-def') log('In-order: Visit left subtree → process node → visit right subtree (sorted order)');
+    else if (segment === 'preorder-def') log('Pre-order: Process node → visit left subtree → visit right subtree');
+    else if (segment === 'postorder-def') log('Post-order: Visit left subtree → visit right subtree → process node');
+    
+    draw();
+  });
+  line.addEventListener('mouseleave', () => {
+    clearTraversed(root);
+    draw();
+  });
+});
+
+window.addEventListener('resize', resizeCanvas);
+document.fonts.ready.then(() => { resizeCanvas(); });
+</script>
+</body>
+</html>

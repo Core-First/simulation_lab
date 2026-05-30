@@ -1,7 +1,3 @@
-<!-- scan the code for errors-->
- 
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,23 +60,45 @@
     letter-spacing: .5px;
   }
 
-  /* ── 3-col layout ── */
+  /* ── 3-col resizable layout ── */
   .workspace {
-    display: grid;
-    grid-template-columns: 280px 1fr 260px;
+    display: flex;
     flex: 1;
     overflow: hidden;
+  }
+
+  /* ── Drag handles ── */
+  .resizer {
+    width: 5px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    transition: background .15s;
+    z-index: 10;
+  }
+  .resizer:hover, .resizer.dragging { background: var(--accent); }
+  .resizer::after {
+    content: '⋮';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    pointer-events: none;
   }
 
   /* ── Shared panel ── */
   .panel {
     background: var(--surface);
-    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
   }
-  .panel:last-child { border-right: none; border-left: 1px solid var(--border); }
 
   .panel-header {
     padding: 14px 18px 12px;
@@ -218,7 +236,78 @@
   #bst-canvas {
     flex: 1;
     width: 100%;
-    cursor: default;
+    cursor: grab;
+    position: relative;
+  }
+  #bst-canvas:active {
+    cursor: grabbing;
+  }
+
+  /* Node info tooltip */
+  #node-tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+  #node-tooltip.visible {
+    display: block;
+  }
+  #node-tooltip .tval {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  #node-tooltip .tinfo {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  /* Code links */
+  .code-link {
+    display: inline-block;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(59,130,246,0.3);
+    transition: all .15s;
+    font-weight: 500;
+    padding-bottom: 2px;
+  }
+  .code-link:hover {
+    color: #60a5fa;
+    border-bottom-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  /* Clickable theory items */
+  .theory-link {
+    cursor: pointer;
+    transition: all .15s;
+    display: block;
+    padding: 3px 0;
+  }
+  .theory-link:hover {
+    color: #e6edf3;
+  }
+  .theory-link strong {
+    color: #e6edf3;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  .theory-link:hover strong {
+    color: #ffffff;
   }
 
   /* traversal path strip */
@@ -260,6 +349,7 @@
     color: var(--muted);
     margin-bottom: 10px;
     font-family: 'JetBrains Mono', monospace;
+    
   }
 
   .input-row {
@@ -379,7 +469,7 @@
 <div class="workspace">
 
   <!-- ═══════════════ LEFT: THEORY ═══════════════ -->
-  <div class="panel">
+  <div class="panel" id="panel-left" style="width:280px;border-right:1px solid var(--border)">
     <div class="panel-header">
       <h2>Module</h2>
       <p>Theory & Concepts</p>
@@ -404,19 +494,19 @@
       <div class="theory-section">
         <h3>Core Operations</h3>
         <ul>
-          <li><strong>Insert</strong> — recursively descend until an empty spot is found</li>
-          <li><strong>Search</strong> — compare at each node; go left or right accordingly</li>
-          <li><strong>Delete</strong> — three cases: leaf, one child, two children</li>
-          <li><strong>Traversal</strong> — In-order gives sorted output</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-insertion-code.html'"><strong>Insert</strong> — recursively descend until an empty spot is found</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-deletion-code.html'"><strong>Search</strong> — compare at each node; go left or right accordingly</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-deletion-code.html'"><strong>Delete</strong> — three cases: leaf, one child, two children</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html'"><strong>Traversal</strong> — In-order gives sorted output</li>
         </ul>
       </div>
 
       <div class="theory-section">
         <h3>Traversal Orders</h3>
         <ul>
-          <li><strong>In-order</strong> (L → Root → R) — sorted ascending</li>
-          <li><strong>Pre-order</strong> (Root → L → R) — useful for copying</li>
-          <li><strong>Post-order</strong> (L → R → Root) — useful for deletion</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#inorder'"><strong>In-order</strong> (L → Root → R) — sorted ascending</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#preorder'"><strong>Pre-order</strong> (Root → L → R) — useful for copying</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#postorder'"><strong>Post-order</strong> (L → R → Root) — useful for deletion</li>
         </ul>
       </div>
 
@@ -446,10 +536,12 @@
       </div>
 
     </div>
-  </div>
+  </div><!-- /panel-left -->
+
+  <div class="resizer" id="resizer-left"></div>
 
   <!-- ═══════════════ MIDDLE: SIMULATION ═══════════════ -->
-  <div class="sim-area">
+  <div class="sim-area" id="panel-mid" style="flex:1;min-width:300px">
     <div class="sim-toolbar">
       <span class="tb-label">MODE:</span>
       <button class="btn btn-ghost" id="btn-insert-mode" onclick="setMode('insert')">Insert</button>
@@ -459,14 +551,17 @@
     </div>
 
     <canvas id="bst-canvas"></canvas>
+    <div id="node-tooltip"></div>
 
     <div class="traversal-strip" id="traversal-strip">
       <span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>
     </div>
-  </div>
+  </div><!-- /panel-mid -->
+
+  <div class="resizer" id="resizer-right"></div>
 
   <!-- ═══════════════ RIGHT: CONTROLS ═══════════════ -->
-  <div class="panel" style="border-right:none;border-left:1px solid var(--border)">
+  <div class="panel" id="panel-right" style="width:260px;border-left:1px solid var(--border)">
     <div class="panel-header">
       <h2>Controls</h2>
       <p>Adjust Simulation</p>
@@ -522,6 +617,16 @@
           <button class="btn btn-ghost" onclick="loadPreset('skewed')">Skewed</button>
           <button class="btn btn-ghost" onclick="loadPreset('random')">Random</button>
           <button class="btn btn-danger" onclick="clearTree()">Clear</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Learn by Code</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">See how each operation works with interactive code:</p>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="sim-10-insertion-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Insertion Code</a>
+          <a href="sim-10-deletion-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Deletion Code</a>
+          <a href="sim-10-traversal-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Traversal Code</a>
         </div>
       </div>
 
@@ -617,6 +722,21 @@ const ctx    = canvas.getContext('2d');
 const R      = 22;
 const V_GAP  = 70;
 
+// Pan variables (zoom removed)
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let panStartPanX = 0;
+let panStartPanY = 0;
+
+// Interactive node variables
+let hoveredNode = null;
+let selectedNode = null;
+let mouseX = 0;
+let mouseY = 0;
+
 function resizeCanvas() {
   canvas.width  = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
@@ -647,6 +767,7 @@ function layoutTree() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   if (!root) {
     ctx.fillStyle = '#30363d';
     ctx.font = "14px 'Sora', sans-serif";
@@ -660,9 +781,17 @@ function draw() {
 
 function drawEdges(node) {
   if (!node) return;
-  ctx.strokeStyle = '#30363d';
   ctx.lineWidth = 1.5;
+  
   if (node.left) {
+    // Highlight edge if connected to hovered or selected node
+    if (hoveredNode === node || hoveredNode === node.left || selectedNode === node || selectedNode === node.left) {
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1.5;
+    }
     ctx.beginPath();
     ctx.moveTo(node.x, node.y);
     ctx.lineTo(node.left.x, node.left.y);
@@ -670,6 +799,14 @@ function drawEdges(node) {
     drawEdges(node.left);
   }
   if (node.right) {
+    // Highlight edge if connected to hovered or selected node
+    if (hoveredNode === node || hoveredNode === node.right || selectedNode === node || selectedNode === node.right) {
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1.5;
+    }
     ctx.beginPath();
     ctx.moveTo(node.x, node.y);
     ctx.lineTo(node.right.x, node.right.y);
@@ -681,11 +818,13 @@ function drawEdges(node) {
 function drawNodes(node) {
   if (!node) return;
 
-  // Fill color
+  // Base colors
   let fill = '#1f2937';
   let stroke = '#3b82f6';
   let textColor = '#e6edf3';
+  let nodeRadius = R;
 
+  // State-based colors
   if (node.found) {
     fill = 'rgba(34,197,94,0.25)'; stroke = '#22c55e'; textColor = '#4ade80';
   } else if (node.highlighted) {
@@ -694,14 +833,36 @@ function drawNodes(node) {
     fill = 'rgba(99,102,241,0.25)'; stroke = '#6366f1'; textColor = '#a5b4fc';
   }
 
+  // Hover effect
+  if (hoveredNode === node) {
+    nodeRadius = R * 1.25;
+    stroke = '#3b82f6';
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  } else if (selectedNode === node) {
+    // Selection effect (glow only, no outer ring)
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  } else {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw main node
   ctx.beginPath();
-  ctx.arc(node.x, node.y, R, 0, Math.PI * 2);
+  ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
   ctx.fillStyle = fill;
   ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = hoveredNode === node || selectedNode === node ? 3 : 2;
   ctx.strokeStyle = stroke;
-  ctx.lineWidth = 2;
   ctx.stroke();
 
+  // Draw text
   ctx.fillStyle = textColor;
   ctx.font = "bold 13px 'JetBrains Mono', monospace";
   ctx.textAlign = 'center';
@@ -857,6 +1018,8 @@ function updateSpeed(v) {
 function clearTree() {
   if (animating) return;
   root = null;
+  hoveredNode = null;
+  selectedNode = null;
   clearHighlights(root);
   document.getElementById('traversal-strip').innerHTML =
     '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
@@ -878,6 +1041,99 @@ function loadPreset(type) {
   log(`Loaded ${type} preset`);
 }
 
+
+
+// Find node at screen coordinates
+function getNodeAtPoint(x, y, node = root) {
+  if (!node) return null;
+  
+  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  if (dist <= R * 1.4) {
+    return node;
+  }
+  
+  const left = getNodeAtPoint(x, y, node.left);
+  if (left) return left;
+  return getNodeAtPoint(x, y, node.right);
+}
+
+function updateNodeInfo(node) {
+  const tooltip = document.getElementById('node-tooltip');
+  if (!node) {
+    tooltip.classList.remove('visible');
+    return;
+  }
+  
+  let info = `Value: <span class="tval">${node.val}</span>`;
+  if (node.left || node.right) {
+    info += ` | Children: `;
+    if (node.left && node.right) info += `L:${node.left.val}, R:${node.right.val}`;
+    else if (node.left) info += `L:${node.left.val}`;
+    else if (node.right) info += `R:${node.right.val}`;
+  }
+  
+  tooltip.innerHTML = info;
+  tooltip.classList.add('visible');
+  tooltip.style.left = (mouseX + 10) + 'px';
+  tooltip.style.top = (mouseY + 10) + 'px';
+}
+
+// ─── Canvas Interactions (Zoom & Pan) ───────────────────────────────────────
+
+canvas.addEventListener('mousedown', (e) => {
+  // Check if clicking on a node
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+  const clickedNode = getNodeAtPoint(clickX, clickY);
+  
+  if (clickedNode) {
+    selectedNode = selectedNode === clickedNode ? null : clickedNode;
+    draw();
+    return;
+  }
+  
+  isPanning = true;
+  panStartX = e.clientX;
+  panStartY = e.clientY;
+  panStartPanX = panX;
+  panStartPanY = panY;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+  
+  if (!isPanning) {
+    const hovered = getNodeAtPoint(mouseX, mouseY);
+    if (hovered !== hoveredNode) {
+      hoveredNode = hovered;
+      updateNodeInfo(hovered);
+      draw();
+      canvas.style.cursor = hovered ? 'pointer' : 'grab';
+    }
+    return;
+  }
+  
+  const deltaX = (e.clientX - panStartX);
+  const deltaY = (e.clientY - panStartY);
+  panX = panStartPanX + deltaX;
+  panY = panStartPanY + deltaY;
+  draw();
+});
+
+canvas.addEventListener('mouseup', () => {
+  isPanning = false;
+});
+
+canvas.addEventListener('mouseleave', () => {
+  isPanning = false;
+  hoveredNode = null;
+  document.getElementById('node-tooltip').classList.remove('visible');
+  draw();
+});
+
 // Init
 setMode('insert');
 window.addEventListener('resize', resizeCanvas);
@@ -893,6 +1149,43 @@ window.addEventListener('resize', resizeCanvas);
   });
 });
 
+// ─── Resizable panels ────────────────────────────────────────────────────────
+function makeResizer(resizerId, panelId, side) {
+  const resizer = document.getElementById(resizerId);
+  const panel   = document.getElementById(panelId);
+  const MIN_W   = 160;
+  const MAX_W   = 520;
+
+  resizer.addEventListener('mousedown', e => {
+    e.preventDefault();
+    resizer.classList.add('dragging');
+    const startX   = e.clientX;
+    const startW   = panel.offsetWidth;
+
+    function onMove(e) {
+      let newW;
+      if (side === 'left') {
+        newW = startW + (e.clientX - startX);
+      } else {
+        newW = startW - (e.clientX - startX);
+      }
+      newW = Math.max(MIN_W, Math.min(MAX_W, newW));
+      panel.style.width = newW + 'px';
+      panel.style.flex  = 'none';
+      resizeCanvas();
+    }
+    function onUp() {
+      resizer.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
+}
+
+makeResizer('resizer-left',  'panel-left',  'left');
+makeResizer('resizer-right', 'panel-right', 'right');
 // Wait for fonts then resize
 document.fonts.ready.then(() => { resizeCanvas(); loadPreset('balanced'); });
 </script>

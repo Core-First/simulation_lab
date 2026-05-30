@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BST Deletion - Interactive Code & Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1f2937;
+    --border:    #30363d;
+    --accent:    #3b82f6;
+    --accent2:   #6366f1;
+    --green:     #22c55e;
+    --yellow:    #f59e0b;
+    --red:       #ef4444;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --node-r:    26;
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .breadcrumb span { color: var(--accent); }
+  .sim-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+  .back-btn {
+    margin-left: auto;
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    transition: all .15s;
+  }
+  .back-btn:hover {
+    background: var(--border);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Code panel */
+  .code-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .code-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .code-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .code-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .code-line {
+    margin: 4px 0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all .2s;
+  }
+  .code-line:hover {
+    background: rgba(59,130,246,0.1);
+  }
+
+  .line-num {
+    display: inline-block;
+    min-width: 40px;
+    color: var(--muted);
+    margin-right: 12px;
+    text-align: right;
+  }
+
+  .keyword { color: #f97316; }
+  .string { color: #22c55e; }
+  .comment { color: var(--muted); font-style: italic; }
+  .function { color: #60a5fa; }
+
+  /* Sim panel */
+  .sim-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sim-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sim-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sim-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .input-group {
+    display: flex;
+    gap: 4px;
+  }
+  .input-group input {
+    width: 60px;
+    padding: 4px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .input-group button {
+    padding: 4px 10px;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .input-group button:hover {
+    background: #f87171;
+  }
+  .load-preset {
+    padding: 4px 10px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .load-preset:hover {
+    background: #60a5fa;
+  }
+
+  #bst-canvas {
+    flex: 1;
+    width: 100%;
+    cursor: default;
+  }
+
+  #node-tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  #node-tooltip.visible {
+    display: block;
+  }
+
+  .log-area {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb">
+    Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>BST Deletion Code</span>
+  </div>
+  <a href="sim-10-bst.html" class="back-btn">← Back to Simulation</a>
+  <div class="sim-badge">Interactive Learning</div>
+</header>
+
+<div class="container">
+  <!-- CODE PANEL -->
+  <div class="code-panel scrollbar-thin">
+    <div class="code-header">
+      <h2>Python Implementation</h2>
+    </div>
+    <div class="code-content" id="code-content">
+      <div class="code-line" data-segment="delete-start">
+        <span class="line-num">1</span>
+        <span><span class="keyword">def</span> <span class="function">delete</span>(node, val):</span>
+      </div>
+      <div class="code-line" data-segment="delete-notfound">
+        <span class="line-num">2</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Base case: value not found in tree</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-notfound">
+        <span class="line-num">3</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:</span>
+      </div>
+      <div class="code-line" data-segment="delete-notfound">
+        <span class="line-num">4</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="keyword">None</span></span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">5</span>
+        <span></span>
+      </div>
+      <div class="code-line" data-segment="delete-search">
+        <span class="line-num">6</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Search for the node to delete</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-search">
+        <span class="line-num">7</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> val < node.val:</span>
+      </div>
+      <div class="code-line" data-segment="delete-search">
+        <span class="line-num">8</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.left = <span class="function">delete</span>(node.left, val)</span>
+      </div>
+      <div class="code-line" data-segment="delete-search">
+        <span class="line-num">9</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">elif</span> val > node.val:</span>
+      </div>
+      <div class="code-line" data-segment="delete-search">
+        <span class="line-num">10</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.right = <span class="function">delete</span>(node.right, val)</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">11</span>
+        <span></span>
+      </div>
+      <div class="code-line" data-segment="delete-cases">
+        <span class="line-num">12</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">else</span>: <span class="comment"># Node to delete found</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-leaf">
+        <span class="line-num">13</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node.left <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">and</span> node.right <span class="keyword">is</span> <span class="keyword">None</span>:</span>
+      </div>
+      <div class="code-line" data-segment="delete-leaf">
+        <span class="line-num">14</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="keyword">None</span> <span class="comment"># Leaf node: just remove it</span></span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">15</span>
+        <span></span>
+      </div>
+      <div class="code-line" data-segment="delete-onechild">
+        <span class="line-num">16</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node.left <span class="keyword">is</span> <span class="keyword">None</span>:</span>
+      </div>
+      <div class="code-line" data-segment="delete-onechild">
+        <span class="line-num">17</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> node.right <span class="comment"># One child on right</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-onechild">
+        <span class="line-num">18</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node.right <span class="keyword">is</span> <span class="keyword">None</span>:</span>
+      </div>
+      <div class="code-line" data-segment="delete-onechild">
+        <span class="line-num">19</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> node.left <span class="comment"># One child on left</span></span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">20</span>
+        <span></span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">21</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Two children: find inorder successor</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">22</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;succ = node.right</span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">23</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">while</span> succ.left:</span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">24</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;succ = succ.left</span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">25</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.val = succ.val <span class="comment"># Replace with successor</span></span>
+      </div>
+      <div class="code-line" data-segment="delete-twochild">
+        <span class="line-num">26</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.right = <span class="function">delete</span>(node.right, succ.val)</span>
+      </div>
+      <div class="code-line">
+        <span class="line-num">27</span>
+        <span></span>
+      </div>
+      <div class="code-line" data-segment="delete-return">
+        <span class="line-num">28</span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> node</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIM PANEL -->
+  <div class="sim-panel">
+    <div class="sim-header">
+      <h2>Live Simulation</h2>
+      <div class="sim-controls">
+        <button class="load-preset" onclick="loadPreset()">Load Balanced Tree</button>
+        <div class="input-group">
+          <input type="number" id="delete-value" placeholder="Value" min="1" max="99" />
+          <button onclick="deleteAndVisualize()">Delete</button>
+        </div>
+      </div>
+    </div>
+    <canvas id="bst-canvas"></canvas>
+    <div id="node-tooltip"></div>
+    <div class="log-area" id="log-area">
+      Load a tree using the button, then hover over code segments to see what they do. Enter a value to delete.
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── BST Data Structure ───────────────────────────────────────────────────────
+class BSTNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+    this.x = 0;
+    this.y = 0;
+    this.highlighted = false;
+  }
+}
+
+let root = null;
+const canvas = document.getElementById('bst-canvas');
+const ctx = canvas.getContext('2d');
+const R = 22;
+const V_GAP = 70;
+let hoveredNode = null;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  layoutTree();
+  draw();
+}
+
+function layoutTree() {
+  if (!root) return;
+  const nodes = inorder(root);
+  const n = nodes.length;
+  const usableW = canvas.width - 60;
+  const startX = 30;
+  nodes.forEach((node, i) => {
+    node.x = startX + (usableW / (n + 1)) * (i + 1);
+  });
+  function setY(node, depth) {
+    if (!node) return;
+    node.y = 50 + depth * V_GAP;
+    setY(node.left, depth + 1);
+    setY(node.right, depth + 1);
+  }
+  setY(root, 0);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!root) {
+    ctx.fillStyle = '#30363d';
+    ctx.font = "14px 'Sora', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText('Load a tree to get started', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+  drawEdges(root);
+  drawNodes(root);
+}
+
+function drawEdges(node) {
+  if (!node) return;
+  ctx.strokeStyle = node.highlighted ? '#6366f1' : '#30363d';
+  ctx.lineWidth = node.highlighted ? 2.5 : 1.5;
+  if (node.left) {
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.left.x, node.left.y);
+    ctx.stroke();
+    drawEdges(node.left);
+  }
+  if (node.right) {
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.right.x, node.right.y);
+    ctx.stroke();
+    drawEdges(node.right);
+  }
+}
+
+function drawNodes(node) {
+  if (!node) return;
+  let fill = '#1f2937';
+  let stroke = '#3b82f6';
+  let textColor = '#e6edf3';
+  let nodeRadius = R;
+
+  if (node.highlighted) {
+    fill = 'rgba(245,158,11,0.25)';
+    stroke = '#f59e0b';
+    textColor = '#fbbf24';
+  }
+
+  if (hoveredNode === node) {
+    nodeRadius = R * 1.25;
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 8;
+  } else {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = stroke;
+  ctx.stroke();
+
+  ctx.fillStyle = textColor;
+  ctx.font = "bold 13px 'JetBrains Mono', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(node.val, node.x, node.y);
+
+  drawNodes(node.left);
+  drawNodes(node.right);
+}
+
+function inorder(node, arr = []) {
+  if (node) {
+    inorder(node.left, arr);
+    arr.push(node);
+    inorder(node.right, arr);
+  }
+  return arr;
+}
+
+function insert(node, val) {
+  if (node === null) return new BSTNode(val);
+  if (val < node.val) node.left = insert(node.left, val);
+  else node.right = insert(node.right, val);
+  return node;
+}
+
+function deleteNode(node, val) {
+  if (node === null) return null;
+  if (val < node.val) node.left = deleteNode(node.left, val);
+  else if (val > node.val) node.right = deleteNode(node.right, val);
+  else {
+    if (node.left === null && node.right === null) return null;
+    if (node.left === null) return node.right;
+    if (node.right === null) return node.left;
+    let succ = node.right;
+    while (succ.left) succ = succ.left;
+    node.val = succ.val;
+    node.right = deleteNode(node.right, succ.val);
+  }
+  return node;
+}
+
+function countNodes(node) {
+  if (!node) return 0;
+  return 1 + countNodes(node.left) + countNodes(node.right);
+}
+
+function log(msg) {
+  document.getElementById('log-area').textContent = msg;
+}
+
+function deleteAndVisualize() {
+  const input = document.getElementById('delete-value');
+  const val = parseInt(input.value);
+  if (isNaN(val)) {
+    log('Enter a value to delete');
+    return;
+  }
+  const before = countNodes(root);
+  root = deleteNode(root, val);
+  const after = countNodes(root);
+  layoutTree();
+  draw();
+  if (before !== after) log(`Deleted ${val}. Tree now has ${after} nodes.`);
+  else log(`Value ${val} not found in tree.`);
+  input.value = '';
+}
+
+function loadPreset() {
+  root = null;
+  [50, 25, 75, 12, 37, 62, 87].forEach(v => { root = insert(root, v); });
+  layoutTree();
+  draw();
+  log('Balanced tree loaded with values: 50, 25, 75, 12, 37, 62, 87');
+}
+
+// Code highlighting
+document.querySelectorAll('[data-segment]').forEach(line => {
+  line.addEventListener('mouseenter', () => {
+    const segment = line.dataset.segment;
+    clearHighlights(root);
+    if (segment === 'delete-notfound') log('If the node is empty, the value doesn\'t exist in the tree.');
+    else if (segment === 'delete-search') log('Recursively search left or right until we find the value.');
+    else if (segment === 'delete-leaf') log('Case 1: Node has no children - simply remove it.');
+    else if (segment === 'delete-onechild') log('Case 2: Node has one child - replace it with that child.');
+    else if (segment === 'delete-twochild') log('Case 3: Node has two children - find inorder successor and replace.');
+    draw();
+  });
+  line.addEventListener('mouseleave', () => {
+    clearHighlights(root);
+    draw();
+  });
+});
+
+function clearHighlights(node) {
+  if (!node) return;
+  node.highlighted = false;
+  clearHighlights(node.left);
+  clearHighlights(node.right);
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const hovered = getNodeAtPoint(x, y);
+  if (hovered !== hoveredNode) {
+    hoveredNode = hovered;
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredNode = null;
+  draw();
+});
+
+function getNodeAtPoint(x, y, node = root) {
+  if (!node) return null;
+  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  if (dist <= R * 1.4) return node;
+  const left = getNodeAtPoint(x, y, node.left);
+  if (left) return left;
+  return getNodeAtPoint(x, y, node.right);
+}
+
+window.addEventListener('resize', resizeCanvas);
+document.fonts.ready.then(() => { resizeCanvas(); });
+</script>
+</body>
+</html>
