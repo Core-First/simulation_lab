@@ -24,7 +24,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=your-project-name
-          # If your files are in a subfolder (e.g. dist/, public/, build/):
-          # command: pages deploy dist --project-name=your-project-name
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}   # Optional but recommended
+          command: pages deploy public --project-name=simLab
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
