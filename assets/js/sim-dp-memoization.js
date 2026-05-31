@@ -36,6 +36,7 @@ window.initDPMemoizationSimulation = function() {
     const editorStatusDot = document.getElementById('editorStatusDot');
     const editorStatusText = document.getElementById('editorStatusText');
     const themeToggleBtn = document.getElementById('themeToggle');
+    const executionDesc = document.getElementById('executionDesc');
 
     function applyTheme(theme) {
         if (theme === 'light') {
@@ -71,7 +72,6 @@ window.initDPMemoizationSimulation = function() {
         state.memo = new Array(state.max).fill(-1);
     }
 
-    const memoTable = document.getElementById('memoTable');
     const memoHeaderRow = document.getElementById('memoHeaderRow');
     const memoValueRow = document.getElementById('memoValueRow');
 
@@ -257,7 +257,8 @@ window.initDPMemoizationSimulation = function() {
                 n: n,
                 depth: depth,
                 path: currentPath,
-                line: 10
+                line: 10,
+                description: `fib(${n}) called`
             });
 
             if (n <= 1) {
@@ -267,7 +268,8 @@ window.initDPMemoizationSimulation = function() {
                     depth: depth,
                     path: currentPath,
                     line: 11,
-                    value: n
+                    value: n,
+                    description: `Base case: fib(${n}) = ${n}`
                 });
                 return n;
             }
@@ -277,7 +279,8 @@ window.initDPMemoizationSimulation = function() {
                 n: n,
                 depth: depth,
                 path: currentPath,
-                line: 12
+                line: 12,
+                description: `Checking memo[${n}]`
             });
 
             if (state.memoEnabled && state.memo[n] !== -1) {
@@ -288,7 +291,8 @@ window.initDPMemoizationSimulation = function() {
                     depth: depth,
                     path: currentPath,
                     line: 12,
-                    value: state.memo[n]
+                    value: state.memo[n],
+                    description: `Cache hit! memo[${n}] = ${state.memo[n]}`
                 });
                 return state.memo[n];
             }
@@ -298,7 +302,8 @@ window.initDPMemoizationSimulation = function() {
                 n: n,
                 depth: depth,
                 path: currentPath,
-                line: 13
+                line: 13,
+                description: `Computing left: fib(${n}-${1})`
             });
 
             const left = fib(n - 1, depth + 1, currentPath);
@@ -308,7 +313,8 @@ window.initDPMemoizationSimulation = function() {
                 n: n,
                 depth: depth,
                 path: currentPath,
-                line: 13
+                line: 13,
+                description: `Computing right: fib(${n}-${2})`
             });
 
             const right = fib(n - 2, depth + 1, currentPath);
@@ -322,7 +328,8 @@ window.initDPMemoizationSimulation = function() {
                 depth: depth,
                 path: currentPath,
                 line: 13,
-                value: result
+                value: result,
+                description: `Stored: memo[${n}] = ${left} + ${right} = ${result}`
             });
 
             executionLog.push({
@@ -331,7 +338,8 @@ window.initDPMemoizationSimulation = function() {
                 depth: depth,
                 path: currentPath,
                 line: 14,
-                value: result
+                value: result,
+                description: `Returning fib(${n}) = ${result}`
             });
 
             return result;
@@ -356,6 +364,11 @@ window.initDPMemoizationSimulation = function() {
         inputN.disabled = false;
 
         buildMemoTable();
+        
+        if (executionDesc) {
+            executionDesc.textContent = 'Click "Step" or "Play" to begin visualization';
+        }
+        
         document.querySelectorAll('.code-line').forEach(line => {
             line.classList.remove('code-highlight');
         });
@@ -381,6 +394,7 @@ window.initDPMemoizationSimulation = function() {
         treeSvg.style.height = dynamicHeight + 'px';
 
         const nodes = new Map();
+        const childrenMap = new Map();
 
         const visited = new Set();
 
@@ -389,42 +403,58 @@ window.initDPMemoizationSimulation = function() {
             if (!visited.has(key)) {
                 visited.add(key);
 
-                let x = 350;
+                const node = { n: step.n, depth: step.depth };
+                nodes.set(key, node);
 
-                for (let i = 0; i < step.path.length - 1; i++) {
-                    const direction = step.path[i + 1] < step.path[i] ? -1 : 1;
-                    x += direction * (700 / Math.pow(2, i + 3));
+                if (!childrenMap.has(step.depth)) {
+                    childrenMap.set(step.depth, []);
                 }
-
-                const y = 50 + step.depth * 50;
-
-                if (!nodes.has(key)) {
-                    nodes.set(key, { n: step.n, depth: step.depth, x, y, computed: false, memo: false });
-                }
+                childrenMap.get(step.depth).push(node);
             }
         });
 
-        nodes.forEach((node, key) => {
-            const pathParts = key.split('-');
-            const n = parseInt(pathParts[0]);
-            const depth = parseInt(pathParts[1]);
+        const levelWidth = 700;
+        const levels = Array.from(childrenMap.entries()).sort((a, b) => a[0] - b[0]);
 
-            if (depth > 0) {
-                for (const [parentKey, parentNode] of nodes) {
-                    const parentParts = parentKey.split('-');
-                    const parentDepth = parseInt(parentParts[1]);
-                    if (parentDepth === depth - 1) {
-                        if (parentNode.n === n + 1 || parentNode.n === n + 2) {
-                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                            line.setAttribute('x1', parentNode.x);
-                            line.setAttribute('y1', parentNode.y);
-                            line.setAttribute('x2', node.x);
-                            line.setAttribute('y2', node.y);
-                            line.setAttribute('class', 'edge-line');
-                            treeSvg.appendChild(line);
+        levels.forEach(([depth, levelNodes]) => {
+            const y = 50 + depth * 50;
+            const siblingCount = levelNodes.length;
+            levelNodes.forEach((node, index) => {
+                const x = (levelWidth / (siblingCount + 1)) * (index + 1);
+                node.x = x;
+                node.y = y;
+            });
+        });
+
+        const keyToNode = new Map();
+        nodes.forEach((node, key) => keyToNode.set(key, node));
+
+        nodes.forEach((node, key) => {
+            if (node.depth > 0) {
+                const parentKey = `${node.n + 1}-${node.depth - 1}`;
+                const parent = keyToNode.get(parentKey);
+                const grandparentParentKey = `${node.n + 2}-${node.depth - 1}`;
+                const grandparentParent = keyToNode.get(grandparentParentKey);
+
+                let parentNode = parent || grandparentParent;
+                if (!parentNode && node.depth > 1) {
+                    for (let i = node.depth - 1; i >= 0; i--) {
+                        const potentialParent = keyToNode.get(`${node.n + 1}-${i}`);
+                        if (potentialParent) {
+                            parentNode = potentialParent;
                             break;
                         }
                     }
+                }
+
+                if (parentNode) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', parentNode.x);
+                    line.setAttribute('y1', parentNode.y);
+                    line.setAttribute('x2', node.x);
+                    line.setAttribute('y2', node.y);
+                    line.setAttribute('class', 'edge-line');
+                    treeSvg.appendChild(line);
                 }
             }
         });
@@ -494,6 +524,10 @@ window.initDPMemoizationSimulation = function() {
                     cell.className = 'computed';
                 }, 300);
             }
+        }
+
+        if (executionDesc && step.description) {
+            executionDesc.textContent = step.description;
         }
 
         callCountEl.textContent = state.callCount;

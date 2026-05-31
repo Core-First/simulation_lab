@@ -376,16 +376,21 @@ canvas {
 /* Stats */
 .stats {
   display: flex;
-  gap: 20px;
-  font-size: 14px;
+  gap: 16px;
+  font-size: 13px;
   font-weight: 500;
   margin-top: 15px;
+  flex-wrap: wrap;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  background: var(--surface-2, #16223d);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 
 .stat-value {
