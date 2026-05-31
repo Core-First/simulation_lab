@@ -35,6 +35,21 @@ window.initDPMemoizationSimulation = function() {
     const errorPanel = document.getElementById('errorPanel');
     const editorStatusDot = document.getElementById('editorStatusDot');
     const editorStatusText = document.getElementById('editorStatusText');
+    const themeToggleBtn = document.getElementById('themeToggle');
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+            if (themeToggleBtn) {
+                themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+            }
+        } else {
+            document.body.classList.remove('light-theme');
+            if (themeToggleBtn) {
+                themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
+        }
+    }
 
     const originalCCode = `<span class="code-line" data-line="1" data-line-num="1"><span class="code-preproc">#include</span> <span class="code-number">&lt;stdio.h&gt;</span></span>
 <span class="code-line" data-line="2" data-line-num="2"><span class="code-macro">#define</span> <span class="code-type">MAX</span> <span class="code-number">100</span></span>
@@ -54,6 +69,27 @@ window.initDPMemoizationSimulation = function() {
 
     function initMemoArray() {
         state.memo = new Array(state.max).fill(-1);
+    }
+
+    const memoTable = document.getElementById('memoTable');
+    const memoHeaderRow = document.getElementById('memoHeaderRow');
+    const memoValueRow = document.getElementById('memoValueRow');
+
+    function buildMemoTable() {
+        const n = state.n;
+        memoHeaderRow.innerHTML = '<th>Index (i)</th>';
+        for (let i = 0; i <= n; i++) {
+            const th = document.createElement('th');
+            th.textContent = i;
+            memoHeaderRow.appendChild(th);
+        }
+        memoValueRow.innerHTML = '<th style="background:#1e293b; color:var(--muted);">memo[i]</th>';
+        for (let i = 0; i <= n; i++) {
+            const td = document.createElement('td');
+            td.id = `memo-${i}`;
+            td.textContent = '-1';
+            memoValueRow.appendChild(td);
+        }
     }
 
     function validateCCode(htmlContent) {
@@ -319,12 +355,7 @@ window.initDPMemoizationSimulation = function() {
         btnStep.disabled = false;
         inputN.disabled = false;
 
-        for (let i = 0; i <= 5; i++) {
-            const cell = document.getElementById(`memo-${i}`);
-            cell.textContent = '-1';
-            cell.className = '';
-        }
-
+        buildMemoTable();
         document.querySelectorAll('.code-line').forEach(line => {
             line.classList.remove('code-highlight');
         });
@@ -522,6 +553,17 @@ window.initDPMemoizationSimulation = function() {
         btnPlay.addEventListener('click', playSimulation);
         btnPause.addEventListener('click', pauseSimulation);
         btnReset.addEventListener('click', resetSimulation);
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const next = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+                localStorage.setItem('theme', next);
+                applyTheme(next);
+            });
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
 
         memoToggle.addEventListener('click', () => {
             state.memoEnabled = !state.memoEnabled;

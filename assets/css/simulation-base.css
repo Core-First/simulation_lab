@@ -16,6 +16,15 @@
   --radius: 8px;
 }
 
+body.light-theme {
+  --bg: #f5f7fb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e9f2;
+  --surface: #ffffff;
+  --surface-2: #f1f4fa;
+}
+
 /* Tree Visualization */
 .tree-container {
   background: var(--bg);
