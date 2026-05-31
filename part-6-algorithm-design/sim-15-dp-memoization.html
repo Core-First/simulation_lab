@@ -13,10 +13,128 @@
                 --accent-green: #22c55e;
                 --accent-yellow: #fbbf24;
                 --accent-red: #ef4444;
+                --accent-purple: #a78bfa;
+            }
+            
+            /* === Guided Tour === */
+            .guided-tour-overlay {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 9999;
+                pointer-events: none;
+            }
+            .tour-backdrop {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.7);
+            }
+            .tour-tooltip {
+                position: absolute;
+                background: var(--surface);
+                border: 2px solid var(--primary);
+                border-radius: 12px;
+                padding: 20px;
+                max-width: 320px;
+                pointer-events: all;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            }
+            .tour-tooltip h5 { margin-bottom: 10px; color: var(--primary); }
+            .tour-tooltip p { font-size: 13px; margin-bottom: 15px; }
+            .tour-actions { display: flex; gap: 8px; align-items: center; }
+            
+            /* === Node Tooltip === */
+            .node-tooltip {
+                position: fixed;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 12px;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                pointer-events: none;
+            }
+            .node-tooltip strong { color: var(--primary); }
+            
+            /* === Node States === */
+            .node-visited { fill: #4b5563 !important; }
+            .node-computing { fill: var(--accent-yellow) !important; animation: pulse-yellow 1s ease-in-out infinite; }
+            .node-edge-active { stroke: var(--primary) !important; stroke-width: 3; }
+            @keyframes pulse-yellow {
+                0%, 100% { filter: drop-shadow(0 0 8px rgba(251,191,36,0.6)); }
+                50% { filter: drop-shadow(0 0 12px rgba(251,191,36,0.9)); }
+            }
+            
+            /* === Line Explanation Icons === */
+            .line-explanation {
+                position: absolute;
+                right: 10px;
+                color: var(--warning);
+                cursor: pointer;
+                font-size: 11px;
+                opacity: 0;
+                transition: opacity 0.2s;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+            .line-explanation:hover {
+                background: rgba(251,191,36,0.2);
+            }
+            .code-line:hover .line-explanation { opacity: 1; }
+            
+            /* === Timeline Slider === */
+            .timeline-container { margin-top: 15px; }
+            .timeline-container .form-range { width: 100%; }
+            
+            /* === Comparison Mode === */
+            .comparison-container { margin-top: 20px; padding: 15px; background: var(--bg); border-radius: 12px; border: 1px dashed var(--border); }
+            .comparison-stats { display: flex; justify-content: space-around; margin-top: 10px; font-size: 12px; }
+            .comparison-stats span { padding: 4px 12px; background: var(--surface-2); border-radius: 6px; }
+            
+            /* === Why Matters Panel === */
+            .why-matters-content { padding: 10px 0; font-size: 13px; line-height: 1.6; }
+            .why-matters-content p { margin-bottom: 10px; }
+            .why-matters-content strong { color: var(--warning); }
+            .example-trees { background: var(--bg); padding: 10px; border-radius: 8px; margin: 10px 0; font-family: monospace; }
+            
+            /* === Voice Button === */
+            .voice-btn { 
+                position: absolute; 
+                right: 10px; 
+                top: 10px; 
+                opacity: 0.7;
+            }
+            .voice-btn:hover { opacity: 1; }
+            
+            /* === Auto-fix Button === */
+            .auto-fix { 
+                margin-left: 8px; 
+                font-size: 10px; 
+                padding: 2px 8px;
+            }
+            
+            /* === Mobile Scroll for Tree === */
+            @media (max-width: 768px) {
+                .tree-container { overflow-x: auto; max-width: 100%; }
+                .tree-svg { min-width: 700px; }
             }
         </style>
 </head>
 <body>
+    <!-- Guided Tour Overlay -->
+    <div class="guided-tour-overlay" id="guidedTour" style="display:none;">
+        <div class="tour-backdrop"></div>
+        <div class="tour-tooltip" id="tourTooltip">
+            <h5 id="tourTitle"></h5>
+            <p id="tourText"></p>
+            <div class="tour-actions">
+                <button class="btn btn-sm btn-outline-secondary" id="tourPrev"><i class="fa-solid fa-arrow-left"></i> Prev</button>
+                <button class="btn btn-sm btn-primary" id="tourNext">Next <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-sm btn-link text-muted" id="tourSkip">Skip Tour</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Main Content -->
     <div class="main">
         <!-- Top Bar -->
@@ -59,8 +177,13 @@
                 </div>
 
                 <!-- Execution Description -->
-                <div class="panel-title" style="margin-top:20px; margin-bottom:10px;">Execution Flow</div>
-                <div class="ai-box" id="executionDesc" style="min-height:60px; font-size:12px;">
+                <div class="panel-title" style="margin-top:20px; margin-bottom:10px;">
+                    Execution Flow
+                    <button class="btn btn-sm btn-outline-secondary voice-btn" id="readAloudBtn" title="Read Aloud">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+                <div class="ai-box" id="executionDesc" style="min-height:60px; font-size:12px; position:relative;">
                     Click "Step" or "Play" to begin visualization
                 </div>
 
@@ -127,7 +250,7 @@
                         <button class="btn-control btn-pause" id="btnPause" disabled><i class="fa-solid fa-pause"></i> Pause</button>
                         <button class="btn-control btn-reset" id="btnReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between">
+<div class="d-flex align-items-center justify-content-between">
                         <div class="toggle-wrap">
                             <span>Toggle Memoization</span>
                             <div class="toggle-switch active" id="memoToggle"></div>
@@ -138,16 +261,52 @@
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- Timeline Slider -->
+                <div class="panel-card">
+                    <div class="panel-title" style="margin-bottom:8px;">Timeline</div>
+                    <div class="timeline-container">
+                        <input type="range" class="form-range" id="timelineSlider" min="0" max="100" value="0">
+                        <div class="d-flex justify-content-between" style="font-size:11px; color:var(--muted);">
+                            <span id="timelineStart">0</span>
+                            <span>Step: <span id="timelineCurrent">0</span></span>
+                            <span id="timelineEnd">0</span>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- AI Assistant -->
                 <div class="panel-card">
                     <div class="panel-title"><i class="fa-solid fa-robot text-primary"></i> AI Assistant</div>
-                    <div class="ai-box mb-3">
-                        <div class="ai-question">Edit the C code above to experiment with different implementations. The editor will validate your changes in real-time.</div>
+                    <div class="ai-box mb-3" id="aiResponse" style="min-height:80px; font-size:12px;">
+                        <div class="ai-question">Click "Get Help" for explanations about the current step.</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ask a follow-up question...">
-                        <button class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up"></i></button>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ask about memoization..." id="aiInput">
+                        <button class="btn btn-primary btn-sm" id="aiSendBtn"><i class="fa-solid fa-arrow-up"></i></button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="aiHelpBtn"><i class="fa-solid fa-lightbulb"></i> Get Help</button>
+                        <button class="btn btn-sm btn-outline-secondary" id="aiExplainBtn"><i class="fa-solid fa-book"></i> Explain Code</button>
+                    </div>
+                </div>
+                
+                <!-- Why This Matters -->
+                <div class="panel-card">
+                    <div class="panel-title">
+                        <span><i class="fa-solid fa-lightbulb text-warning"></i> Why This Matters</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="toggleWhyMatters">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="why-matters-content" id="whyMattersContent" style="display:none;">
+                        <p><strong>Tree Explosion:</strong> Without memoization, fib(n) makes ~1.618ⁿ calls. Each node calls two children!</p>
+                        <div class="example-trees">
+                            n=4: 9 calls → n=6: 25 calls → n=10: 177 calls!
+                        </div>
+                        <p><strong>Memoization Prunes:</strong> Repeated subproblems turn <span style="color:var(--success);">green</span> instantly - no re-computation needed.</p>
+                        <p><strong>Complexity:</strong> O(2ⁿ) → O(n) with memoization. That's the power of caching!</p>
+                        <p><strong>Real Analogy:</strong> Like remembering answers to math problems instead of solving them repeatedly.</p>
                     </div>
                 </div>
             </div>
