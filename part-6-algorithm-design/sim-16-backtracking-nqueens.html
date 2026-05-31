@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sim-16-backtracking-nqueens - ATC SimLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <style>
+        /* Global variables & overrides (matching simulation-base.css style) */
+        :root {
+            --bg: #0f172a;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --primary: #2563eb;
+            --success: #22c55e;
+            --warning: #fbbf24;
+            --danger: #ef4444;
+            --surface: #111a2e;
+            --surface-2: #16223d;
+            --muted-bg: #4b5563;
+            --radius: 8px;
+            --accent-blue: #2563eb;
+            --accent-green: #22c55e;
+            --accent-yellow: #fbbf24;
+            --accent-red: #ef4444;
+        }
+        body.light-theme {
+            --bg: #f5f7fb;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e5e9f2;
+            --surface: #ffffff;
+            --surface-2: #f1f4fa;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.2s, color 0.2s;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .page-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+        .back-btn {
+            background: #1e293b; border: 1px solid var(--border); color: var(--text);
+            padding: 4px 14px; border-radius: 4px; text-decoration: none; font-size: 12px;
+        }
+        .back-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .sim-body { display: flex; flex: 1; overflow: hidden; }
+        .left-panel { flex: 0 0 65%; padding: 20px; overflow-y: auto; border-right: 1px solid var(--border); }
+        .right-panel { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .panel-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; transition: all 0.3s ease;
+        }
+        .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            aspect-ratio: 1 / 1;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .cell.white { background-color: #f0d9b5; }
+        .cell.black { background-color: #b58863; }
+        .cell.queen::before { content: "♕"; color: #e63946; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .cell.current-highlight { box-shadow: inset 0 0 0 3px var(--primary); background-color: rgba(37,99,235,0.4); }
+        .cell.conflict { background-color: rgba(239,68,68,0.7); }
+        .tree-container { overflow-x: auto; background: var(--surface-2); border-radius: 12px; padding: 10px; margin-top: 10px; }
+        .tree-svg { min-width: 600px; width: 100%; height: auto; }
+        .node-circle { fill: #4b5563; stroke: #6b7280; stroke-width: 2; transition: all 0.3s; cursor: pointer; }
+        .node-current { fill: var(--primary); animation: pulse-blue 1s infinite; }
+        .node-computed { fill: var(--success); }
+        .node-backtrack { fill: var(--danger); stroke: #ef4444; }
+        .node-visited { fill: #6b7280; }
+        .edge-line { stroke: #6b7280; stroke-width: 2; }
+        @keyframes pulse-blue { 0%,100%{filter:drop-shadow(0 0 8px rgba(37,99,235,0.6));} 50%{filter:drop-shadow(0 0 16px rgba(37,99,235,0.9));} }
+        .code-editor {
+            background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; padding-left: 35px; font-family: 'Courier New', monospace; font-size: 13px;
+            min-height: 250px; white-space: pre-wrap; overflow-x: auto;
+        }
+        .code-line { display: block; position: relative; padding: 2px 0; }
+        .code-line::before { content: attr(data-line); position: absolute; left: -25px; color: var(--muted); }
+        .code-highlight { background: rgba(251,191,36,0.25); border-left: 4px solid var(--warning); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-dot.valid { background: var(--success); }
+        .status-dot.invalid { background: var(--danger); }
+        .controls-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
+        .btn-control { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-step { background: var(--primary); color: white; }
+        .btn-play { background: var(--success); color: white; }
+        .btn-pause { background: var(--warning); color: black; }
+        .btn-reset { background: var(--muted-bg); color: white; }
+        .toggle-switch { width: 44px; height: 24px; background: var(--muted-bg); border-radius: 24px; position: relative; cursor: pointer; }
+        .toggle-switch.active { background: var(--primary); }
+        .toggle-switch::after { content: ''; width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.2s; }
+        .toggle-switch.active::after { left: 22px; }
+        .ai-box { background: var(--surface-2); border-radius: 8px; padding: 12px; font-size: 13px; margin-top: 10px; }
+        .guided-tour-overlay { position: fixed; top:0; left:0; right:0; bottom:0; z-index: 9999; pointer-events: none; }
+        .tour-backdrop { position: absolute; background: rgba(0,0,0,0.7); width:100%; height:100%; }
+        .tour-tooltip { position: absolute; background: var(--surface); border: 2px solid var(--primary); border-radius: 12px; padding: 16px; max-width: 300px; pointer-events: all; }
+        .stats { display: flex; gap: 16px; margin-top: 15px; }
+        .stat-value { background: var(--bg); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
+        .timeline-container { margin-top: 10px; }
+        .voice-btn { background: none; border: none; color: var(--muted); cursor: pointer; }
+        .why-matters-content { font-size: 13px; line-height: 1.5; }
+        .comparison-stats { display: flex; gap: 20px; background: var(--surface-2); padding: 10px; border-radius: 8px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="guided-tour-overlay" id="guidedTour" style="display:none;">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+        <h5 id="tourTitle"></h5><p id="tourText"></p>
+        <div><button class="btn btn-sm btn-primary" id="tourNext">Next</button> <button class="btn btn-sm btn-link" id="tourSkip">Skip</button></div>
+    </div>
+</div>
+
+<div class="main">
+    <header class="topbar">
+        <div><div class="page-title"><i class="fa-regular fa-file-lines"></i> sim-16-backtracking-nqueens.html</div></div>
+        <div><a href="../index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</a>
+        <button class="btn btn-outline-secondary btn-sm ms-2" id="themeToggle"><i class="fa-solid fa-moon"></i></button></div>
+    </header>
+
+    <div class="sim-body">
+        <div class="left-panel">
+            <div class="panel-title">♕ N-Queens Chessboard <span class="text-muted">(Click any cell to place/remove queen)</span></div>
+            <div class="chessboard" id="chessboard"></div>
+            <div class="panel-title">Recursion Tree (place(row, col)) <button class="voice-btn" id="treeVoiceBtn"><i class="fa-solid fa-volume-high"></i></button></div>
+            <div class="tree-container"><svg class="tree-svg" id="treeSvg" viewBox="0 0 800 300"></svg></div>
+            <div class="panel-title mt-3">Execution Narration</div>
+            <div class="ai-box" id="executionDesc">Click "Step" or "Play" to start backtracking simulation.</div>
+        </div>
+        <div class="right-panel">
+            <div class="panel-card">
+                <div class="panel-title">Parameters</div>
+                <div class="input-group"><label>Board Size (N):</label><input type="number" id="inputN" value="8" min="4" max="8" class="form-control"></div>
+            </div>
+            <div class="panel-card">
+                <div class="panel-title">C Backtracking Code <span class="text-muted"><i class="fa-regular fa-pen-to-square"></i> Editable</span></div>
+                <div class="status-indicator"><span class="status-dot valid" id="editorStatusDot"></span><span id="editorStatusText">Code is valid</span></div>
+                <div class="code-editor-wrapper"><div class="code-editor" id="codeEditor" contenteditable="true" spellcheck="false"></div></div>
+                <div class="error-panel" id="errorPanel" style="display:none;"></div>
+            </div>
+            <div class="panel-card">
+                <div class="panel-title">Controls & Animation</div>
+                <div><label>Speed</label><input type="range" id="speedSlider" min="0.5" max="3" step="0.5" value="1.5" class="form-range"><span id="speedValue">1.5x</span></div>
+                <div class="controls-row">
+                    <button class="btn-control btn-step" id="btnStep"><i class="fa-solid fa-arrow-right"></i> Step</button>
+                    <button class="btn-control btn-play" id="btnPlay"><i class="fa-solid fa-play"></i> Play</button>
+                    <button class="btn-control btn-pause" id="btnPause" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+                    <button class="btn-control btn-reset" id="btnReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                </div>
+                <div class="toggle-wrap d-flex justify-content-between align-items-center">
+                    <span>🗸 Backtracking</span><div class="toggle-switch active" id="backtrackToggle"></div>
+                    <span>Show Brute-Force Stats</span><div class="toggle-switch" id="compareToggle"></div>
+                </div>
+                <div class="stats"><div><i class="fa-solid fa-diagram-project"></i> Nodes visited: <span id="nodeCount">0</span></div><div><i class="fa-solid fa-rotate-left"></i> Backtracks: <span id="backtrackCount">0</span></div></div>
+            </div>
+            <div class="panel-card"><div class="panel-title">Timeline</div><input type="range" id="timelineSlider" min="0" max="100" value="0" class="form-range"><div class="d-flex justify-content-between"><span>Step <span id="currentStepIdx">0</span>/<span id="totalSteps">0</span></span></div></div>
+            <div class="panel-card">
+                <div class="panel-title"><i class="fa-solid fa-robot text-primary"></i> AI Assistant</div>
+                <div class="ai-box" id="aiResponse">Ask me about backtracking, conflicts, or the current step.</div>
+                <div class="d-flex gap-2 mt-2"><input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why is column 2 unsafe?"><button id="aiSendBtn" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up"></i></button></div>
+                <div class="d-flex gap-2 mt-2"><button id="aiHelpBtn" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-lightbulb"></i> Context Help</button><button id="aiExplainCodeBtn" class="btn btn-sm btn-outline-secondary"><i class="fa-regular fa-file-code"></i> Explain Code</button></div>
+            </div>
+            <div class="panel-card">
+                <div class="panel-title"><i class="fa-regular fa-lightbulb"></i> Why Backtracking? <button id="toggleWhyMatters" class="btn btn-sm"><i class="fa-solid fa-chevron-down"></i></button></div>
+                <div id="whyMattersContent" style="display:none;" class="why-matters-content">
+                    <p>❌ Without pruning (naive): 8! = 40320 permutations for 8 queens.</p>
+                    <p>✅ Backtracking prunes early: only ~1572 nodes explored.</p>
+                    <p>🔁 Each conflict check saves thousands of invalid placements.</p>
+                </div>
+                <div id="comparisonStats" class="comparison-stats" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/js/sim-backtracking-nqueens.js"></script>
+</body>
+</html>
