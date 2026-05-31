@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Quick Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Quick Sort visualisation: recursive pivot selection and partitioning step-by-step on Canvas."/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+  <link href="../assets/css/main.css" rel="stylesheet"/>
+  <link href="../assets/css/simulation-base.css" rel="stylesheet"/>
+  <style>
+    .stats-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex-shrink:0}
+    .stat-pill{display:flex;align-items:center;gap:7px;font-size:.82rem}.stat-pill .lbl{color:var(--muted)}.stat-pill .val{font-weight:700;font-size:.95rem;min-width:26px;text-align:right}
+    .stat-pill.comps .val{color:#60a5fa}.stat-pill.swaps .val{color:#f59e0b}.stat-pill.passes .val{color:#a78bfa}.stat-pill.timer .val{color:#22c55e}
+    .sep{width:1px;height:26px;background:var(--border);flex-shrink:0}
+    .ctrl-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex-shrink:0}
+    .ctrl-bar label{font-size:.78rem;color:var(--muted)}.ctrl-bar input[type=range]{accent-color:var(--primary);cursor:pointer}
+    .ctrl-bar select,.ctrl-bar input[type=text]{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:7px;font-size:.8rem}
+    .ctrl-bar input[type=text]{width:120px;font-size:.78rem}
+    .btn-c{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;border:0;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,opacity .15s}
+    .btn-primary-c{background:var(--primary);color:#fff}.btn-primary-c:hover{background:var(--primary-hover)}
+    .btn-secondary-c{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}.btn-secondary-c:hover{background:var(--border)}
+    .btn-c:disabled{opacity:.42;cursor:not-allowed}
+    .panel-tabs{display:flex;border-bottom:1px solid var(--border)}
+    .panel-tab{flex:1;padding:10px 0;text-align:center;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;border:0;background:transparent;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+    .panel-tab.active{color:#ef4444;border-bottom-color:#ef4444}
+    .info-sec{margin-bottom:13px}.info-sec h6{font-size:.7rem;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:0 0 7px}.info-sec p{font-size:.82rem;color:var(--text);margin:0;line-height:1.55}
+    .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cx-cell{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:.78rem}.cx-cell .cl{color:var(--muted);font-size:.68rem;display:block;margin-bottom:2px}.cx-cell .cv{font-weight:700}
+    .c-best{color:#22c55e}.c-avg{color:#f59e0b}.c-worst{color:#ef4444}.c-space{color:#a78bfa}
+    #paneCode pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin: 0; font-size: 0.8rem; overflow-x: auto; }
+    #paneCode code { color: var(--text); font-family: monospace; }
+    .ai-msgs{display:flex;flex-direction:column;gap:7px;margin-bottom:9px}
+    .ai-msg{font-size:.8rem;padding:8px 10px;border-radius:8px;line-height:1.5}
+    .ai-msg.bot{background:rgba(34,197,94,.1);border-left:3px solid var(--success)}.ai-msg.user{background:rgba(37,99,235,.1);border-left:3px solid var(--primary);text-align:right}
+    .ai-row{display:flex;gap:5px}.ai-row input{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:8px;font-size:.8rem}.ai-row button{background:var(--primary);color:#fff;border:0;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:.8rem}
+    .ai-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.ai-chip{font-size:.71rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:6px;cursor:pointer}.ai-chip:hover{background:var(--border)}
+    .legend{display:flex;gap:9px;flex-wrap:wrap;font-size:.72rem}.leg{display:flex;align-items:center;gap:4px}.leg-dot{width:11px;height:11px;border-radius:3px}
+    .breadcrumb-nav{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}.breadcrumb-nav a{color:var(--muted);text-decoration:none}.breadcrumb-nav a:hover{color:var(--text)}.breadcrumb-nav .sep-bc{opacity:.5}.breadcrumb-nav .current{color:var(--text);font-weight:600}
+    .sim-nav{display:flex;gap:5px}.sim-nav a{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:7px;text-decoration:none;transition:color .15s}    .sim-nav a:hover{color:var(--text)}
+  </style>
+</head>
+<body class="sim-page">
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
+    <nav id="sideNav">
+      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <div class="nav-group">
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
+        <div class="collapse show" id="dsaMenu"><ul class="submenu">
+          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
+            <div class="collapse show" id="part1"><ul class="submenu">
+              <li><a href="index.html" class="sub-link"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
+              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
+              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
+              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
+              <li><a href="sim-04-merge-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
+              <li><a href="sim-05-quick-sort.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
+            </ul></div>
+          </li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
+        </ul></div>
+      </div>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <div class="breadcrumb-nav">
+          <a href="index.html"><i class="fa-solid fa-chart-column"></i> Sorting Lab</a>
+          <span class="sep-bc">/</span><span class="current">Quick Sort</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="sim-nav">
+          <a href="sim-04-merge-sort.html"><i class="fa-solid fa-arrow-left"></i> Merge</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle"><i class="fa-solid fa-moon"></i><span>Dark Mode</span></button>
+        <div class="profile"><div class="avatar">AJ</div><div class="profile-text"><div class="profile-name">Lipweche A.</div><div class="profile-role">Student</div></div></div>
+      </div>
+    </header>
+
+    <div class="sim-content">
+      <div class="canvas-area">
+        <div class="stats-bar">
+          <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill swaps"><span class="lbl">Swaps</span><span class="val" id="swpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
+          <div class="sep"></div>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
+            <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Pivot</div>
+            <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>LOMUTO ( i )</div>
+            <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Scan ( j )</div>
+            <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Sorted</div>
+          </div>
+        </div>
+        <div class="canvas-wrap"><canvas id="sortCanvas"></canvas></div>
+        <div class="ctrl-bar">
+          <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="5" max="60" value="20" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">20</span></div>
+          <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
+          <select id="arrayOrder"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
+          <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
+          <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
+          <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+          <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
+          <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="info">Info</button>
+          <button class="panel-tab" data-tab="code">Code</button>
+          <button class="panel-tab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI</button>
+        </div>
+        <div class="panel-body active" id="paneInfo">
+          <div class="info-sec info-welcome"><h6>Welcome - Start Here</h6><p>Quick Sort is one of the fastest sorts in practice. This lab shows <strong>Lomuto partitioning</strong>: pick a pivot (red), scan with <strong>j</strong> (yellow), and track boundary <strong>i</strong> (purple). No coding needed - use Run and Step like the other simulations.</p></div>
+          <div class="info-sec"><h6>What You See on Screen</h6><ul class="info-list"><li><strong>Chart:</strong> Bars change colour during partition and recursion.</li><li><strong>Depth counter:</strong> Shows recursion depth (how “deep” the algorithm is).</li><li><strong>Controls:</strong> Same layout as Sims 1–4.</li><li><strong>Info panel:</strong> <strong>Scroll down</strong> on mobile to read “Properties”, “Best Used When”, and the complexity grid at the bottom.</li></ul></div>
+          <div class="info-sec"><h6>Your First Run</h6><ol class="info-steps"><li>Use <strong>Size 12–20</strong> and click <strong>Run</strong> ▶.</li><li>Watch the <strong>red pivot</strong> and how values smaller than it move to the left.</li><li>Try <strong>Order → Reversed</strong> to see more work (worst-case behaviour with a simple pivot).</li><li>Use <strong>Step</strong> after <strong>Pause</strong> to follow one comparison at a time.</li></ol></div>
+          <div class="info-sec"><h6>Controls Explained</h6><ul class="info-list"><li><strong>Size / Speed:</strong> Bar count and animation rate.</li><li><strong>Order / Custom / New:</strong> Change input data (custom: <code>50, 12, 33, 7</code> + ✓).</li><li><strong>☰ menu:</strong> Return to lab home or open Merge Sort (previous sim).</li><li><strong>AI tab:</strong> Ask about pivot, Lomuto, or vs merge sort.</li></ul></div>
+          <div class="info-sec"><h6>Colour Legend (Quick Sort)</h6><ul class="info-list"><li><span class="leg-inline" style="background:#3b82f6"></span> Blue - not yet in final partition position</li><li><span class="leg-inline" style="background:#ef4444"></span> Red - pivot element</li><li><span class="leg-inline" style="background:#a78bfa"></span> Purple - Lomuto index <strong>i</strong> (end of “small” region)</li><li><span class="leg-inline" style="background:#f59e0b"></span> Yellow - scan index <strong>j</strong></li><li><span class="leg-inline" style="background:#22c55e"></span> Green - sorted / placed</li></ul></div>
+          <div class="info-sec"><h6>Right Panel Tabs</h6><ul class="info-list"><li><strong>Info</strong> - Complete guide; scroll to the end for complexity and use cases.</li><li><strong>Code</strong> - Quick sort pseudocode for your array.</li><li><strong>AI</strong> - Short answers to study questions.</li></ul></div>
+          <div class="info-sec"><h6>Scrolling this guide</h6><p><strong>Laptop/desktop:</strong> Scroll inside the Info panel (right) to see Best Used When and the complexity table.<br/><strong>Phone/tablet:</strong> Scroll the entire page downward past the chart.</p></div>
+          <div class="info-sec"><h6>How Quick Sort Works</h6><p>Quick Sort chooses a <strong>pivot</strong>, partitions the array so smaller values sit left and larger values sit right, then repeats on each side. This demo uses <strong>Lomuto</strong> partitioning. Average time is O(n log n); worst case O(n²) on bad pivots (e.g. sorted array with naive pivot).</p></div>
+          <div class="info-sec"><h6>Complexity</h6><div class="cx-grid"><div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div><div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div><div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n²)</span></div><div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(log n)</span></div></div></div>
+          <div class="info-sec"><h6>Properties</h6><p>❌ Not stable &nbsp; ✅ In-place &nbsp; ✅ Cache-friendly (fastest general purpose sort)</p></div>
+          <div class="info-sec"><h6>Best Used When</h6><p>Default sorting algorithm in most systems (V8, standard libraries) because its tight inner loop makes it extremely fast in practice, despite the rare O(n²) worst-case on already-sorted arrays (if naïve pivot is chosen).</p></div>
+        </div>
+        <div class="panel-body" id="paneCode"><pre><code id="generatedCode"></code></pre></div>
+        <div class="panel-body" id="paneAi">
+          <div class="ai-chips">
+            <button class="ai-chip" data-q="Explain quick sort pivot and partition">Explain it</button>
+            <button class="ai-chip" data-q="Why does quick sort have O(n²) worst case?">Why O(n²)?</button>
+            <button class="ai-chip" data-q="What is Lomuto partitioning?">Lomuto?</button>
+            <button class="ai-chip" data-q="Compare quick sort vs merge sort">vs Merge Sort?</button>
+            <button class="ai-chip" data-q="How to fix the worst case?">Fix worst case?</button>
+          </div>
+          <div class="ai-msgs" id="aiMsgs"><div class="ai-msg bot">👋 I can explain Lomuto vs Hoare partitioning, how pivot selection affects performance, or why Quick Sort is usually faster than Merge Sort.</div></div>
+          <div class="ai-row"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  const canvas=document.getElementById('sortCanvas'),ctx=canvas.getContext('2d');
+  function resizeCanvas(){canvas.width=canvas.parentElement.clientWidth;canvas.height=canvas.parentElement.clientHeight;}
+  resizeCanvas();window.addEventListener('resize',()=>{resizeCanvas();draw(lastState);});
+
+  let arr=[],original=[],cmpTotal=0,swpTotal=0,maxDepth=0;
+  let running=false,done=false,rafId=null,lastTime=0;
+  let steps=[],si=0,msAcc=0,lastState=null;
+  let timerInterval=null,startTime=0;
+  let sortedSet=new Set();
+  const getSpeed=()=>Math.round(1200/parseInt(document.getElementById('speedRange').value));
+
+  function mkRandom(n){return Array.from({length:n},()=>Math.floor(Math.random()*90)+10);}
+  function mkNearly(n){const a=Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));for(let k=0;k<Math.max(1,n>>3);k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}return a;}
+  function mkRev(n){return Array.from({length:n},(_,i)=>Math.round((n-i)*100/n));}
+  function mkSorted(n){return Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));}
+  function buildArr(){const n=parseInt(document.getElementById('arraySize').value),o=document.getElementById('arrayOrder').value;return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);}
+
+  /**
+   * buildSteps(a) - pre-computes Quick Sort (Lomuto partitioning).
+   */
+  function buildSteps(a){
+    const d=[...a],out=[];
+    function qsort(lo,hi,depth){
+      if(lo>=hi){if(lo===hi)out.push({t:'placed',idx:lo,arr:[...d]});return;}
+      // Pivot selection: Lomuto uses the last element
+      const pvtIdx=hi,pvtVal=d[hi];
+      out.push({t:'pivot',lo,hi,pvtIdx,depth,arr:[...d]});
+      let i=lo-1; // i tracks the boundary of elements smaller than pivot
+      for(let j=lo;j<hi;j++){
+        out.push({t:'cmp',lo,hi,pvtIdx,i,j,depth,arr:[...d]});
+        if(d[j]<pvtVal){
+          i++;
+          if(i!==j){[d[i],d[j]]=[d[j],d[i]];out.push({t:'swap',lo,hi,pvtIdx,a:i,b:j,depth,arr:[...d]});}
+        }
+      }
+      // Place pivot in correct position by swapping with first element > pivot
+      const finalPvt=i+1;
+      if(finalPvt!==hi){[d[finalPvt],d[hi]]=[d[hi],d[finalPvt]];out.push({t:'swap-pvt',lo,hi,pvtIdx:finalPvt,a:finalPvt,b:hi,depth,arr:[...d]});}
+      out.push({t:'placed',idx:finalPvt,arr:[...d]});
+      
+      qsort(lo,finalPvt-1,depth+1);
+      qsort(finalPvt+1,hi,depth+1);
+    }
+    qsort(0,d.length-1,0);
+    out.push({t:'done',arr:[...d]});
+    return out;
+  }
+
+  /**
+   * draw(state) - separates rendering.
+   * Red = pivot, Purple = 'i' boundary, Orange = 'j' scanner, Green = placed.
+   * Dashed box drawn around the active partition.
+   */
+  const COL={base:'#3b82f6',pvt:'#ef4444',bound_i:'#a78bfa',scan_j:'#f59e0b',placed:'#22c55e',activeBg:'rgba(255,255,255,.05)'};
+  function draw(state){
+    lastState=state;
+    const W=canvas.width,H=canvas.height,n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b1220';
+    ctx.fillRect(0,0,W,H);if(!n)return;
+    const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
+    const s=state;
+    
+    // Background highlight for active partition
+    if(s&&s.lo!=null&&s.hi!=null&&s.t!=='done'){
+      const ax=s.lo*(bW+1)-1,aw=(s.hi-s.lo+1)*(bW+1)+1;
+      ctx.fillStyle=COL.activeBg;ctx.fillRect(ax,pH-10,aw,aH+10);
+      ctx.strokeStyle='rgba(167,139,250,.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(ax,pH-10,aw,aH+10);ctx.setLineDash([]);
+    }
+
+    for(let k=0;k<n;k++){
+      const x=k*(bW+1),h=Math.max(3,(arr[k]/maxV)*aH),y=H-pB-h;
+      let col=COL.base;
+      if(s){
+        if(s.t==='done'||sortedSet.has(k))col=COL.placed;
+        if(s.lo!=null&&k>=s.lo&&k<=s.hi&&!sortedSet.has(k)){
+          if(k===s.pvtIdx)col=COL.pvt;
+          if((s.t==='cmp'||s.t==='swap')&&k===s.i)col=COL.bound_i;
+          if((s.t==='cmp'||s.t==='swap')&&k===s.j)col=COL.scan_j;
+          if((s.t==='swap'||s.t==='swap-pvt')&&(k===s.a||k===s.b))col=COL.scan_j;
+        }
+      }
+      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,col);g.addColorStop(1,col+'88');
+      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bW,h,[3,3,0,0]);ctx.fill();
+      if(bW>=18){ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(arr[k],x+bW/2,y+2);}
+    }
+  }
+
+  function updateCodeView(arrData) {
+    const codeEl = document.getElementById('generatedCode');
+    if(!codeEl) return;
+    const arrStr = arrData.join(', ');
+    const codeTpl = `let array = [{arr}];
+
+function quickSort(arr, lo = 0, hi = arr.length - 1) {
+  if (lo < hi) {
+    let pIdx = partition(arr, lo, hi);
+    quickSort(arr, lo, pIdx - 1);
+    quickSort(arr, pIdx + 1, hi);
+  }
+  return arr;
+}
+
+function partition(arr, lo, hi) {
+  let pivot = arr[hi];
+  let i = lo - 1;
+  for (let j = lo; j < hi; j++) {
+    if (arr[j] < pivot) {
+      i++;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+  [arr[i + 1], arr[hi]] = [arr[hi], arr[i + 1]];
+  return i + 1;
+}
+quickSort(array);`.replace('{arr}', arrStr);
+    codeEl.textContent = codeTpl;
+  }
+function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;document.getElementById('swpCount').textContent=swpTotal;document.getElementById('passCount').textContent=maxDepth;}
+  function startClock(){startTime=Date.now();timerInterval=setInterval(()=>{document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s';},100);}
+  function stopClock(){clearInterval(timerInterval);}
+
+  function step(s){
+    arr=[...s.arr];
+    if(s.t==='pivot'){if(s.depth>maxDepth)maxDepth=s.depth;}
+    else if(s.t==='cmp'){cmpTotal++;}
+    else if(s.t==='swap'){swpTotal++;}
+    else if(s.t==='swap-pvt'){swpTotal++;}
+    else if(s.t==='placed'){sortedSet.add(s.idx);}
+    else if(s.t==='done'){for(let i=0;i<arr.length;i++)sortedSet.add(i);done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
+    updCounters();draw(s);
+  }
+
+  function tick(ts){if(!running)return;const dt=ts-lastTime;lastTime=ts;msAcc+=dt;const spd=getSpeed();while(msAcc>=spd&&si<steps.length&&running){step(steps[si++]);msAcc-=spd;}if(si<steps.length&&running)rafId=requestAnimationFrame(tick);}
+
+  function initState(){
+    original=buildArr();arr=[...original];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;running=false;done=false;sortedSet=new Set();lastState=null;
+    cancelAnimationFrame(rafId);stopClock();
+    document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);
+  }
+
+  document.getElementById('playBtn').addEventListener('click',()=>{if(done){initState();return;}if(!steps.length)steps=buildSteps([...arr]);running=true;document.getElementById('playBtn').disabled=true;document.getElementById('pauseBtn').disabled=false;startClock();lastTime=performance.now();msAcc=0;rafId=requestAnimationFrame(tick);});
+  document.getElementById('pauseBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;});
+  document.getElementById('stepBtn').addEventListener('click',()=>{if(done)return;if(!steps.length)steps=buildSteps([...arr]);if(si<steps.length)step(steps[si++]);});
+  document.getElementById('resetBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();arr=[...original];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+  document.getElementById('newArrayBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();initState();});
+  document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
+  document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+
+  document.querySelectorAll('.panel-tab').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('pane'+btn.dataset.tab[0].toUpperCase()+btn.dataset.tab.slice(1)).classList.add('active');});});
+
+  const KB={explain:'Quick Sort picks a "pivot" element (in this sim, the last element) and partitions the array into two sides: numbers smaller than the pivot, and numbers larger. The pivot is then placed exactly in its final sorted position. It repeats this recursively for both sides.',n2:'If the array is already sorted and you pick the last element as the pivot, the partition doesn\'t split the array in half - it splits it into size n-1 and size 0. Doing this n times takes O(n²).',lomuto:'Lomuto partitioning picks the last element as the pivot. It maintains an index `i` marking the end of the "smaller than pivot" group. It scans with `j`, and whenever `j` finds a smaller element, it swaps it into the `i` group.',vsmerge:'Merge Sort requires O(n) extra memory but guarantees O(n log n). Quick Sort is entirely in-place (needs no extra memory except recursion stack) and is usually 2-3x faster in practice due to its tight, cache-friendly inner loop.',fix:'To avoid O(n²) on sorted arrays, modern Quick Sorts use "Median of Three" (picking the median of the first, middle, and last elements as the pivot) or random pivot selection to ensure the array splits roughly in half every time.',default:'Watch the red pivot element. The orange bar `j` scans for smaller numbers, and swaps them behind the purple boundary `i`. When the scan finishes, the red pivot is swapped into the middle.'};
+  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('step'))return KB.explain;if(l.includes('n²')||l.includes('worst')||l.includes('n2'))return KB.n2;if(l.includes('lomuto')||l.includes('hoare')||l.includes('partition'))return KB.lomuto;if(l.includes('merge')||l.includes('vs'))return KB.vsmerge;if(l.includes('fix')||l.includes('median')||l.includes('random'))return KB.fix;return KB.default;}
+  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="ai"]').classList.add('active');document.getElementById('paneAi').classList.add('active');}
+  document.getElementById('aiSend').addEventListener('click',doSend);
+  document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
+  document.querySelectorAll('.ai-chip').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+
+  const themeBtn=document.getElementById('themeToggle');
+  const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw(lastState);};
+  applyTheme(localStorage.getItem('theme')||'dark');
+  themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
+  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
+  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
+  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+
+  initState();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Merge Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Merge Sort visualisation: recursive divide-and-conquer tree and merge operations shown with brackets on Canvas."/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+  <link href="../assets/css/main.css" rel="stylesheet"/>
+  <link href="../assets/css/simulation-base.css" rel="stylesheet"/>
+  <style>
+    .stats-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex-shrink:0}
+    .stat-pill{display:flex;align-items:center;gap:7px;font-size:.82rem}.stat-pill .lbl{color:var(--muted)}.stat-pill .val{font-weight:700;font-size:.95rem;min-width:26px;text-align:right}
+    .stat-pill.comps .val{color:#60a5fa}.stat-pill.swaps .val{color:#22c55e}.stat-pill.passes .val{color:#a78bfa}.stat-pill.timer .val{color:#f59e0b}
+    .sep{width:1px;height:26px;background:var(--border);flex-shrink:0}
+    .ctrl-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex-shrink:0}
+    .ctrl-bar label{font-size:.78rem;color:var(--muted)}.ctrl-bar input[type=range]{accent-color:var(--primary);cursor:pointer}
+    .ctrl-bar select,.ctrl-bar input[type=text]{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:7px;font-size:.8rem}
+    .ctrl-bar input[type=text]{width:120px;font-size:.78rem}
+    .btn-c{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;border:0;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,opacity .15s}
+    .btn-primary-c{background:var(--primary);color:#fff}.btn-primary-c:hover{background:var(--primary-hover)}
+    .btn-secondary-c{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}.btn-secondary-c:hover{background:var(--border)}
+    .btn-c:disabled{opacity:.42;cursor:not-allowed}
+    .panel-tabs{display:flex;border-bottom:1px solid var(--border)}
+    .panel-tab{flex:1;padding:10px 0;text-align:center;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;border:0;background:transparent;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+    .panel-tab.active{color:#22c55e;border-bottom-color:#22c55e}
+    .info-sec{margin-bottom:13px}.info-sec h6{font-size:.7rem;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:0 0 7px}.info-sec p{font-size:.82rem;color:var(--text);margin:0;line-height:1.55}
+    .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cx-cell{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:.78rem}.cx-cell .cl{color:var(--muted);font-size:.68rem;display:block;margin-bottom:2px}.cx-cell .cv{font-weight:700}
+    .c-best{color:#22c55e}.c-avg{color:#f59e0b}.c-worst{color:#ef4444}.c-space{color:#a78bfa}
+    #paneCode pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin: 0; font-size: 0.8rem; overflow-x: auto; }
+    #paneCode code { color: var(--text); font-family: monospace; }
+    .ai-msgs{display:flex;flex-direction:column;gap:7px;margin-bottom:9px}
+    .ai-msg{font-size:.8rem;padding:8px 10px;border-radius:8px;line-height:1.5}
+    .ai-msg.bot{background:rgba(34,197,94,.1);border-left:3px solid var(--success)}.ai-msg.user{background:rgba(37,99,235,.1);border-left:3px solid var(--primary);text-align:right}
+    .ai-row{display:flex;gap:5px}.ai-row input{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:8px;font-size:.8rem}.ai-row button{background:var(--primary);color:#fff;border:0;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:.8rem}
+    .ai-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}.ai-chip{font-size:.71rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:6px;cursor:pointer}.ai-chip:hover{background:var(--border)}
+    .legend{display:flex;gap:9px;flex-wrap:wrap;font-size:.72rem}.leg{display:flex;align-items:center;gap:4px}.leg-dot{width:11px;height:11px;border-radius:3px}
+    .breadcrumb-nav{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}.breadcrumb-nav a{color:var(--muted);text-decoration:none}.breadcrumb-nav a:hover{color:var(--text)}.breadcrumb-nav .sep-bc{opacity:.5}.breadcrumb-nav .current{color:var(--text);font-weight:600}
+    .sim-nav{display:flex;gap:5px}.sim-nav a{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:7px;text-decoration:none;transition:color .15s}    .sim-nav a:hover{color:var(--text)}
+  </style>
+</head>
+<body class="sim-page">
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
+    <nav id="sideNav">
+      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <div class="nav-group">
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
+        <div class="collapse show" id="dsaMenu"><ul class="submenu">
+          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
+            <div class="collapse show" id="part1"><ul class="submenu">
+              <li><a href="index.html" class="sub-link"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
+              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
+              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
+              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
+              <li><a href="sim-04-merge-sort.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
+              <li><a href="sim-05-quick-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
+            </ul></div>
+          </li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
+        </ul></div>
+      </div>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <div class="breadcrumb-nav">
+          <a href="index.html"><i class="fa-solid fa-chart-column"></i> Sorting Lab</a>
+          <span class="sep-bc">/</span><span class="current">Merge Sort</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="sim-nav">
+          <a href="sim-03-insertion-sort.html"><i class="fa-solid fa-arrow-left"></i> Insertion</a>
+          <a href="sim-05-quick-sort.html"><i class="fa-solid fa-arrow-right"></i> Quick</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle"><i class="fa-solid fa-moon"></i><span>Dark Mode</span></button>
+        <div class="profile"><div class="avatar">AJ</div><div class="profile-text"><div class="profile-name">Lipweche A.</div><div class="profile-role">Student</div></div></div>
+      </div>
+    </header>
+
+    <div class="sim-content">
+      <div class="canvas-area">
+        <div class="stats-bar">
+          <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill swaps"><span class="lbl">Merges</span><span class="val" id="swpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
+          <div class="sep"></div>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
+            <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Active Merge</div>
+            <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Comparing</div>
+            <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Placed</div>
+          </div>
+        </div>
+        <div class="canvas-wrap"><canvas id="sortCanvas"></canvas></div>
+        <div class="ctrl-bar">
+          <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="4" max="48" value="16" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">16</span></div>
+          <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
+          <select id="arrayOrder"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
+          <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
+          <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
+          <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+          <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
+          <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="info">Info</button>
+          <button class="panel-tab" data-tab="code">Code</button>
+          <button class="panel-tab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI</button>
+        </div>
+        <div class="panel-body active" id="paneInfo">
+          <div class="info-sec info-welcome"><h6>Welcome - Start Here</h6><p>Merge Sort is a <strong>divide-and-conquer</strong> algorithm. This simulation shows how the array is split in half, then merged back in sorted order. Use the controls like the earlier sorting labs - no code required.</p></div>
+          <div class="info-sec"><h6>What You See on Screen</h6><ul class="info-list"><li><strong>Chart:</strong> Bars may highlight during <strong>split</strong> and <strong>merge</strong> phases.</li><li><strong>Stats:</strong> Comparisons and merge steps (pass/depth counters depend on this sim).</li><li><strong>Controls:</strong> Same as other Part 1 pages - Size, Speed, Run, Step, Reset, New.</li><li><strong>Info panel:</strong> Scroll down on mobile to read complexity and when to use merge sort.</li></ul></div>
+          <div class="info-sec"><h6>Your First Run</h6><ol class="info-steps"><li>Start with <strong>Size 16</strong> (powers of two are easy to follow).</li><li>Click <strong>Run</strong> ▶ and notice the array breaking into smaller pieces, then combining.</li><li>Use <strong>Step</strong> to see each comparison during a merge.</li><li>Compare with <strong>Quick Sort</strong> (next sim) after you understand splitting and merging.</li></ol></div>
+          <div class="info-sec"><h6>Controls Explained</h6><ul class="info-list"><li><strong>Size / Speed / Order / Custom / New:</strong> Same behaviour as Bubble and Selection sorts.</li><li><strong>☰ menu:</strong> Open the sidebar to pick another simulation.</li><li><strong>Code tab:</strong> Shows merge sort pseudocode for your current array.</li></ul></div>
+          <div class="info-sec"><h6>Colour Legend (Merge Sort)</h6><ul class="info-list"><li><span class="leg-inline" style="background:#3b82f6"></span> Blue - general / unsorted context</li><li><span class="leg-inline" style="background:#a78bfa"></span> Purple - active merge segment</li><li><span class="leg-inline" style="background:#60a5fa"></span> Light blue - comparing two values during merge</li><li><span class="leg-inline" style="background:#22c55e"></span> Green - value placed in merged result</li></ul></div>
+          <div class="info-sec"><h6>Right Panel Tabs</h6><ul class="info-list"><li><strong>Info</strong> - Full beginner guide (scroll to the end).</li><li><strong>Code</strong> - Algorithm sketch with your numbers.</li><li><strong>AI</strong> - Ask about divide-and-conquer or O(n) extra space.</li></ul></div>
+          <div class="info-sec"><h6>Scrolling this guide</h6><p><strong>Laptop/desktop:</strong> Scroll inside the Info panel on the right.<br/><strong>Phone/tablet:</strong> Scroll the page downward past the chart for the full guide.</p></div>
+          <div class="info-sec"><h6>How Merge Sort Works</h6><p>Merge Sort <strong>splits</strong> the array in half until pieces have one element (already sorted), then <strong>merges</strong> pairs by always taking the smaller front value from two sub-arrays. It always runs in O(n log n) but needs extra memory O(n).</p></div>
+          <div class="info-sec"><h6>Complexity</h6><div class="cx-grid"><div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div><div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div><div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n log n)</span></div><div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(n)</span></div></div></div>
+          <div class="info-sec"><h6>Properties</h6><p>✅ Stable &nbsp; ❌ Not in-place (O(n) space needed) &nbsp; ❌ Not adaptive &nbsp; ✅ Guaranteed O(n log n) always</p></div>
+          <div class="info-sec"><h6>Best Used When</h6><p>Ideal when stability is required, extra memory is acceptable, and guaranteed worst-case performance is needed (e.g. external sorting where data won't fit in RAM).</p></div>
+        </div>
+        <div class="panel-body" id="paneCode"><pre><code id="generatedCode"></code></pre></div>
+        <div class="panel-body" id="paneAi">
+          <div class="ai-chips">
+            <button class="ai-chip" data-q="Explain merge sort step by step">Explain it</button>
+            <button class="ai-chip" data-q="Why is merge sort always O(n log n)?">Always O(n log n)?</button>
+            <button class="ai-chip" data-q="Why does merge sort use O(n) space?">Why O(n) space?</button>
+            <button class="ai-chip" data-q="Is merge sort stable?">Stable?</button>
+            <button class="ai-chip" data-q="What is external sorting?">External sort?</button>
+          </div>
+          <div class="ai-msgs" id="aiMsgs"><div class="ai-msg bot">👋 Hi! I can explain how Merge Sort divides and conquers, why it guarantees O(n log n), and when to choose it over Quick Sort.</div></div>
+          <div class="ai-row"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  const canvas=document.getElementById('sortCanvas'),ctx=canvas.getContext('2d');
+  function resizeCanvas(){canvas.width=canvas.parentElement.clientWidth;canvas.height=canvas.parentElement.clientHeight;}
+  resizeCanvas();window.addEventListener('resize',()=>{resizeCanvas();draw(lastState);});
+
+  let arr=[],original=[],cmpTotal=0,mergeTotal=0,maxDepth=0;
+  let running=false,done=false,rafId=null,lastTime=0;
+  let steps=[],si=0,msAcc=0,lastState=null;
+  let timerInterval=null,startTime=0;
+  const getSpeed=()=>Math.round(1200/parseInt(document.getElementById('speedRange').value));
+
+  function mkRandom(n){return Array.from({length:n},()=>Math.floor(Math.random()*90)+10);}
+  function mkNearly(n){const a=Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));for(let k=0;k<Math.max(1,n>>3);k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}return a;}
+  function mkRev(n){return Array.from({length:n},(_,i)=>Math.round((n-i)*100/n));}
+  function mkSorted(n){return Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));}
+  function buildArr(){const n=parseInt(document.getElementById('arraySize').value),o=document.getElementById('arrayOrder').value;return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);}
+
+  /**
+   * buildSteps(a) - recursively computes Merge Sort steps.
+   */
+  function buildSteps(a){
+    const data=[...a],out=[];
+    function msort(lo,hi,depth){
+      if(lo>=hi)return;
+      const mid=(lo+hi)>>1;
+      // Splitting phase
+      out.push({t:'divide',lo,mid,hi,depth,arr:[...data]});
+      msort(lo,mid,depth+1);
+      msort(mid+1,hi,depth+1);
+      mergeArrays(lo,mid,hi,depth,data,out);
+    }
+    msort(0,data.length-1,0);
+    out.push({t:'done',arr:[...data]});
+    return out;
+  }
+
+  function mergeArrays(lo,mid,hi,depth,data,out){
+    const left=data.slice(lo,mid+1),right=data.slice(mid+1,hi+1);
+    let l=0,r=0,k=lo;
+    out.push({t:'merge-start',lo,mid,hi,depth,arr:[...data]});
+    while(l<left.length&&r<right.length){
+      out.push({t:'merge-cmp',lo,mid,hi,depth,lv:left[l],rv:right[r],arr:[...data]});
+      if(left[l]<=right[r]){data[k]=left[l];l++;}else{data[k]=right[r];r++;}
+      out.push({t:'merge-place',lo,mid,hi,depth,pos:k,arr:[...data]});
+      k++;
+    }
+    while(l<left.length){data[k]=left[l];l++;out.push({t:'merge-place',lo,mid,hi,depth,pos:k,arr:[...data]});k++;}
+    while(r<right.length){data[k]=right[r];r++;out.push({t:'merge-place',lo,mid,hi,depth,pos:k,arr:[...data]});k++;}
+    out.push({t:'merge-done',lo,hi,depth,arr:[...data]});
+  }
+
+  /**
+   * draw(state) - renders current merge window (purple), compares (blue), and placed (green).
+   * Draws a bracket underneath the active sub-array.
+   */
+  const COL={base:'#3b82f6',active:'#a78bfa',cmp:'#60a5fa',placed:'#22c55e'};
+  function draw(state){
+    lastState=state;
+    const W=canvas.width,H=canvas.height,n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b1220';
+    ctx.fillRect(0,0,W,H);if(!n)return;
+    const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
+    const activeRange=state&&(state.lo!=null)?new Set(Array.from({length:state.hi-state.lo+1},(_,i)=>state.lo+i)):new Set();
+
+    for(let k=0;k<n;k++){
+      const x=k*(bW+1),h=Math.max(3,(arr[k]/maxV)*aH),y=H-pB-h;
+      let col=COL.base;
+      if(state){
+        if(state.t==='done')col=COL.placed;
+        else if(activeRange.has(k))col=COL.active;
+        if(state.t==='merge-cmp'&&(k===state.lo||k===state.mid+1))col=COL.cmp;
+        if(state.t==='merge-place'&&k===state.pos)col=COL.placed;
+        if(state.t==='merge-done')col=COL.placed;
+      }
+      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,col);g.addColorStop(1,col+'88');
+      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bW,h,[3,3,0,0]);ctx.fill();
+      if(bW>=18){ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(arr[k],x+bW/2,y+2);}
+    }
+    // bracket under active merge range
+    if(state&&state.lo!=null&&state.hi!=null&&state.t!=='done'){
+      const x1=state.lo*(bW+1),x2=(state.hi+1)*(bW+1)-1;
+      ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x1,H-pB+4);ctx.lineTo(x1,H-pB+10);ctx.lineTo(x2,H-pB+10);ctx.lineTo(x2,H-pB+4);ctx.stroke();
+      if(state.depth!=null){ctx.fillStyle='rgba(167,139,250,.7)';ctx.font='10px Segoe UI';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(`depth=${state.depth}`,(x1+x2)/2,H-pB+12);}
+    }
+  }
+
+
+  function updateCodeView(arrData) {
+    const codeEl = document.getElementById('generatedCode');
+    if(!codeEl) return;
+    const arrStr = arrData.join(', ');
+    const codeTpl = `let array = [{arr}];
+
+function mergeSort(arr) {
+  if (arr.length <= 1) return arr;
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid));
+  const right = mergeSort(arr.slice(mid));
+  return merge(left, right);
+}
+
+function merge(left, right) {
+  let res = [], l = 0, r = 0;
+  while (l < left.length && r < right.length) {
+    if (left[l] <= right[r]) res.push(left[l++]);
+    else res.push(right[r++]);
+  }
+  return res.concat(left.slice(l)).concat(right.slice(r));
+}
+array = mergeSort(array);`.replace('{arr}', arrStr);
+    codeEl.textContent = codeTpl;
+  }
+function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;document.getElementById('swpCount').textContent=mergeTotal;document.getElementById('passCount').textContent=maxDepth;}
+  function startClock(){startTime=Date.now();timerInterval=setInterval(()=>{document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s';},100);}
+  function stopClock(){clearInterval(timerInterval);}
+
+  /**
+   * step(s) - advances the simulation by one pre-computed step.
+   */
+  function step(s){
+    arr=[...s.arr];
+    if(s.t==='divide'){if(s.depth>maxDepth)maxDepth=s.depth;}
+    else if(s.t==='merge-start'){mergeTotal++;}
+    else if(s.t==='merge-cmp'){cmpTotal++;}
+    else if(s.t==='merge-place'){}
+    else if(s.t==='merge-done'){}
+    else if(s.t==='done'){done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
+    updCounters();draw(s);
+  }
+
+  function tick(ts){if(!running)return;const dt=ts-lastTime;lastTime=ts;msAcc+=dt;const spd=getSpeed();while(msAcc>=spd&&si<steps.length&&running){step(steps[si++]);msAcc-=spd;}if(si<steps.length&&running)rafId=requestAnimationFrame(tick);}
+
+  function initState(){
+    original=buildArr();arr=[...original];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;running=false;done=false;lastState=null;
+    cancelAnimationFrame(rafId);stopClock();
+    document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);
+  }
+
+  document.getElementById('playBtn').addEventListener('click',()=>{if(done){initState();return;}if(!steps.length)steps=buildSteps([...arr]);running=true;document.getElementById('playBtn').disabled=true;document.getElementById('pauseBtn').disabled=false;startClock();lastTime=performance.now();msAcc=0;rafId=requestAnimationFrame(tick);});
+  document.getElementById('pauseBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;});
+  document.getElementById('stepBtn').addEventListener('click',()=>{if(done)return;if(!steps.length)steps=buildSteps([...arr]);if(si<steps.length)step(steps[si++]);});
+  document.getElementById('resetBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();arr=[...original];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;done=false;lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+  document.getElementById('newArrayBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();initState();});
+  document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
+  document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;done=false;lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+
+  document.querySelectorAll('.panel-tab').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('pane'+btn.dataset.tab[0].toUpperCase()+btn.dataset.tab.slice(1)).classList.add('active');});});
+
+  const KB={explain:'Merge Sort uses divide and conquer. It recursively halves the array until only single elements remain, then builds the sorted array back up by merging adjacent sorted sub-arrays - picking the smaller of two front elements.',nlogn:'The array is halved log₂(n) times (the divide phase). At each depth level the merge step does O(n) work total. Total work = O(n) × O(log n) = O(n log n). This holds for ALL inputs.',space:'Merge Sort needs an auxiliary array of size n to hold the merged output before writing it back. In-place merge algorithms exist but are extremely complex and slow in practice.',stable:'Yes - Merge Sort is stable. During the merge, when two elements are equal, it always picks the element from the left sub-array first, retaining their original order.',external:'External sorting is used when data is too large for RAM. Merge Sort maps perfectly to this: read chunks into RAM, sort them, write sorted "runs" to disk, then merge the runs.',default:'Watch the purple brackets show each sub-array being merged. Blue bars are compared and green bars are placed into their final position in the merged array.'};
+  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('step')||l.includes('how'))return KB.explain;if(l.includes('n log')||l.includes('nlogn')||l.includes('always'))return KB.nlogn;if(l.includes('space')||l.includes('memory')||l.includes('o(n)'))return KB.space;if(l.includes('stable'))return KB.stable;if(l.includes('external')||l.includes('disk')||l.includes('large'))return KB.external;return KB.default;}
+  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="ai"]').classList.add('active');document.getElementById('paneAi').classList.add('active');}
+  document.getElementById('aiSend').addEventListener('click',doSend);
+  document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
+  document.querySelectorAll('.ai-chip').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+
+  const themeBtn=document.getElementById('themeToggle');
+  const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw(lastState);};
+  applyTheme(localStorage.getItem('theme')||'dark');
+  themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
+  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
+  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
+  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+
+  initState();
+})();
+</script>
+</body>
+</html>

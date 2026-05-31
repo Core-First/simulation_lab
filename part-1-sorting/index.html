@@ -1,145 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sorting Algorithms - DSA Practical Guide</title>
-  <link href="../../assets/css/main.css" rel="stylesheet">
-  <link href="../../assets/css/simulation-base.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Part 1: Sorting Algorithms | ATC SimLab</title>
+  <meta name="description" content="Interactive sorting algorithm visualisations: Bubble Sort, Selection Sort, Insertion Sort, Merge Sort, and Quick Sort."/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+  <link href="../assets/css/main.css" rel="stylesheet"/>
+  <style>
+    /* Dashboard main area specifics for the hub page */
+    .lab-hero {
+      background: linear-gradient(135deg, rgba(37,99,235,.1) 0%, rgba(15,23,42,0) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 2rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .lab-hero::before {
+      content: ''; position: absolute; top: -50px; right: -50px; width: 250px; height: 250px;
+      background: radial-gradient(circle, rgba(37,99,235,.15) 0%, transparent 70%); border-radius: 50%;
+    }
+    .badge-part {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(37,99,235,.15); color: #60a5fa;
+      border: 1px solid rgba(37,99,235,.3);
+      padding: 5px 12px; border-radius: 6px; font-size: .75rem; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .lab-hero h1 { font-weight: 800; font-size: 2.2rem; margin: 0 0 10px; }
+    .lab-hero p { color: var(--muted); margin: 0; font-size: 1rem; max-width: 600px; line-height: 1.6; }
+    
+    .content-area { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    .sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+    
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+      transition: transform .2s, border-color .2s;
+      text-decoration: none; color: inherit; position: relative; overflow: hidden;
+    }
+    .sim-card:hover {
+      transform: translateY(-4px); border-color: rgba(96,165,250,.5);
+    }
+    .sim-card::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+      background: var(--primary); transform: scaleX(0); transform-origin: left; transition: transform .3s ease;
+    }
+    .sim-card:hover::after { transform: scaleX(1); }
+    
+    .sim-card .icon-box {
+      width: 48px; height: 48px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 5px;
+    }
+    .c1 { background: rgba(59,130,246,.15); color: #3b82f6; }
+    .c2 { background: rgba(245,158,11,.15); color: #f59e0b; }
+    .c3 { background: rgba(167,139,250,.15); color: #a78bfa; }
+    .c4 { background: rgba(34,197,94,.15); color: #22c55e; }
+    .c5 { background: rgba(239,68,68,.15); color: #ef4444; }
+    
+    .sim-card h3 { font-size: 1.15rem; font-weight: 700; margin: 0; display: flex; justify-content: space-between; align-items: center; }
+    .sim-card h3 i.arr { opacity: 0; transform: translateX(-5px); transition: all .2s; font-size: 1rem; color: var(--primary); }
+    .sim-card:hover h3 i.arr { opacity: 1; transform: translateX(0); }
+    .sim-card p { color: var(--muted); font-size: .88rem; margin: 0; line-height: 1.5; flex: 1; }
+    
+    .sim-meta { display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: auto; }
+    .meta-tag { font-size: .75rem; color: var(--muted); display: flex; align-items: center; gap: 4px; background: var(--surface-2); padding: 3px 8px; border-radius: 6px; }
+    .meta-tag i { font-size: .7rem; }
+
+    .lab-guide {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1.75rem;
+    }
+    .lab-guide h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 10px; }
+    .lab-guide p { color: var(--muted); font-size: .9rem; margin: 0 0 12px; line-height: 1.6; }
+    .lab-guide ol { margin: 0; padding-left: 1.25rem; font-size: .88rem; line-height: 1.65; color: var(--text); }
+    .lab-guide li { margin-bottom: 8px; }
+    .lab-guide li strong { color: var(--text); }
+
+    @media (max-width: 991.98px) {
+      .lab-hero { padding: 1.5rem 1rem 1.25rem; }
+      .lab-hero h1 { font-size: 1.55rem; }
+      .lab-hero p { font-size: .92rem; }
+      .content-area { padding: 1rem; }
+      .sim-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .theme-toggle span { display: none; }
+      .profile-text { display: none; }
+      .topbar { padding: 12px 14px; }
+    }
+    @media (max-width: 575.98px) {
+      .lab-hero h1 { font-size: 1.35rem; }
+      .sim-card { padding: 1.1rem; }
+      .lab-guide { padding: 1rem; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <header class="mb-4">
-      <h1>Sorting Algorithms</h1>
-      <p>Visualize and understand different sorting algorithms</p>
-    </header>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
+    <nav id="sideNav">
+      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <div class="nav-group">
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
+        <div class="collapse show" id="dsaMenu"><ul class="submenu">
+          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
+            <div class="collapse show" id="part1"><ul class="submenu">
+              <li><a href="index.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
+              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
+              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
+              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
+              <li><a href="sim-04-merge-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
+              <li><a href="sim-05-quick-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
+            </ul></div>
+          </li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
+          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
+        </ul></div>
+      </div>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Main Area -->
+  <div class="main" style="overflow-y: auto;">
     
-    <div class="row">
-      <div class="col-md-8">
-        <div class="simulation-container">
-          <div class="canvas-wrapper">
-            <canvas id="sortingCanvas" width="800" height="400"></canvas>
-          </div>
-          <div class="controls-panel">
-            <div class="control-group">
-              <label for="arraySize">Array Size:</label>
-              <input type="number" id="arraySize" min="5" max="50" value="20">
-            </div>
-            <div class="control-group">
-              <label for="speed">Speed:</label>
-              <input type="range" id="speed" min="1" max="10" value="5">
-            </div>
-            <button class="btn btn-primary" id="startBtn">Start Sorting</button>
-            <button class="btn btn-outline-secondary" id="resetBtn">Reset</button>
-            <button class="btn btn-outline-secondary" id="newArrayBtn">New Array</button>
-          </div>
-          <div class="ai-panel">
-            <h3>AI Assistant</h3>
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="input-group">
-              <input type="text" id="userInput" placeholder="Ask for a hint...">
-              <button class="btn btn-success" id="sendBtn">Send</button>
-            </div>
-          </div>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <div class="breadcrumb-nav" style="font-size:.85rem;color:var(--muted)">
+          <span><i class="fa-solid fa-folder-open"></i> DSA Practical Guides</span>
+          <span style="opacity:.5;margin:0 6px">/</span>
+          <span style="color:var(--text);font-weight:600">Part 1: Sorting</span>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card">
-          <h5>Algorithm Info</h5>
-          <div id="algorithmInfo">
-            <p>Select an algorithm to see its explanation here.</p>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="themeToggle"><i class="fa-solid fa-moon"></i><span>Dark Mode</span></button>
+        <div class="profile"><div class="avatar">AJ</div><div class="profile-text"><div class="profile-name">Lipweche A.</div><div class="profile-role">Student</div></div></div>
+      </div>
+    </header>
+
+    <div class="lab-hero">
+      <div class="badge-part"><i class="fa-solid fa-arrow-up-wide-short"></i> Part 1</div>
+      <h1>Sorting Algorithms</h1>
+      <p>Master the fundamentals of algorithmic sorting. Compare basic quadratic sorts (Bubble, Selection, Insertion) against advanced divide-and-conquer sorts (Merge, Quick) using interactive step-by-step visualisations.</p>
+    </div>
+
+    <div class="content-area">
+      <section class="lab-guide" aria-labelledby="lab-guide-title">
+        <h2 id="lab-guide-title"><i class="fa-solid fa-circle-info"></i> New here? How to use Part 1</h2>
+        <p>This lab has five interactive sorting pages. Each one animates an algorithm step by step - you only need a web browser.</p>
+        <ol>
+          <li><strong>Pick a simulation</strong> below (start with Bubble Sort if you are new to sorting).</li>
+          <li>On the simulation page, read <strong>Info</strong> on the right (on a phone, scroll <strong>down</strong> past the chart to find it).</li>
+          <li>Set <strong>Size</strong> and click <strong>Run</strong> ▶. Use <strong>Step</strong> to go slowly, <strong>Reset</strong> to try again.</li>
+          <li>Use the <strong>☰ menu</strong> (top-left) to switch between sorts or return here.</li>
+          <li>Tap <strong>Dark Mode</strong> if you prefer a light background - your choice is remembered.</li>
+        </ol>
+      </section>
+      <div class="sim-grid">
+        
+        <a href="sim-01-bubble-sort.html" class="sim-card">
+          <div class="icon-box c1"><i class="fa-solid fa-water"></i></div>
+          <h3>Bubble Sort <i class="fa-solid fa-arrow-right arr"></i></h3>
+          <p>Larger elements bubble to the top. The simplest comparison sort, useful for educational purposes and demonstrating the early-exit adaptive optimisation.</p>
+          <div class="sim-meta">
+            <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> O(n²)</span>
+            <span class="meta-tag"><i class="fa-solid fa-shield-halved"></i> Stable</span>
+            <span class="meta-tag"><i class="fa-solid fa-box"></i> In-place</span>
           </div>
-        </div>
-        <div class="card mt-3">
-          <h5>Complexity</h5>
-          <div id="complexityInfo">
-            <p>Time Complexity: --</p>
-            <p>Space Complexity: --</p>
+        </a>
+
+        <a href="sim-02-selection-sort.html" class="sim-card">
+          <div class="icon-box c2"><i class="fa-solid fa-crosshairs"></i></div>
+          <h3>Selection Sort <i class="fa-solid fa-arrow-right arr"></i></h3>
+          <p>Finds the minimum element and swaps it into the sorted region. Makes the mathematical minimum number of swaps (n-1) of any comparison sort.</p>
+          <div class="sim-meta">
+            <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> O(n²)</span>
+            <span class="meta-tag"><i class="fa-solid fa-xmark"></i> Unstable</span>
+            <span class="meta-tag"><i class="fa-solid fa-box"></i> In-place</span>
           </div>
-        </div>
+        </a>
+
+        <a href="sim-03-insertion-sort.html" class="sim-card">
+          <div class="icon-box c3"><i class="fa-solid fa-indent"></i></div>
+          <h3>Insertion Sort <i class="fa-solid fa-arrow-right arr"></i></h3>
+          <p>Builds the sorted array one element at a time, just like sorting a hand of playing cards. Highly efficient for small or nearly-sorted datasets.</p>
+          <div class="sim-meta">
+            <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> O(n²)</span>
+            <span class="meta-tag"><i class="fa-solid fa-bolt"></i> Adaptive</span>
+            <span class="meta-tag"><i class="fa-solid fa-shield-halved"></i> Stable</span>
+          </div>
+        </a>
+
+        <a href="sim-04-merge-sort.html" class="sim-card">
+          <div class="icon-box c4"><i class="fa-solid fa-code-branch"></i></div>
+          <h3>Merge Sort <i class="fa-solid fa-arrow-right arr"></i></h3>
+          <p>A divide-and-conquer algorithm that recursively splits the array and merges sorted halves. Guarantees O(n log n) performance at the cost of O(n) memory.</p>
+          <div class="sim-meta">
+            <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> O(n log n)</span>
+            <span class="meta-tag"><i class="fa-solid fa-memory"></i> O(n) Space</span>
+            <span class="meta-tag"><i class="fa-solid fa-shield-halved"></i> Stable</span>
+          </div>
+        </a>
+
+        <a href="sim-05-quick-sort.html" class="sim-card">
+          <div class="icon-box c5"><i class="fa-solid fa-bolt-lightning"></i></div>
+          <h3>Quick Sort <i class="fa-solid fa-arrow-right arr"></i></h3>
+          <p>Partitions the array around a pivot. The fastest general-purpose sorting algorithm in practice due to a highly optimised inner loop and excellent cache locality.</p>
+          <div class="sim-meta">
+            <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> O(n log n) avg</span>
+            <span class="meta-tag"><i class="fa-solid fa-xmark"></i> Unstable</span>
+            <span class="meta-tag"><i class="fa-solid fa-box"></i> In-place</span>
+          </div>
+        </a>
+
       </div>
     </div>
   </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  const themeBtn=document.getElementById('themeToggle');
+  const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';};
+  applyTheme(localStorage.getItem('theme')||'dark');
+  themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
   
-  <script src="../../assets/js/utils.js"></script>
-  <script src="../../assets/js/visualizer-core.js"></script>
-  <script src="../../assets/js/ai-assistant.js"></script>
-  <script>
-    // Initialize the visualizer and AI assistant
-    const visualizer = new window.visualizer.SortingVisualizer('sortingCanvas');
-    const aiAssistant = new window.AIAssistant();
-    
-    // UI elements
-    const arraySizeInput = document.getElementById('arraySize');
-    const speedInput = document.getElementById('speed');
-    const startBtn = document.getElementById('startBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const newArrayBtn = document.getElementById('newArrayBtn');
-    const chatMessages = document.getElementById('chatMessages');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const algorithmInfo = document.getElementById('algorithmInfo');
-    const complexityInfo = document.getElementById('complexityInfo');
-    
-    // Set algorithm name in visualizer
-    visualizer.setAlgorithmName('Bubble Sort');
-    
-    // Generate initial array
-    function generateArray() {
-      const size = parseInt(arraySizeInput.value);
-      return window.utils.randomArray(size, 10, 100);
-    }
-    
-    // Update visualizer with new array
-    function updateArray() {
-      const arr = generateArray();
-      visualizer.setArray(arr);
-    }
-    
-    // Event listeners
-    newArrayBtn.addEventListener('click', updateArray);
-    resetBtn.addEventListener('click', () => {
-      visualizer.reset();
-      updateArray();
-    });
-    
-    // Initialize
-    updateArray();
-    
-    // AI Assistant UI
-    sendBtn.addEventListener('click', async () => {
-      const message = userInput.value.trim();
-      if (message) {
-        // Add user message to chat
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message user';
-        messageDiv.textContent = message;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Get AI response (placeholder)
-        const response = await aiAssistant.getHint({ algorithm: 'bubbleSort' });
-        
-        // Add AI message to chat
-        const aiMessageDiv = document.createElement('div');
-        aiMessageDiv.className = 'message ai';
-        aiMessageDiv.textContent = response;
-        chatMessages.appendChild(aiMessageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Clear input
-        userInput.value = '';
-      }
-    });
-    
-    // Allow Enter key to send message
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendBtn.click();
-      }
-    });
-  </script>
+  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
+  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
+  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+})();
+</script>
 </body>
 </html>

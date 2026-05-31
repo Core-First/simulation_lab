@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bubble Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Interactive Bubble Sort visualisation with step-by-step Canvas animation, comparisons counter, and AI assistant." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
+  <style>
+    /* Bubble Sort - page-specific styles (layout: simulation-base.css) */
+    /* Stats strip */
+    .stats-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; flex-shrink: 0;
+    }
+    .stat-pill { display: flex; align-items: center; gap: 7px; font-size: .82rem; }
+    .stat-pill .lbl { color: var(--muted); }
+    .stat-pill .val { font-weight: 700; font-size: .95rem; min-width: 26px; text-align: right; }
+    .stat-pill.comps .val { color: #60a5fa; }
+    .stat-pill.swaps .val { color: #f59e0b; }
+    .stat-pill.passes .val { color: #a78bfa; }
+    .stat-pill.timer .val { color: #22c55e; }
+    .sep { width: 1px; height: 26px; background: var(--border); flex-shrink: 0; }
+    /* Controls */
+    .ctrl-bar {
+      display: flex; gap: 7px; align-items: center; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; flex-shrink: 0;
+    }
+    .ctrl-bar label { font-size: .78rem; color: var(--muted); }
+    .ctrl-bar input[type=range] { accent-color: var(--primary); cursor: pointer; }
+    .ctrl-bar select {
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); padding: 4px 8px; border-radius: 7px; font-size: .8rem;
+    }
+    .ctrl-bar input[type=text] {
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); padding: 4px 8px; border-radius: 7px;
+      font-size: .78rem; width: 120px;
+    }
+    .btn-c {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 13px; border-radius: 8px; border: 0;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    .btn-primary-c { background: var(--primary); color: #fff; }
+    .btn-primary-c:hover { background: var(--primary-hover); }
+    .btn-secondary-c { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary-c:hover { background: var(--border); }
+    .btn-c:disabled { opacity: .42; cursor: not-allowed; }
+    .panel-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .panel-tab {
+      flex: 1; padding: 10px 0; text-align: center; font-size: .8rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; border: 0; background: transparent;
+      border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+    }
+    .panel-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    /* Info panel content */
+    .info-sec { margin-bottom: 13px; }
+    .info-sec h6 { font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; margin: 0 0 7px; }
+    .info-sec p { font-size: .82rem; color: var(--text); margin: 0; line-height: 1.55; }
+    .cx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .cx-cell { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; font-size: .78rem; }
+    .cx-cell .cl { color: var(--muted); font-size: .68rem; display: block; margin-bottom: 2px; }
+    .cx-cell .cv { font-weight: 700; }
+    .c-best { color: #22c55e; } .c-avg { color: #f59e0b; } .c-worst { color: #ef4444; } .c-space { color: #a78bfa; }
+    /* Code panel */
+    #paneCode pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin: 0; font-size: 0.8rem; overflow-x: auto; }
+    #paneCode code { color: var(--text); font-family: monospace; }
+    /* AI panel */
+    .ai-msgs { display: flex; flex-direction: column; gap: 7px; margin-bottom: 9px; }
+    .ai-msg { font-size: .8rem; padding: 8px 10px; border-radius: 8px; line-height: 1.5; }
+    .ai-msg.bot { background: rgba(34,197,94,.1); border-left: 3px solid var(--success); }
+    .ai-msg.user { background: rgba(37,99,235,.1); border-left: 3px solid var(--primary); text-align: right; }
+    .ai-row { display: flex; gap: 5px; }
+    .ai-row input { flex: 1; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 6px 9px; border-radius: 8px; font-size: .8rem; }
+    .ai-row button { background: var(--primary); color: #fff; border: 0; border-radius: 8px; padding: 6px 11px; cursor: pointer; font-size: .8rem; }
+    .ai-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+    .ai-chip { font-size: .71rem; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+    .ai-chip:hover { background: var(--border); }
+    /* Legend */
+    .legend { display: flex; gap: 9px; flex-wrap: wrap; font-size: .72rem; }
+    .leg { display: flex; align-items: center; gap: 4px; }
+    .leg-dot { width: 11px; height: 11px; border-radius: 3px; }
+    /* Page title breadcrumb */
+    .breadcrumb-nav { display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); }
+    .breadcrumb-nav a { color: var(--muted); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: var(--text); }
+    .breadcrumb-nav .sep-bc { opacity: .5; }
+    .breadcrumb-nav .current { color: var(--text); font-weight: 600; }
+    /* Topbar nav arrows */
+    .sim-nav { display: flex; gap: 5px; }
+    .sim-nav a {
+      display: inline-flex; align-items: center; gap: 4px; font-size: .78rem;
+      color: var(--muted); background: var(--surface-2); border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 7px; text-decoration: none; transition: color .15s;
+    }
+    .sim-nav a:hover { color: var(--text); }
+  </style>
+</head>
+<body class="sim-page">
+<div class="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+        <div class="brand-logo"><i class="fa-solid fa-atom"></i></div>
+        <div class="brand-name">ATC SimLab</div>
+      </a>
+    </div>
+    <nav id="sideNav">
+      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
+
+      <div class="nav-group">
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true">
+          <i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides
+          <i class="fa-solid fa-chevron-right chev"></i>
+        </button>
+        <div class="collapse show" id="dsaMenu">
+          <ul class="submenu">
+            <!-- Part 1 – Sorting (expanded, links wired) -->
+            <li>
+              <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true">
+                <i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse show" id="part1">
+                <ul class="submenu">
+                  <li><a href="index.html" class="sub-link"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
+                  <li><a href="sim-01-bubble-sort.html" class="sub-link active" id="lnk01"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
+                  <li><a href="sim-02-selection-sort.html" class="sub-link" id="lnk02"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
+                  <li><a href="sim-03-insertion-sort.html" class="sub-link" id="lnk03"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
+                  <li><a href="sim-04-merge-sort.html" class="sub-link" id="lnk04"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
+                  <li><a href="sim-05-quick-sort.html" class="sub-link" id="lnk05"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
+                </ul>
+              </div>
+            </li>
+            <!-- Parts 2–6: collapsed, no links (other teams) -->
+            <li>
+              <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2">
+                <i class="fa-solid fa-book lead-icon"></i> Part 2: Searching
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse" id="part2"><ul class="submenu">
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li>
+              </ul></div>
+            </li>
+            <li>
+              <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3">
+                <i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse" id="part3"><ul class="submenu">
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li>
+              </ul></div>
+            </li>
+            <li>
+              <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4">
+                <i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse" id="part4"><ul class="submenu">
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL / Red-Black</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li>
+              </ul></div>
+            </li>
+            <li>
+              <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5">
+                <i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse" id="part5"><ul class="submenu">
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li>
+              </ul></div>
+            </li>
+            <li>
+              <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6">
+                <i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design
+                <i class="fa-solid fa-chevron-right chev"></i>
+              </button>
+              <div class="collapse" id="part6"><ul class="submenu">
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: Dynamic Programming</a></li>
+                <li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li>
+              </ul></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
+      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- ── Main ───────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <div class="breadcrumb-nav">
+          <a href="index.html"><i class="fa-solid fa-chart-column"></i> Sorting Lab</a>
+          <span class="sep-bc">/</span>
+          <span class="current">Bubble Sort</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="sim-nav">
+          <a href="sim-02-selection-sort.html"><i class="fa-solid fa-arrow-right"></i> Selection Sort</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle">
+          <i class="fa-solid fa-moon"></i><span>Dark Mode</span>
+        </button>
+        <div class="profile">
+          <div class="avatar">AJ</div>
+          <div class="profile-text">
+            <div class="profile-name">Bwire B.</div>
+            <div class="profile-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sim Content -->
+    <div class="sim-content">
+
+      <!-- Canvas Area -->
+      <div class="canvas-area">
+
+        <!-- Stats -->
+        <div class="stats-bar">
+          <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill swaps"><span class="lbl">Swaps</span><span class="val" id="swpCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill passes"><span class="lbl">Pass</span><span class="val" id="passCount">0</span></div>
+          <div class="sep"></div>
+          <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
+          <div class="sep"></div>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
+            <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Comparing</div>
+            <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Swapping</div>
+            <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Sorted</div>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-wrap"><canvas id="sortCanvas"></canvas></div>
+
+        <!-- Controls -->
+        <div class="ctrl-bar">
+          <div class="d-flex align-items-center gap-2">
+            <label for="arraySize">Size</label>
+            <input type="range" id="arraySize" min="5" max="60" value="20" style="width:80px" />
+            <span id="arraySizeVal" style="font-size:.8rem;min-width:18px">20</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label for="speedRange">Speed</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px" />
+          </div>
+          <select id="arrayOrder">
+            <option value="random">Random</option>
+            <option value="nearly">Nearly Sorted</option>
+            <option value="reverse">Reversed</option>
+            <option value="sorted">Already Sorted</option>
+          </select>
+          <div class="d-flex align-items-center gap-1">
+            <label for="customArr">Custom</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" data-tip="comma-separated integers" />
+            <button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button>
+          </div>
+          <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
+          <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+          <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
+          <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+        </div>
+
+      </div><!-- /canvas-area -->
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="info">Info</button>
+          <button class="panel-tab" data-tab="code">Code</button>
+          <button class="panel-tab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI</button>
+        </div>
+        <div class="panel-body active" id="paneInfo">
+          <div class="info-sec info-welcome"><h6>Welcome - Start Here</h6><p>This page is an <strong>interactive lesson</strong>. Each bar is a number; the taller the bar, the larger the value. You do not need to install anything or write code - just use the buttons below the chart.</p></div>
+          <div class="info-sec"><h6>What You See on Screen</h6><ul class="info-list"><li><strong>Chart (centre):</strong> The array shown as vertical bars.</li><li><strong>Stats row (above chart):</strong> Comparisons, swaps, pass number, and elapsed time.</li><li><strong>Control bar (below chart):</strong> Change array size, speed, and playback.</li><li><strong>Info / Code / AI tabs (this panel):</strong> On a phone or tablet, <strong>scroll down</strong> past the chart to read the full guide - including complexity and tips at the bottom.</li></ul></div>
+          <div class="info-sec"><h6>Your First Run</h6><ol class="info-steps"><li>Set <strong>Size</strong> to about 8–15 if this is your first time (fewer bars are easier to follow).</li><li>Click <strong>Run</strong> ▶ and watch the animation.</li><li>Press <strong>Pause</strong> to freeze, then <strong>Step</strong> ▶▶ to move one action at a time.</li><li>Click <strong>Reset</strong> to return to the same starting array; click <strong>New</strong> to generate a different one.</li><li>Open the <strong>AI</strong> tab and tap a suggested question if you want a short explanation.</li></ol></div>
+          <div class="info-sec"><h6>Controls Explained</h6><ul class="info-list"><li><strong>Size (slider):</strong> Number of values in the array (5–60).</li><li><strong>Speed (slider):</strong> Animation speed - 1 is slowest, 10 is fastest.</li><li><strong>Order (dropdown):</strong> Random, nearly sorted, reversed, or already sorted data.</li><li><strong>Custom + ✓:</strong> Type your own numbers separated by commas, e.g. <code>45, 12, 67, 3</code>, then press the check button.</li><li><strong>☰ (top-left):</strong> Opens the menu to jump to another sorting simulation or the lab home page.</li><li><strong>Dark Mode:</strong> Toggles light/dark theme (saved in your browser).</li></ul></div>
+          <div class="info-sec"><h6>Colour Legend (Bubble Sort)</h6><ul class="info-list"><li><span class="leg-inline" style="background:#3b82f6"></span> Blue - not in final position yet</li><li><span class="leg-inline" style="background:#f59e0b"></span> Yellow - two neighbours being compared</li><li><span class="leg-inline" style="background:#ef4444"></span> Red - a swap is happening</li><li><span class="leg-inline" style="background:#22c55e"></span> Green - locked in sorted position</li></ul></div>
+          <div class="info-sec"><h6>Right Panel Tabs</h6><ul class="info-list"><li><strong>Info</strong> - This guide and algorithm notes (scroll to see everything).</li><li><strong>Code</strong> - Sample code that matches your current array.</li><li><strong>AI</strong> - Ask questions; use the chips for common topics.</li></ul></div>
+          <div class="info-sec"><h6>Scrolling this guide</h6><p><strong>Laptop/desktop:</strong> Move the pointer over the Info panel (right) and scroll with the mouse wheel or trackpad to reach every section, including complexity at the bottom.<br/><strong>Phone/tablet:</strong> Scroll the page downward past the chart; the full guide sits below the visualization.</p></div>
+          <div class="info-sec"><h6>How Bubble Sort Works</h6><p>Bubble Sort repeatedly compares <strong>adjacent</strong> elements and swaps them when they are out of order. Larger values “bubble” toward the end each pass. With early-exit, the algorithm stops as soon as a full pass makes no swaps (useful when the data is already sorted).</p></div>
+          <div class="info-sec"><h6>Complexity</h6>
+            <div class="cx-grid">
+              <div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n)</span></div>
+              <div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n²)</span></div>
+              <div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n²)</span></div>
+              <div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(1)</span></div>
+            </div>
+          </div>
+          <div class="info-sec"><h6>Properties</h6><p>✅ Stable &nbsp; ✅ In-place &nbsp; ✅ Adaptive (early-exit)</p></div>
+          <div class="info-sec"><h6>Best Used When</h6><p>Educational purposes or nearly-sorted small arrays where the early-exit optimisation makes it O(n).</p></div>
+        </div>
+        <div class="panel-body" id="paneCode"><pre><code id="generatedCode"></code></pre></div>
+        <div class="panel-body" id="paneAi">
+          <div class="ai-chips">
+            <button class="ai-chip" data-q="Explain bubble sort simply">Explain it</button>
+            <button class="ai-chip" data-q="Why is bubble sort O(n²)?">Why O(n²)?</button>
+            <button class="ai-chip" data-q="What is the best case and why?">Best case?</button>
+            <button class="ai-chip" data-q="How does early-exit work?">Early exit?</button>
+            <button class="ai-chip" data-q="Is bubble sort stable?">Stable?</button>
+          </div>
+          <div class="ai-msgs" id="aiMsgs">
+            <div class="ai-msg bot">👋 Hi! Ask me anything about Bubble Sort - mechanics, complexity, or what's happening on the canvas.</div>
+          </div>
+          <div class="ai-row">
+            <input type="text" id="aiInput" placeholder="Ask a question…" />
+            <button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sim-content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // ── State ─────────────────────────────────────────────────
+  let arr = [], original = [], cmp = 0, swp = 0, pass = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0;
+  let sortedIndices = new Set();
+  let timerInterval = null, startTime = 0;
+
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
+  /**
+   * computeSteps(a) - pre-computes the full Bubble Sort step sequence.
+   * Separates algorithm logic from rendering (draw()), per modular guidelines.
+   * Step types: 'pass' | 'compare' | 'swap' | 'sorted' | 'done'
+   */
+  function computeSteps(a) {
+    const d = [...a], n = d.length, out = [];
+    for(let p=0; p<n-1; p++) {
+      let swapped = false; // early-exit: if no swap in this pass, array is sorted
+      out.push({type:'pass', pass:p+1, arr:[...d]});
+      // Inner scan: compare adjacent pairs in unsorted region [0 .. n-1-p]
+      for(let j=0; j<n-1-p; j++) {
+        out.push({type:'compare', a:j, b:j+1, arr:[...d]});
+        if(d[j] > d[j+1]) {
+          [d[j],d[j+1]] = [d[j+1],d[j]];
+          swapped = true;
+          out.push({type:'swap', a:j, b:j+1, arr:[...d]});
+        }
+      }
+      // After pass, element at n-1-p is in its final sorted position
+      out.push({type:'sorted', idx:n-1-p, arr:[...d]});
+      if(!swapped) { out.push({type:'done', arr:[...d]}); break; }
+    }
+    if(out[out.length-1]?.type !== 'done') out.push({type:'done', arr:[...d]});
+    return out;
+  }
+
+  // ── draw(state) - pure rendering, separated from algorithm logic ──
+  const COLORS = { base:'#3b82f6', compare:'#f59e0b', swap:'#ef4444', sorted:'#22c55e' };
+  function draw(state) {
+    const W=canvas.width, H=canvas.height, n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b1220';
+    ctx.fillRect(0,0,W,H);
+    if(!n) return;
+    const maxV=Math.max(...arr), bW=Math.max(2,(W-n-1)/n), pH=32, pB=20, aH=H-pH-pB;
+    for(let k=0;k<n;k++){
+      const x=k*(bW+1), h=Math.max(3,(arr[k]/maxV)*aH), y=H-pB-h;
+      let col=COLORS.base;
+      if(state){
+        if(state.type==='done'||sortedIndices.has(k)) col=COLORS.sorted;
+        if(state.type==='compare'&&(k===state.a||k===state.b)) col=COLORS.compare;
+        if(state.type==='swap'&&(k===state.a||k===state.b)) col=COLORS.swap;
+      }
+      const g=ctx.createLinearGradient(x,y,x,y+h);
+      g.addColorStop(0,col); g.addColorStop(1,col+'88');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(x,y,bW,h,[3,3,0,0]); ctx.fill();
+      if(bW>=18){ ctx.fillStyle='#fff'; ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(arr[k],x+bW/2,y+2); }
+    }
+  }
+
+  function updateCodeView(arrData) {
+    const codeEl = document.getElementById('generatedCode');
+    if(!codeEl) return;
+    const arrStr = arrData.join(', ');
+    const codeTpl = `let array = [{arr}];
+
+function bubbleSort(arr) {
+  let n = arr.length;
+  for (let i = 0; i < n - 1; i++) {
+    let swapped = false;
+    for (let j = 0; j < n - 1 - i; j++) {
+      if (arr[j] > arr[j + 1]) {
+        let temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        swapped = true;
+      }
+    }
+    if (!swapped) break;
+  }
+  return arr;
+}
+bubbleSort(array);`.replace('{arr}', arrStr);
+    codeEl.textContent = codeTpl;
+  }
+
+  // ── Counters + timer ──────────────────────────────────────
+
+  function updateCounters() {
+    document.getElementById('cmpCount').textContent  = cmp;
+    document.getElementById('swpCount').textContent  = swp;
+    document.getElementById('passCount').textContent = pass;
+  }
+  function startClock() { startTime=Date.now(); timerInterval=setInterval(()=>{ document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s'; },100); }
+  function stopClock()  { clearInterval(timerInterval); }
+
+  // ── step() - advances one algorithm step and calls draw() ─
+  function step(s) {
+    arr = [...s.arr];
+    if(s.type==='pass')    { pass=s.pass;  }
+    if(s.type==='compare') { cmp++;  }
+    if(s.type==='swap')    { swp++;  }
+    if(s.type==='sorted')  { sortedIndices.add(s.idx);  }
+    if(s.type==='done')    {
+      for(let k=0;k<arr.length;k++) sortedIndices.add(k);
+      done=true; running=false; stopClock();
+      
+      document.getElementById('playBtn').disabled  = false;
+      document.getElementById('pauseBtn').disabled = true;
+    }
+    updateCounters();
+    draw(s);
+  }
+
+  // ── Animation loop ────────────────────────────────────────
+  function tick(ts) {
+    if(!running) return;
+    const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
+    const spd=getSpeed();
+    while(msAcc>=spd&&si<steps.length&&running){ step(steps[si++]); msAcc-=spd; }
+    if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
+  }
+
+  // ── initState ─────────────────────────────────────────────
+  function initState() {
+    original=buildArr(); arr=[...original];
+    cmp=swp=pass=0; steps=[]; si=0; running=false; done=false;
+    sortedIndices=new Set();
+    cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent = '0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  }
+
+  // ── Controls ──────────────────────────────────────────────
+  document.getElementById('playBtn').addEventListener('click', () => {
+    if(done){ initState(); return; }
+    if(!steps.length) steps=computeSteps([...arr]);
+    running=true;
+    document.getElementById('playBtn').disabled  = true;
+    document.getElementById('pauseBtn').disabled = false;
+    startClock(); lastTime=performance.now(); msAcc=0;
+    rafId=requestAnimationFrame(tick);
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+  });
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    if(done) return;
+    if(!steps.length) steps=computeSteps([...arr]);
+    if(si<steps.length) step(steps[si++]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    arr=[...original]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+  document.getElementById('newArrayBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock(); initState();
+  });
+  document.getElementById('arraySize').addEventListener('input', function() {
+    document.getElementById('arraySizeVal').textContent=this.value;
+    if(!running) initState();
+  });
+  // Custom array input - parse comma-separated integers supplied by the user
+  document.getElementById('applyCustomBtn').addEventListener('click', () => {
+    const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
+    const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
+    if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    original=parsed; arr=[...parsed]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+
+  // ── Panel tabs ────────────────────────────────────────────
+  document.querySelectorAll('.panel-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pane'+btn.dataset.tab[0].toUpperCase()+btn.dataset.tab.slice(1)).classList.add('active');
+    });
+  });
+
+  // ── AI assistant (hardcoded responses, no API needed) ─────
+  const KB={
+    explain:'Bubble Sort makes repeated passes through the array. In each pass it compares adjacent pairs and swaps them if they are in the wrong order. Larger values "bubble" to the end each pass. It stops early when a full pass makes no swaps.',
+    'n²':'In the worst case (reversed array) there are n−1 passes each making up to n−1 comparisons - giving O(n²/2) ≈ O(n²) total.',
+    best:'The best case is O(n): when the array is already sorted, the first pass makes n−1 comparisons, finds zero swaps, and the early-exit flag terminates the algorithm immediately.',
+    early:'The early-exit optimisation tracks whether any swap happened in a pass. If none occurred, the array is sorted and the algorithm stops - avoiding unnecessary passes.',
+    stable:'Yes - Bubble Sort is stable. It only swaps adjacent elements when the left is strictly greater, so equal elements never swap past each other.',
+    default:'Watch the canvas: yellow bars are being compared, red means a swap is happening, and green bars are in their final sorted positions. Press Step to advance one comparison at a time.'
+  };
+  function aiAns(q){
+    const l=q.toLowerCase();
+    if(l.includes('explain')||l.includes('simple')||l.includes('how')) return KB.explain;
+    if(l.includes('n²')||l.includes('n2')||l.includes('quadratic')) return KB['n²'];
+    if(l.includes('best')) return KB.best;
+    if(l.includes('early')||l.includes('optimis')) return KB.early;
+    if(l.includes('stable')) return KB.stable;
+    return KB.default;
+  }
+  function pushMsg(text,role){ const d=document.createElement('div'); d.className=`ai-msg ${role}`; d.textContent=text; document.getElementById('aiMsgs').appendChild(d); d.scrollIntoView({behavior:'smooth'}); }
+  function doSend(){
+    const inp=document.getElementById('aiInput'); const q=inp.value.trim(); if(!q) return;
+    pushMsg(q,'user'); inp.value='';
+    setTimeout(()=>pushMsg(aiAns(q),'bot'),280);
+    document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));
+    document.querySelector('[data-tab="ai"]').classList.add('active');
+    document.getElementById('paneAi').classList.add('active');
+  }
+  document.getElementById('aiSend').addEventListener('click', doSend);
+  document.getElementById('aiInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  document.querySelectorAll('.ai-chip').forEach(b=>{ b.addEventListener('click',()=>{ document.getElementById('aiInput').value=b.dataset.q; doSend(); }); });
+
+  // ── Theme + hamburger (mirrors main.js behaviour) ─────────
+  const themeBtn = document.getElementById('themeToggle');
+  const applyTheme = t => {
+    document.body.classList.toggle('light-theme', t==='light');
+    themeBtn.innerHTML = t==='light'
+      ? '<i class="fa-solid fa-sun"></i><span>Light Mode</span>'
+      : '<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';
+    draw();
+  };
+  applyTheme(localStorage.getItem('theme')||'dark');
+  themeBtn.addEventListener('click', ()=>{
+    const next=document.body.classList.contains('light-theme')?'dark':'light';
+    localStorage.setItem('theme',next); applyTheme(next);
+  });
+  const sidebar=document.getElementById('sidebar'), backdrop=document.getElementById('backdrop');
+  document.getElementById('hamburger').addEventListener('click', ()=>{ sidebar.classList.toggle('open'); backdrop.classList.toggle('show'); });
+  backdrop.addEventListener('click', ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); });
+
+  // ── Init ──────────────────────────────────────────────────
+  initState();
+})();
+</script>
+</body>
+</html>
