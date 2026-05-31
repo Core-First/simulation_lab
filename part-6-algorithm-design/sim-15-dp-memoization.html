@@ -6,151 +6,14 @@
     <title>sim-15-dp-memoization - ATC SimLab</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <link href="../assets/css/simulation-base.css" rel="stylesheet" />
     <style>
         :root {
-            --bg-main: #0f172a;
-            --bg-panel: #1e293b;
-            --text: #f8fafc;
-            --muted: #94a3b8;
-            --border: #334155;
             --accent-blue: #2563eb;
             --accent-green: #22c55e;
             --accent-yellow: #fbbf24;
-            --accent-purple: #a855f7;
             --accent-red: #ef4444;
         }
-        body { background: var(--bg-main); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        /* Layout */
-        .sidebar { width: 260px; background: #1e293b; border-right: 1px solid var(--border); padding: 20px 15px; overflow-y: auto; flex-shrink: 0; display: none; }
-        @media(min-width: 992px){ .sidebar { display: block; } }
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Top Bar */
-        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--bg-main); }
-        .page-title { font-weight: 600; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .page-title i { color: var(--accent-blue); }
-        .back-btn { background: #1e293b; border: 1px solid var(--border); color: var(--text); padding: 4px 14px; border-radius: 4px; text-decoration: none; font-size: 12px; transition: all 0.3s ease; }
-        .back-btn:hover { background: var(--accent-blue); border-color: var(--accent-blue); }
-
-        /* Simulation Content */
-        .sim-body { display: flex; flex: 1; overflow: hidden; }
-        .left-panel { flex: 0 0 70%; padding: 20px; overflow-y: auto; overflow-x: hidden; border-right: 1px solid var(--border); }
-        .right-panel { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
-
-        /* Cards */
-        .panel-card { background: #1e293b; border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .panel-card:hover { box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
-        .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* Tree Visualization */
-        .tree-container { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: visible; }
-        .tree-svg { width: 100%; display: block; }
-        .node-circle { fill: #4b5563; stroke: #6b7280; stroke-width: 2; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-        .node-circle:hover { filter: brightness(1.2); }
-        .node-text { fill: white; font-size: 14px; font-family: monospace; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-        .node-current { fill: var(--accent-blue); stroke: #3b82f6; animation: pulse-blue 1.5s ease-in-out infinite; }
-        .node-computed { fill: #6b7280; stroke: #9ca3af; }
-        .node-memo { fill: var(--accent-green); stroke: #4ade80; animation: pulse-green 1s ease-in-out infinite; }
-        .edge-line { stroke: #6b7280; stroke-width: 2; transition: all 0.4s ease; }
-        .memo-edge { stroke: var(--accent-green); stroke-width: 2; stroke-dasharray: 4; animation: dash 1s linear infinite; }
-        @keyframes dash { to { stroke-dashoffset: -8; } }
-        @keyframes pulse-blue { 0%, 100% { filter: drop-shadow(0 0 8px rgba(37,99,235,0.6)); } 50% { filter: drop-shadow(0 0 16px rgba(37,99,235,0.9)); } }
-        @keyframes pulse-green { 0%, 100% { filter: drop-shadow(0 0 8px rgba(34,197,94,0.6)); } 50% { filter: drop-shadow(0 0 16px rgba(34,197,94,0.9)); } }
-
-        /* Memo Table */
-        .memo-table { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; margin-top: 15px; overflow-x: auto; }
-        .memo-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .memo-table th { background: #1e293b; padding: 12px 8px; text-align: center; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 600; }
-        .memo-table td { padding: 12px 8px; text-align: center; border-bottom: 1px solid var(--border); transition: all 0.3s ease; position: relative; }
-        .memo-table tr:last-child td { border-bottom: none; }
-        .computed { color: var(--accent-green); font-weight: bold; background: rgba(34,197,94,.15); animation: fade-in 0.5s ease; }
-        .computing { color: var(--accent-yellow); font-weight: bold; background: rgba(251,191,36,.15); animation: pulse-yellow 0.5s ease; }
-        .uninitialized { color: var(--muted); font-style: italic; }
-        @keyframes fade-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        @keyframes pulse-yellow { 0%, 100% { background: rgba(251,191,36,.15); } 50% { background: rgba(251,191,36,.3); } }
-
-        /* Code Editor */
-        .code-editor { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; font-family: 'Fira Code', 'Courier New', monospace; font-size: 13px; position: relative; line-height: 1.6; min-height: 280px; }
-        .code-editor[contenteditable="true"] { outline: none; cursor: text; }
-        .code-editor[contenteditable="true"]:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
-        .code-line { display: block; color: #e2e8f0; padding: 4px 12px; border-radius: 4px; transition: all 0.3s ease; position: relative; }
-        .code-line::before { content: attr(data-line-num); position: absolute; left: -25px; color: var(--muted); font-size: 11px; width: 20px; text-align: right; user-select: none; }
-        .code-line.error { background: rgba(239,68,68,0.2); border-left: 4px solid var(--accent-red); }
-        .code-line.warning { background: rgba(251,191,36,0.2); border-left: 4px solid var(--accent-yellow); }
-        .code-highlight { background: rgba(251,191,36,0.25); border-left: 4px solid var(--accent-yellow); animation: slide-in 0.3s ease; }
-        @keyframes slide-in { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .code-keyword { color: #ff79c6; font-weight: bold; }
-        .code-number { color: #bd93f9; }
-        .code-comment { color: #6272a4; font-style: italic; }
-        .code-func { color: #50fa7b; }
-        .code-type { color: #8be9fd; }
-        .code-macro { color: #ffb86c; }
-        .code-preproc { color: #ff79c6; }
-        .code-editor { padding-left: 35px; }
-        .code-editor-wrapper { position: relative; }
-
-        /* Error Notifications */
-        .error-panel { background: rgba(239,68,68,0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
-        .error-panel.show { display: block; animation: slide-down 0.3s ease; }
-        @keyframes slide-down { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .error-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; }
-        .error-item:last-child { margin-bottom: 0; }
-        .error-item i { color: var(--accent-red); margin-top: 2px; }
-        .error-item.error { color: #fca5a5; }
-        .error-item.warning { color: #fcd34d; }
-        .error-item.info { color: #93c5fd; }
-
-        /* Status Indicator */
-        .editor-status { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 10px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-dot.valid { background: var(--accent-green); }
-        .status-dot.invalid { background: var(--accent-red); animation: pulse-red 1s ease-in-out infinite; }
-        .status-dot.warning { background: var(--accent-yellow); }
-        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* Controls */
-        .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .btn-control { border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-control:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .btn-control:active:not(:disabled) { transform: translateY(0); }
-        .btn-control:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-step { background: var(--accent-blue); color: white; }
-        .btn-step:hover:not(:disabled) { background: #1d4ed8; }
-        .btn-play { background: var(--accent-green); color: white; }
-        .btn-play:hover:not(:disabled) { background: #16a34a; }
-        .btn-pause { background: var(--accent-yellow); color: #0f172a; }
-        .btn-pause:hover:not(:disabled) { background: #f59e0b; }
-        .btn-reset { background: #4b5563; color: white; }
-        .btn-reset:hover:not(:disabled) { background: #374151; }
-        .toggle-wrap { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .toggle-switch { width: 44px; height: 24px; background: #4b5563; border-radius: 24px; position: relative; cursor: pointer; transition: all 0.3s ease; }
-        .toggle-switch.active { background: var(--accent-blue); }
-        .toggle-switch::after { content: ''; width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .toggle-switch.active::after { left: 22px; }
-        .stats { display: flex; gap: 20px; font-size: 14px; font-weight: 500; margin-top: 15px; }
-        .stat-item { display: flex; align-items: center; gap: 8px; }
-        .stat-value { background: #0f172a; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-family: monospace; font-size: 16px; min-width: 40px; text-align: center; transition: all 0.3s ease; }
-        .stat-value.updated { animation: stat-pop 0.3s ease; }
-        @keyframes stat-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
-        /* Input Fields */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-        .input-group input { width: 100%; background: #0f172a; border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; }
-        .input-group input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
-        .input-group input:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* AI Assistant */
-        .ai-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; }
-        .ai-question { color: #f8fafc; line-height: 1.5; }
-        .ai-response { color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-style: italic; }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
     </style>
 </head>
 <body>
@@ -242,7 +105,7 @@
                         <span><i class="fa-solid fa-code text-primary"></i> C Code Editor</span>
                         <span style="font-size:11px; color:var(--muted);"><i class="fa-solid fa-pen-to-square"></i> Editable</span>
                     </div>
-                    <div class="editor-status">
+                    <div class="status-indicator" id="editorStatus">
                         <div class="status-dot valid" id="editorStatusDot"></div>
                         <span id="editorStatusText">Code is valid</span>
                     </div>
@@ -423,15 +286,15 @@
         if (errors.length > 0) {
             editorStatusDot.className = 'status-dot invalid';
             editorStatusText.textContent = `${errors.length} error(s)`;
-            editorStatusText.style.color = 'var(--accent-red)';
+            editorStatusText.style.color = 'var(--danger)';
         } else if (warnings.length > 0) {
             editorStatusDot.className = 'status-dot warning';
             editorStatusText.textContent = `${warnings.length} warning(s)`;
-            editorStatusText.style.color = 'var(--accent-yellow)';
+            editorStatusText.style.color = 'var(--warning)';
         } else {
             editorStatusDot.className = 'status-dot valid';
             editorStatusText.textContent = 'Code is valid';
-            editorStatusText.style.color = 'var(--accent-green)';
+            editorStatusText.style.color = 'var(--success)';
         }
         
         // Update error panel
