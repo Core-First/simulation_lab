@@ -143,3 +143,277 @@ canvas {
     flex-wrap: wrap;
   }
 }
+
+/* ── Part 1 sorting sim stylkes (sim-01 … sim-05) ───────────────────────── */
+body.sim-page {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+body.sim-page .app {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  min-height: 0;
+}
+
+body.sim-page .app > .main {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.sim-page .topbar {
+  flex-shrink: 0;
+}
+
+body.sim-page .sim-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+body.sim-page .canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px;
+  gap: 10px;
+  min-width: 0;
+}
+
+body.sim-page .canvas-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+body.sim-page #sortCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+body.sim-page .right-panel {
+  width: 360px;
+  flex: 0 0 360px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+
+body.sim-page .panel-tabs {
+  flex-shrink: 0;
+}
+
+body.sim-page .panel-body {
+  display: none;
+  padding: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.sim-page .panel-body.active {
+  display: block;
+}
+
+/* Desktop / laptop: scrollable info panel inside fixed viewport */
+@media (min-width: 992px) {
+  body.sim-page .right-panel {
+    align-self: stretch;
+  }
+
+  body.sim-page .panel-body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 42px;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  body.sim-page .panel-body.active {
+    overflow-y: auto;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 160px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1279.98px) {
+  body.sim-page .right-panel {
+    width: 300px;
+    flex: 0 0 300px;
+  }
+}
+
+/* Mobile / tablet: page scroll, panel below chart */
+@media (max-width: 991.98px) {
+  html:has(body.sim-page),
+  body.sim-page {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.sim-page .app {
+    min-height: 100vh;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  body.sim-page .main {
+    overflow: visible;
+    flex: none;
+  }
+
+  body.sim-page .sim-content {
+    flex-direction: column;
+    overflow: visible;
+    flex: none;
+    min-height: auto;
+  }
+
+  body.sim-page .canvas-area {
+    flex: none;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  body.sim-page .canvas-wrap {
+    flex: none;
+    height: min(42vh, 280px);
+    min-height: 180px;
+  }
+
+  body.sim-page .right-panel {
+    width: 100%;
+    height: auto;
+    flex: none;
+    max-height: none;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+  }
+
+  body.sim-page .panel-body {
+    position: static;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+  }
+
+  body.sim-page .panel-body.active {
+    overflow-y: visible;
+    max-height: none;
+  }
+
+  body.sim-page .stats-bar {
+    padding: 6px 10px;
+  }
+
+  body.sim-page .stat-pill {
+    font-size: 0.75rem;
+  }
+
+  body.sim-page .sep {
+    display: none;
+  }
+
+  body.sim-page .legend {
+    width: 100%;
+  }
+
+  body.sim-page .ctrl-bar {
+    padding: 6px 10px;
+  }
+
+  body.sim-page .topbar {
+    padding: 10px 12px;
+  }
+
+  body.sim-page .theme-toggle span {
+    display: none;
+  }
+
+  body.sim-page .profile-text {
+    display: none;
+  }
+
+  body.sim-page .breadcrumb-nav {
+    font-size: 0.74rem;
+    flex-wrap: wrap;
+  }
+
+  body.sim-page .sim-nav a {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  body.sim-page .ctrl-bar input[type="text"] {
+    width: 100%;
+    max-width: none;
+  }
+
+  body.sim-page .cx-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Beginner info panel typography (shared across Part 1 sims) */
+body.sim-page .info-list,
+body.sim-page .info-steps {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+body.sim-page .info-list li,
+body.sim-page .info-steps li {
+  margin-bottom: 6px;
+}
+
+body.sim-page .info-list code {
+  font-size: 0.78rem;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+body.sim-page .info-welcome p {
+  background: rgba(37, 99, 235, 0.08);
+  border-left: 3px solid var(--primary);
+  padding: 8px 10px;
+  border-radius: 0 8px 8px 0;
+}
+
+body.sim-page .leg-inline {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
