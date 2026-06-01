@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Searching Algorithms - DSA Practical Guide</title>
+  <link href="../../assets/css/main.css" rel="stylesheet">
+  <link href="../../assets/css/simulation-base.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container-fluid">
+    <header class="mb-4">
+      <h1>Searching Algorithms</h1>
+      <p>Visualize and understand different searching algorithms</p>
+    </header>
+    
+    <div class="row">
+      <div class="col-md-8">
+        <div class="simulation-container">
+          <div class="canvas-wrapper">
+            <canvas id="searchingCanvas" width="800" height="400"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label for="arraySize">Array Size:</label>
+              <input type="number" id="arraySize" min="5" max="50" value="20">
+            </div>
+            <div class="control-group">
+              <label for="target">Target Value:</label>
+              <input type="number" id="target" min="1" max="100" value="42">
+            </div>
+            <div class="control-group">
+              <label for="speed">Speed:</label>
+              <input type="range" id="speed" min="1" max="10" value="5">
+            </div>
+            <button class="btn btn-primary" id="startBtn">Start Search</button>
+            <button class="btn btn-outline-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-outline-secondary" id="newArrayBtn">New Array</button>
+          </div>
+          <div class="ai-panel">
+            <h3>AI Assistant</h3>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="input-group">
+              <input type="text" id="userInput" placeholder="Ask for a hint...">
+              <button class="btn btn-success" id="sendBtn">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <h5>Algorithm Info</h5>
+          <div id="algorithmInfo">
+            <p>Select an algorithm to see its explanation here.</p>
+          </div>
+        </div>
+        <div class="card mt-3">
+          <h5>Complexity</h5>
+          <div id="complexityInfo">
+            <p>Time Complexity: --</p>
+            <p>Space Complexity: --</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/visualizer-core.js"></script>
+  <script src="../../assets/js/ai-assistant.js"></script>
+  <script>
+    // Initialize the visualizer and AI assistant
+    const visualizer = new window.visualizer.ArrayVisualizer('searchingCanvas');
+    const aiAssistant = new window.AIAssistant();
+    
+    // UI elements
+    const arraySizeInput = document.getElementById('arraySize');
+    const targetInput = document.getElementById('target');
+    const speedInput = document.getElementById('speed');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const newArrayBtn = document.getElementById('newArrayBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const algorithmInfo = document.getElementById('algorithmInfo');
+    const complexityInfo = document.getElementById('complexityInfo');
+    
+    // Set algorithm name in visualizer (we'll update this based on selected algorithm)
+    visualizer.setAlgorithmName('Linear Search');
+    
+    // Generate initial array
+    function generateArray() {
+      const size = parseInt(arraySizeInput.value);
+      return window.utils.randomArray(size, 1, 100);
+    }
+    
+    // Update visualizer with new array
+    function updateArray() {
+      const arr = generateArray();
+      visualizer.setArray(arr);
+      // Highlight target value if present
+      const target = parseInt(targetInput.value);
+      const targetIndex = arr.indexOf(target);
+      if (targetIndex !== -1) {
+        visualizer.highlight(targetIndex, '#ff9f1c');
+      }
+    }
+    
+    // Event listeners
+    newArrayBtn.addEventListener('click', updateArray);
+    resetBtn.addEventListener('click', () => {
+      visualizer.reset();
+      updateArray();
+    });
+    targetInput.addEventListener('change', updateArray);
+    
+    // Initialize
+    updateArray();
+    
+    // AI Assistant UI
+    sendBtn.addEventListener('click', async () => {
+      const message = userInput.value.trim();
+      if (message) {
+        // Add user message to chat
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.textContent = message;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Get AI response (placeholder)
+        const response = await aiAssistant.getHint({ algorithm: 'linearSearch' });
+        
+        // Add AI message to chat
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'message ai';
+        aiMessageDiv.textContent = response;
+        chatMessages.appendChild(aiMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Clear input
+        userInput.value = '';
+      }
+    });
+    
+    // Allow Enter key to send message
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
