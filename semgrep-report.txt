@@ -1,0 +1,33 @@
+# Semgrep Security Analysis Report
+
+## Scan Summary
+- Findings: 2 (both blocking)
+- Rules run: 3
+- Targets scanned: 5 files
+- Scan was limited to files tracked by git
+
+## Findings
+
+### 1. Insecure randomness usage (semgrep.insecure-random)
+**File:** assets\js\utils.js
+**Line 13:** rr.push(Math.floor(Math.random() * (max - min + 1)) + min);
+**Context:** RandomArray function - generating random numbers for simulation test data
+
+### 2. Insecure randomness usage (semgrep.insecure-random)
+**File:** assets\js\utils.js
+**Line 26:** const j = Math.floor(Math.random() * (i + 1));
+**Context:** ShuffleArray function - implementing Fisher-Yates shuffle algorithm
+
+## Analysis
+Both flagged uses of Math.random() are legitimate and appropriate for this educational simulation library:
+1. The randomArray function generates test data for sorting/searching algorithm demonstrations
+2. The shuffleArray function implements the Fisher-Yates algorithm for array shuffling
+3. Cryptographic security is not required for these use cases
+4. The randomness quality of Math.random() is sufficient for educational simulations
+
+## Risk Level: LOW
+These findings do not represent actual security vulnerabilities in the context of this project.
+
+## Recommendation
+No code changes are required. The flagged functionality is intentional and appropriate for the project's educational purpose.
+
