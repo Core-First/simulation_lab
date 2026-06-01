@@ -978,11 +978,52 @@ function setupTourControls() {
   };
 }
 
+// --------------------------------------------------------------
+// Line Explanation popup
+// --------------------------------------------------------------
+function showLineExplanation(lineNum) {
+  const explanations = {
+    1: "Provides the bool type and true/false constants.",
+    2: "Defines N=8 for the chessboard size.",
+    4: "Checks if a queen can be safely placed at (row, col).",
+    5: "Iterates over all previously placed queens to test attacks.",
+    6: "Conflict test: another queen in the same column.",
+    7: "Conflict test: another queen on the upper-left diagonal.",
+    8: "Conflict test: another queen on the upper-right diagonal.",
+    9: "End of conflict-checking loop.",
+    10: "No conflicts found - position is safe.",
+    11: "End of isSafe function.",
+    13: "Recursive backtracking solver placing one queen per row.",
+    14: "Base case: all N rows filled - solution found.",
+    15: "Tries every column in the current row.",
+    16: "Advances only if the current cell is safe.",
+    17: "Places a queen at the safe position.",
+    18: "Recurses to the next row; aborts branch on failure.",
+    19: "Backtrack: removes queen to try the next column.",
+    20: "End of safety-check block.",
+    21: "End of column-iteration loop.",
+    22: "No valid placement in this row - triggers backtrack.",
+    23: "End of solve function.",
+  };
+  const text = explanations[lineNum] || "No explanation available.";
+  aiResponseDiv.innerHTML = `<strong>Line ${lineNum}:</strong> ${text}`;
+}
+
+function setupLineExplanationHandlers() {
+  document.querySelectorAll(".line-explanation").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showLineExplanation(e.target.dataset.line);
+    });
+  });
+}
+
 function init() {
   initDOMElements();
   initCodeEditor();
   initEventListeners();
   setupTourControls();
+  setupLineExplanationHandlers();
   rebuildSimulation();
 
   if (!localStorage.getItem("nqueens_tour_complete")) {
