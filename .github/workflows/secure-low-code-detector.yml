@@ -1,0 +1,263 @@
+name: Secure Low-Code Detector
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+
+  ###########################################################
+  # LOW-CODE / VIBE-CODE ANALYSIS
+  ###########################################################
+
+  low-code-analysis:
+    name: Low-Code Risk Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      ###########################################################
+      # SETUP
+      ###########################################################
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      ###########################################################
+      # INSTALL ANALYSIS TOOLS
+      ###########################################################
+
+      - name: Install Analysis Tools
+        run: |
+          pip install lizard
+          npm install -g jscpd
+
+      ###########################################################
+      # DUPLICATION ANALYSIS
+      ###########################################################
+
+      - name: Run Duplication Scan
+        run: |
+          jscpd . \
+            --min-lines 5 \
+            --min-tokens 50 \
+            --reporters json \
+            --output ./jscpd-report || true
+
+      ###########################################################
+      # COMPLEXITY ANALYSIS
+      ###########################################################
+
+      - name: Run Complexity Scan
+        run: |
+          lizard . > lizard-report.txt || true
+
+      ###########################################################
+      # LOW-CODE DETECTOR
+      ###########################################################
+
+      - name: Run Low-Code Detector
+        run: |
+          python low_code_detector.py
+
+      ###########################################################
+      # ARTIFACTS
+      ###########################################################
+
+      - name: Upload Analysis Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: low-code-analysis-reports
+          path: |
+            low-code-report.txt
+            lizard-report.txt
+            jscpd-report/
+
+      ###########################################################
+      # COMMENT ON PR
+      ###########################################################
+
+      - name: Comment PR with Risk Report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const report = fs.readFileSync(
+              'low-code-report.txt',
+              'utf8'
+            );
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      ###########################################################
+      # BLOCK HIGH-RISK MERGES
+      ###########################################################
+
+      - name: Fail if Risk Too High
+        run: |
+          SCORE=$(grep "Risk Score" low-code-report.txt | awk '{print $3}' | tr -d '%')
+
+          echo "Detected Risk Score: $SCORE"
+
+          if [ "$SCORE" -gt 70 ]; then
+            echo "❌ High-risk low-quality contribution detected."
+            exit 1
+          fi
+
+  ###########################################################
+  # SEMGREP SECURITY ANALYSIS
+  ###########################################################
+
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      ###########################################################
+      # RUN SEMGREP
+      ###########################################################
+
+      - name: Run Semgrep Scan
+        run: |
+          semgrep scan \
+            --config=auto \
+            --config=.semgrep/custom-rules.yml \
+            --error \
+            --json \
+            --output=semgrep-report.json
+
+      ###########################################################
+      # UPLOAD REPORTS
+      ###########################################################
+
+      - name: Upload Semgrep Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
+
+  ###########################################################
+  # CODEQL SECURITY ANALYSIS
+  ###########################################################
+
+  codeql:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript
+          - python
+
+    steps:
+      ###########################################################
+      # CHECKOUT
+      ###########################################################
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      ###########################################################
+      # INITIALIZE CODEQL
+      ###########################################################
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      ###########################################################
+      # AUTOBUILD
+      ###########################################################
+
+      - name: Autobuild Project
+        uses: github/codeql-action/autobuild@v3
+
+      ###########################################################
+      # ANALYZE
+      ###########################################################
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  ###########################################################
+  # OPTIONAL: DEPENDENCY AUDIT
+  ###########################################################
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      ###########################################################
+      # NODE SECURITY AUDIT
+      ###########################################################
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run npm audit
+        run: |
+          if [ -f package.json ]; then
+            npm install
+            npm audit --audit-level=high
+          fi
+
+      ###########################################################
+      # PYTHON SECURITY AUDIT
+      ###########################################################
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run pip audit
+        run: |
+          pip install pip-audit
+
+          if [ -f requirements.txt ]; then
+            pip-audit -r requirements.txt
+          fi
