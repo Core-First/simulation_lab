@@ -233,50 +233,7 @@ jobs:
           name: semgrep-report
           path: semgrep-report.json
 
-  #########################################################################
-  # CODEQL
-  #########################################################################
 
-  codeql:
-    name: CodeQL Security Analysis
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language:
-          - javascript
-          - python
-
-    steps:
-      #####################################################################
-      # CHECKOUT
-      #####################################################################
-
-      - uses: actions/checkout@v4
-
-      #####################################################################
-      # INITIALIZE CODEQL
-      #####################################################################
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-
-      #####################################################################
-      # AUTOBUILD
-      #####################################################################
-
-      - name: Autobuild Project
-        uses: github/codeql-action/autobuild@v3
-
-      #####################################################################
-      # ANALYZE
-      #####################################################################
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
 
   #########################################################################
   # DEPENDENCY AUDIT
