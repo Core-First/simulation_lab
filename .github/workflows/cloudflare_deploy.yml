@@ -20,22 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install Wrangler
-        run: npm install -g wrangler
-
       - name: Verify public directory exists
         run: test -d public || (echo "::error::public/ directory not found" && exit 1)
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=simLab
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: false
+          projectName: sim-lab
+          directory: public
