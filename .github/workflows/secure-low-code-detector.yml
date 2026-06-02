@@ -197,21 +197,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Gitleaks License Check
-        run: |
-          if [ -z "${{ secrets.GITLEAKS_LICENSE }}" ]; then
-            echo "::warning::Missing GITLEAKS_LICENSE secret. Get a free license at https://gitleaks.io and set it as a GitHub repository secret, or remove this step."
-          else
-            git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
-            gitleaks detect \
-              --source /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }} \
-              --report-path gitleaks-report.sarif \
-              --report-format sarif \
-              --redact \
-              --no-git \
-              --exit-code 1 \
-              --license "${{ secrets.GITLEAKS_LICENSE }}"
-          fi
+      - name: Setup Gitleaks
+        uses: gitleaks/gitleaks-action@ec2a5f68b47a99fef2b42266f8d97086544c39d9
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   #########################################################################
   # SEMGREP
