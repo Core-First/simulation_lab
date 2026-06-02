@@ -14,6 +14,44 @@ function toggleMemoizationSetting() {
   initSimulationProblem();
 }
 
+// Code line explanations for tooltips
+const lineExplanations = {
+  fibonacci: {
+    memo: [
+      'Function declaration with memo array to cache results.',
+      'Return cached value immediately if already computed.',
+      'Base case: return n directly for fib(0) and fib(1).',
+      'Recursive step: store fib(n-1) + fib(n-2) in memo and return it.',
+    ],
+    naive: [
+      'Function declaration without memoization.',
+      'Base case: return n for fib(0) and fib(1).',
+      'Direct recursive computation of fib(n-1) + fib(n-2).',
+    ],
+  },
+  coinchange: {
+    memo: [
+      'Function declaration with memo object to cache results.',
+      'Return cached result if this amount has been computed before.',
+      'Base case: zero coins needed for zero amount.',
+      'Initialize minimum coins to infinity.',
+      'Iterate through each coin denomination.',
+      'Only consider coins that do not exceed the current amount.',
+      'Recursive call to find minimum coins for the remaining amount.',
+      'Store the minimum result in memo and return it.',
+    ],
+    naive: [
+      'Function declaration without memoization.',
+      'Base case: zero coins needed for zero amount.',
+      'Initialize minimum coins to infinity.',
+      'Iterate through each coin denomination.',
+      'Only consider coins that do not exceed the current amount.',
+      'Direct recursive computation of minCoins for remaining amount + 1.',
+      'Return the minimum number of coins found.',
+    ],
+  },
+};
+
 // Structural Code Snippet Templates
 const codeTemplates = {
   fibonacci: {
@@ -80,10 +118,31 @@ function initSimulationProblem() {
   const lines = isMemo
     ? codeTemplates[problem].memo
     : codeTemplates[problem].naive;
+  const explanations = isMemo
+    ? lineExplanations[problem].memo
+    : lineExplanations[problem].naive;
   const codeEditor = document.getElementById("codeSandboxView");
   codeEditor.innerHTML = lines
-    .map((l, i) => `<span class="code-line" data-line="${i + 1}">${l}</span>`)
+    .map(
+      (l, i) =>
+        `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ''}">ⓘ</span></span>`,
+    )
     .join("");
+
+  codeEditor.querySelectorAll(".line-tooltip").forEach((tip) => {
+    tip.addEventListener("mouseenter", () => {
+      const lineEl = tip.closest(".code-line");
+      const tooltip = document.createElement("span");
+      tooltip.className = "line-tooltip-content";
+      tooltip.textContent = tip.getAttribute("title");
+      lineEl.appendChild(tooltip);
+    });
+    tip.addEventListener("mouseleave", () => {
+      const lineEl = tip.closest(".code-line");
+      const tooltip = lineEl.querySelector(".line-tooltip-content");
+      if (tooltip) tooltip.remove();
+    });
+  });
 
   // Build Matrix Storage Headings/Columns
   const headerRow = document.getElementById("memoHeaderRow");
