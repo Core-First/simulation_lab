@@ -232,7 +232,6 @@ jobs:
           semgrep scan \
             --config=auto \
             --severity ERROR \
-            --metrics off \
             --json \
             --output=semgrep-report.json
 
