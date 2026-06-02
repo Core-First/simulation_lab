@@ -11,8 +11,9 @@ This project aims to make learning Data Structures and Algorithms interactive, v
    - [Adding a New Simulation](#adding-a-new-simulation)
    - [Improving Existing Simulations](#improving-existing-simulations)
 3. [Development Setup](#-development-setup)
-4. [Pull Request Process](#-pull-request-process)
-5. [Style Guidelines](#-style-guidelines)
+4. [Deploying the Landing Page](#-deploying-the-landing-page)
+5. [Pull Request Process](#-pull-request-process)
+6. [Style Guidelines](#-style-guidelines)
 
 ---
 
@@ -71,7 +72,7 @@ The project is **self-contained** and requires no build tools. You can run it di
    cd simulation_lab
    ```
 
-Open index.html (the main dashboard) in your browser.
+Open `index.html` (the main dashboard) in your browser.
 
 Use Live Server (VS Code extension) or any HTTP server for best results (some simulations use fetch or modules).
 
@@ -83,69 +84,136 @@ Use Live Server (VS Code extension) or any HTTP server for best results (some si
 4. Work inside the corresponding folder: `part-X-<topic>/` (e.g., `part-1-sorting/`).
 5. Make your changes, test, then commit and push.
 
-Pull Request Process
-Fork the repository and create your feature branch (git checkout -b feature/amazing-simulation).
+---
 
-Commit your changes with clear, descriptive messages.
+## Deploying the Landing Page
 
-Test your changes locally.
+The project includes a GitHub Actions workflow that automatically deploys the `public/` directory to Cloudflare Pages whenever code is pushed to the `web` branch.
 
-Push to your fork and open a Pull Request against the main branch.
+### Prerequisites
 
-Ensure the PR includes:
+Before deploying, the following must be configured by a repository administrator:
 
-A clear description of what you changed.
+- **GitHub Secrets** – Add these in `Settings > Secrets and variables > Actions`:
+  - `CLOUDFLARE_API_TOKEN` – A Cloudflare API token with the `Cloudflare Pages: Edit` permission.
+  - `CLOUDFLARE_ACCOUNT_ID` – Your Cloudflare account ID (found in the Cloudflare dashboard sidebar).
+- **Cloudflare Pages Project** – The project `simLab` must exist in your Cloudflare account.
 
-Screenshots (if visual changes were made).
+### Automatic Deployment via the `web` Branch
 
-If you added a simulation, include the link to it in the PR description.
+1. **Switch to the `web` branch:**
+   ```bash
+   git checkout web
+   git pull origin web
+   ```
 
-Link any issues your PR addresses (e.g., "Closes #42").
+2. **Update files in `public/`:**
+   Make any changes to the files inside the `public/` directory. These are the files that will be published to the live site.
 
-Tip: If you’re adding a new simulation, create it in a standalone HTML file first, test it, then link it from the main dashboard.
+   ```bash
+   # Example: edit the landing page
+   code public/index.html
+   ```
 
-Style Guidelines
-HTML
-Use semantic HTML5 elements (<nav>, <main>, <section>, etc.).
+3. **Stage, commit, and push to the `web` branch:**
+   ```bash
+   git add public/
+   git commit -m "chore(deploy): update landing page content"
+   git push origin web
+   ```
 
-Keep inline styles minimal; use the shared CSS files instead.
+4. **Trigger the GitHub Actions workflow:**
+   The workflow file `.github/workflows/cloudflare_deploy.yml` is configured with:
 
-Use data-\* attributes for interactive behavior where possible.
+   ```yaml
+   on:
+     push:
+       branches: [ web ]
+     pull_request:
+       branches: [ web ]
+   ```
 
-CSS
-Use CSS Custom Properties (variables) for theming (light/dark mode).
+   Pushing to `web` automatically triggers the `Deploy to Cloudflare Pages` job.
 
-Add your new styles to assets/css/main.css or assets/css/simulation-base.css.
+5. **Monitor the deployment:**
+   - Go to the `Actions` tab in the GitHub repository.
+   - Select the `Deploy to Cloudflare Pages` workflow run.
+   - Verify that the job completes successfully.
 
-Avoid !important unless absolutely necessary.
+### Deployment Workflow Details
 
-Keep classes BEM-like when appropriate.
+The workflow performs the following steps:
 
-JavaScript
-Use vanilla ES6+ JavaScript.
+1. Checks out the repository.
+2. Verifies that the `public/` directory exists.
+3. Creates the Cloudflare Pages project `simLab` (if it does not already exist) with the production branch set to `web`.
+4. Deploys the contents of `public/` to Cloudflare Pages.
 
-No libraries beyond Bootstrap 5 and FontAwesome.
+### Notes
 
-Keep logic modular – separate rendering (draw()) from algorithm (step()).
+- Pull requests targeting the `web` branch also trigger the deployment workflow.
+- The `web` branch should be protected; only approved changes should be merged into it.
+- Do not commit secrets or API keys to the `public/` directory.
 
-Use descriptive variable names (e.g., comparisons, swaps, currentIndex).
+---
 
-Add comments for non-obvious logic (e.g., merging, recursion, pivot selection).
+## Pull Request Process
 
-Simulation Files
+1. Fork the repository and create your feature branch:
+   ```bash
+   git checkout -b feature/amazing-simulation
+   ```
+
+2. Commit your changes with clear, descriptive messages.
+
+3. Test your changes locally.
+
+4. Push to your fork and open a Pull Request against the main branch.
+
+5. Ensure the PR includes:
+   - A clear description of what you changed.
+   - Screenshots (if visual changes were made).
+   - If you added a simulation, include the link to it in the PR description.
+   - Link any issues your PR addresses (e.g., "Closes #42").
+
+**Tip:** If you're adding a new simulation, create it in a standalone HTML file first, test it, then link it from the main dashboard.
+
+---
+
+## Style Guidelines
+
+### HTML
+
+- Use semantic HTML5 elements (`<nav>`, `<main>`, `<section>`, etc.).
+- Keep inline styles minimal; use the shared CSS files instead.
+- Use `data-*` attributes for interactive behavior where possible.
+
+### CSS
+
+- Use CSS Custom Properties (variables) for theming (light/dark mode).
+- Add your new styles to `assets/css/main.css` or `assets/css/simulation-base.css`.
+- Avoid `!important` unless absolutely necessary.
+- Keep classes BEM-like when appropriate.
+
+### JavaScript
+
+- Use vanilla ES6+ JavaScript.
+- No libraries beyond Bootstrap 5 and FontAwesome.
+- Keep logic modular – separate rendering (`draw()`) from algorithm (`step()`).
+- Use descriptive variable names (e.g., `comparisons`, `swaps`, `currentIndex`).
+- Add comments for non-obvious logic (e.g., merging, recursion, pivot selection).
+
+### Simulation Files
+
 Each simulation HTML file must include:
 
-A header with title and controls (speed, step, reset).
+- A header with title and controls (speed, step, reset).
+- A canvas or DOM-based visualizer.
+- A right panel with complexity counters and an AI Assistant box.
+- Dark/light mode support (via the shared CSS).
 
-A canvas or DOM-based visualizer.
+### Testing
 
-A right panel with complexity counters and an AI Assistant box.
-
-Dark/light mode support (via the shared CSS).
-
-Testing
-Test on Chrome, Firefox, and Safari.
-
-Test mobile layout (sidebar hidden, responsiveness).
-
-Validate that the simulation runs without console errors.
+- Test on Chrome, Firefox, and Safari.
+- Test mobile layout (sidebar hidden, responsiveness).
+- Validate that the simulation runs without console errors.
