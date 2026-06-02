@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>N-Queens Backtracking Masterclass Simulation</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/simulation-base.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+      <div class="tour-backdrop"></div>
+      <div class="tour-tooltip" id="tourTooltip">
+        <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+        <p id="tourText" class="small mb-3"></p>
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">
+            Skip Guide
+          </button>
+          <button class="btn btn-sm btn-primary px-3" id="tourNext">
+            Next <i class="fa-solid fa-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="page-title">
+          <i class="fa-solid fa-graduation-cap text-primary me-2"></i>
+          Backtracking Masterclass: N-Queens Solver
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+            <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="sim-body">
+        <div class="left-panel">
+          <div class="panel-title">
+            ♕ Interactive Chessboard
+            <span class="text-lowercase fw-normal" style="color: var(--muted)"
+              >(Hover to analyze threat zones / click to toggle sandboxed
+              queens)</span
+            >
+          </div>
+          <div class="chessboard-wrapper" id="boardWrap">
+            <div class="chessboard" id="chessboard"></div>
+          </div>
+
+          <div class="panel-title mt-2">
+            <span
+              ><i class="fa-solid fa-diagram-project text-info me-1"></i>
+              Dynamic N-Ary Recursion Tree</span
+            >
+            <span
+              class="badge bg-secondary font-monospace"
+              style="font-size: 10px"
+              >Click nodes to teleport</span
+            >
+          </div>
+          <div class="tree-container">
+            <svg class="tree-svg" id="treeSvg"></svg>
+          </div>
+
+          <div class="panel-title mt-3">
+            <span>Execution Audio Narration</span>
+            <button
+              class="voice-btn"
+              id="treeVoiceBtn"
+              title="Speak Narration / Mute"
+            >
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+          <div
+            class="ai-box border-start border-primary border-3"
+            id="executionDesc"
+          >
+            Click "Step" or "Play" to initialize the automatic search algorithm.
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="panel-card" id="paramCard">
+            <div class="panel-title">Configuration Parameters</div>
+            <div class="d-flex align-items-center gap-3">
+              <label class="small fw-semibold text-nowrap"
+                >Grid Size (N):</label
+              >
+              <input
+                type="number"
+                id="inputN"
+                value="8"
+                min="4"
+                max="8"
+                class="form-control form-control-sm w-25"
+              />
+              <span style="color: var(--muted)" class="small"
+                >Supports safe dimensions between 4 and 8.</span
+              >
+            </div>
+          </div>
+
+          <div class="panel-card" id="codeCard">
+            <div class="panel-title">C Source Execution Sync</div>
+            <div class="d-flex align-items-center mb-2 small">
+              <span class="status-dot valid" id="editorStatusDot"></span
+              ><span
+                id="editorStatusText"
+                class="font-monospace"
+                style="color: var(--muted)"
+                >solve_nqueens.c loaded</span
+              >
+            </div>
+            <div class="code-editor" id="codeEditor" spellcheck="false"></div>
+          </div>
+
+          <div class="panel-card" id="controlsCard">
+            <div class="panel-title">Controls & Speed Dashboard</div>
+            <div
+              class="d-flex align-items-center justify-content-between gap-3 mb-2"
+            >
+              <label class="small text-nowrap" style="color: var(--muted)"
+                >Playback Velocity:</label
+              >
+              <input
+                type="range"
+                id="speedSlider"
+                min="0.5"
+                max="3"
+                step="0.5"
+                value="1.5"
+                class="form-range mx-2"
+              />
+              <span id="speedValue" class="badge bg-secondary font-monospace"
+                >1.5x</span
+              >
+            </div>
+            <div class="controls-row">
+              <button class="btn-control btn-step" id="btnStep">
+                <i class="fa-solid fa-arrow-right"></i> Step
+              </button>
+              <button class="btn-control btn-play" id="btnPlay">
+                <i class="fa-solid fa-play"></i> Play
+              </button>
+              <button class="btn-control btn-pause" id="btnPause" disabled>
+                <i class="fa-solid fa-pause"></i> Pause
+              </button>
+              <button class="btn-control btn-reset" id="btnReset">
+                <i class="fa-solid fa-rotate-right"></i> Reset
+              </button>
+            </div>
+            <hr class="my-2 opacity-25" />
+            <div
+              class="d-flex justify-content-between align-items-center small"
+            >
+              <span class="text-primary-emphasis"
+                >Compare Complexity Pruning:</span
+              >
+              <div class="toggle-switch" id="compareToggle"></div>
+            </div>
+            <div
+              id="comparisonStats"
+              class="comparison-stats"
+              style="display: none"
+            ></div>
+
+            <div class="stats">
+              <div>
+                <i class="fa-solid fa-eye"></i> Evaluated:
+                <span id="nodeCount" class="font-monospace text-white fw-bold"
+                  >0</span
+                >
+              </div>
+              <div>
+                <i class="fa-solid fa-backward"></i> Backtracks:
+                <span
+                  id="backtrackCount"
+                  class="font-monospace text-white fw-bold"
+                  >0</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-title">History Navigation Timeline</div>
+            <input
+              type="range"
+              id="timelineSlider"
+              min="0"
+              max="0"
+              value="0"
+              class="form-range"
+            />
+            <div
+              class="text-end font-monospace small mt-1"
+              style="color: var(--muted)"
+            >
+              Step: <span id="currentStepIdx" class="text-white">0</span> /
+              <span id="totalSteps" class="text-white">0</span>
+            </div>
+          </div>
+
+          <div class="panel-card" id="aiCard">
+            <div class="panel-title">
+              <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware
+              AI Instructor Chat
+            </div>
+            <div
+              class="ai-box mb-2"
+              id="aiResponse"
+              style="min-height: 44px; font-size: 12.5px; color: var(--muted)"
+            >
+              Ask me questions about safety math parameters, base-cases, or why
+              a specific cell fails.
+            </div>
+            <div class="d-flex gap-2">
+              <input
+                type="text"
+                id="aiInput"
+                class="form-control form-control-sm"
+                placeholder="e.g., Why is column 2 unsafe right now?"
+              />
+              <button id="aiSendBtn" class="btn btn-primary btn-sm px-3">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+              <button
+                id="aiHelpBtn"
+                class="btn btn-xs btn-outline-secondary py-1 px-2 small style"
+                style="font-size: 11px"
+              >
+                <i class="fa-regular fa-lightbulb"></i> Explain Step Context
+              </button>
+              <button
+                id="aiExplainCodeBtn"
+                class="btn btn-xs btn-outline-secondary py-1 px-2 small"
+                style="font-size: 11px"
+              >
+                <i class="fa-regular fa-file-code"></i> Explain Active Code
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/sim-backtracking-nqueens.js"></script>
+  </body>
+</html>
