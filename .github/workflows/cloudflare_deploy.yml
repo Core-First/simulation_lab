@@ -36,6 +36,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create simLab --production-branch=web 2>/dev/null || true
+          command: pages deploy public --project-name=simLab
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: false
