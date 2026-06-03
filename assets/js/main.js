@@ -1,4 +1,4 @@
-  // Theme toggle
+// Theme toggle
   const themeBtn = document.getElementById('themeToggle');
   const applyTheme = (theme) => {
     if (theme === 'light') {
