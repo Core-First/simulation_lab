@@ -969,6 +969,7 @@ function setupTourControls() {
     document.querySelectorAll(".tour-highlight").forEach((el) => {
       el.style.outline = "none";
     });
+    localStorage.setItem("nqueens_tour_complete", "true");
   };
   document.getElementById("tourNext").onclick = () => {
     currentTourStep++;
