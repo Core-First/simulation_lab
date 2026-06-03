@@ -39,9 +39,7 @@
               <span>Simulation Sandbox Controls</span>
               <div class="status-indicator">
                 <span class="status-dot valid" id="statusDot"></span>
-                <span id="statusText" style="font-size: 11px; font-weight: 500"
-                  >Ready</span
-                >
+                <span id="statusText" style="font-size: 11px; font-weight: 500">Ready</span>
               </div>
             </div>
 
@@ -66,67 +64,31 @@
                   onchange="initSimulationProblem()"
                 />
               </div>
-              <div
-                class="toggle-wrap"
-                style="margin-left: 10px; margin-right: 10px"
-              >
-                <div
-                  class="toggle-switch active"
-                  id="memoToggle"
-                  onclick="toggleMemoizationSetting()"
-                ></div>
-                <label
-                  style="cursor: pointer"
-                  onclick="toggleMemoizationSetting()"
-                  >Enable Memoization (DP)</label
-                >
+              <div class="toggle-wrap" style="margin-left: 10px; margin-right: 10px">
+                <div class="toggle-switch active" id="memoToggle" onclick="toggleMemoizationSetting()"></div>
+                <label style="cursor: pointer" onclick="toggleMemoizationSetting()">Enable Memoization (DP)</label>
               </div>
             </div>
 
             <div class="controls-row">
-              <button
-                class="btn-control btn-step"
-                id="btnStep"
-                onclick="stepForwardSimulation()"
-              >
+              <button class="btn-control btn-step" id="btnStep" onclick="stepForwardSimulation()">
                 <i class="fa-solid fa-arrow-right-step"></i> Step
               </button>
-              <button
-                class="btn-control btn-play"
-                id="btnPlay"
-                onclick="playSimulation()"
-              >
+              <button class="btn-control btn-play" id="btnPlay" onclick="playSimulation()">
                 <i class="fa-solid fa-play"></i> Play
               </button>
-              <button
-                class="btn-control btn-pause"
-                id="btnPause"
-                onclick="pauseSimulation()"
-                style="display: none"
-              >
+              <button class="btn-control btn-pause" id="btnPause" onclick="pauseSimulation()" style="display: none">
                 <i class="fa-solid fa-pause"></i> Pause
               </button>
-              <button
-                class="btn-control btn-reset"
-                id="btnReset"
-                onclick="initSimulationProblem()"
-              >
+              <button class="btn-control btn-reset" id="btnReset" onclick="initSimulationProblem()">
                 <i class="fa-solid fa-rotate-left"></i> Reset
               </button>
+              <button class="btn-control btn-quiz" id="btnQuiz" onclick="showQuiz()" style="display: none;">
+                <i class="fa-solid fa-circle-question"></i> Take Quiz
+              </button>
 
-              <div
-                class="control-group"
-                style="min-width: 120px; margin-left: auto"
-              >
-                <input
-                  type="range"
-                  id="speedSlider"
-                  min="100"
-                  max="2000"
-                  value="800"
-                  style="width: 100%"
-                  title="Simulation Speed"
-                />
+              <div class="control-group" style="min-width: 120px; margin-left: auto">
+                <input type="range" id="speedSlider" min="100" max="2000" value="800" style="width: 100%" title="Simulation Speed" />
               </div>
             </div>
           </div>
@@ -134,10 +96,9 @@
           <div class="panel-card">
             <div class="panel-title">
               <span>Dynamic Recursion Call Tree Space</span>
-              <span class="view-all" style="font-size: 11px"
-                ><i class="fa-solid fa-circle-info"></i> Nodes update by current
-                operation state</span
-              >
+              <span class="view-all" style="font-size: 11px">
+                <i class="fa-solid fa-circle-info"></i> Nodes update by current operation state
+              </span>
             </div>
             <div class="tree-container" id="treeContainer">
               <svg class="tree-svg" id="treeSvg" viewBox="0 0 800 240">
@@ -162,9 +123,7 @@
           <div class="panel-card">
             <div class="panel-title">
               <span>Memoization Matrix Cache Storage Lookups</span>
-              <span class="xp" id="cacheStatsLabel" style="font-size: 11px"
-                >0 Hits Registered</span
-              >
+              <span class="xp" id="cacheStatsLabel" style="font-size: 11px">0 Hits Registered</span>
             </div>
             <div class="memo-table">
               <table>
@@ -193,66 +152,34 @@
               </div>
               <div class="stat-item">
                 <span>Time Complexity</span>
-                <div
-                  class="stat-value"
-                  id="statTimeComp"
-                  style="color: var(--warning); font-size: 13px"
-                >
-                  -
-                </div>
+                <div class="stat-value" id="statTimeComp" style="color: var(--warning); font-size: 13px">-</div>
               </div>
             </div>
 
             <div class="comparison-container">
-              <div
-                class="panel-title"
-                style="margin-bottom: 6px; font-size: 11px"
-              >
+              <div class="panel-title" style="margin-bottom: 6px; font-size: 11px">
                 Complexity Comparison Track
               </div>
               <div class="comparison-stats">
                 <span id="compareNaive">Naive Approach: O(2ⁿ)</span>
-                <span
-                  style="font-weight: bold; color: var(--success)"
-                  id="compareMemo"
-                  >Memoized DP: O(n)</span
-                >
+                <span style="font-weight: bold; color: var(--success)" id="compareMemo">Memoized DP: O(n)</span>
               </div>
             </div>
           </div>
 
-          <div
-            class="panel-card ai-panel"
-            style="
-              flex: 1;
-              min-height: 120px;
-              padding: 12px;
-              display: flex;
-              flex-direction: column;
-            "
-          >
+          <div class="panel-card ai-panel" style="flex: 1; min-height: 120px; padding: 12px; display: flex; flex-direction: column;">
             <div class="panel-title" style="margin-bottom: 8px">
-              <span
-                ><i
-                  class="fa-solid fa-robot"
-                  style="color: var(--success); margin-right: 6px"
-                ></i>
-                AI Lab Instructor</span
-              >
+              <span>
+                <i class="fa-solid fa-robot" style="color: var(--success); margin-right: 6px"></i>
+                AI Lab Instructor
+              </span>
             </div>
             <div class="ai-box" style="flex: 1; overflow-y: auto; margin: 0">
-              <div
-                class="ai-question"
-                id="aiInstructorPrompt"
-                style="font-weight: 600; color: var(--text)"
-              >
+              <div class="ai-question" id="aiInstructorPrompt" style="font-weight: 600; color: var(--text)">
                 Why does Dynamic Programming matter here?
               </div>
               <div class="ai-response" id="aiInstructorContent">
-                Select a problem step or toggle memoization to evaluate
-                performance variations. Dynamic Programming avoids recalculating
-                duplicate overlapping subproblems by saving states to table
-                fields.
+                Select a problem step or toggle memoization to evaluate performance variations. Dynamic Programming avoids recalculating duplicate overlapping subproblems by saving states to table fields.
               </div>
             </div>
           </div>
@@ -260,11 +187,37 @@
       </div>
     </div>
 
-    <div
-      class="node-tooltip"
-      id="liveNodeTooltip"
-      style="display: none; opacity: 0; transition: opacity 0.15s ease"
-    ></div>
+    <div class="node-tooltip" id="liveNodeTooltip" style="display: none; opacity: 0; transition: opacity 0.15s ease"></div>
+
+    <div class="quiz-overlay" id="quizOverlay" style="display: none">
+      <div class="quiz-backdrop"></div>
+      <div class="quiz-modal">
+        <div class="quiz-header">
+          <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Post-Simulation Quiz</h3>
+          <div class="quiz-progress">
+            <span id="quizProgress">Question 1 of 3</span>
+          </div>
+        </div>
+        <div class="quiz-content">
+          <div class="quiz-question" id="quizQuestion"></div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+        </div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+          <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+        </div>
+        <div class="quiz-results" id="quizResults" style="display: none">
+          <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+          <div class="quiz-score" id="quizScore"></div>
+          <div class="quiz-summary" id="quizSummary"></div>
+          <div class="quiz-actions">
+            <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+            <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="../assets/js/sim-dp-memoization.js"></script>
   </body>

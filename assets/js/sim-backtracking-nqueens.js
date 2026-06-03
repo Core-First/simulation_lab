@@ -17,7 +17,7 @@ let animationTimer = null;
 let speechSynth = window.speechSynthesis;
 
 // Element Reference Cache
-let chessboardDiv, treeSvg, execDescDiv, btnStep, btnPlay, btnPause, btnReset;
+let chessboardDiv, treeSvg, execDescDiv, btnStep, btnPlay, btnPause, btnReset, btnQuiz;
 let speedSlider, speedValue, inputN, nodeCountSpan, backtrackCountSpan;
 let timelineSlider,
   currentStepIdxSpan,
@@ -41,6 +41,7 @@ function initDOMElements() {
   btnPlay = document.getElementById("btnPlay");
   btnPause = document.getElementById("btnPause");
   btnReset = document.getElementById("btnReset");
+  btnQuiz = document.getElementById("btnQuiz");
   speedSlider = document.getElementById("speedSlider");
   speedValue = document.getElementById("speedValue");
   inputN = document.getElementById("inputN");
@@ -599,6 +600,8 @@ function toggleManualQueen(row, col) {
 
 function rebuildSimulation() {
   if (state.isPlaying) stopPlay();
+  if (btnQuiz) btnQuiz.classList.remove("visible");
+  document.getElementById("quizOverlay").style.display = "none";
   const { steps, nodeCounter, backtracks } = generateSteps(state.n);
   state.steps = steps;
   state.nodeCount = nodeCounter;
@@ -697,6 +700,9 @@ function stepForward() {
   if (state.currentStep < state.steps.length - 1) {
     state.currentStep++;
     updateVisualization();
+  } else {
+    stopPlay();
+    if (btnQuiz) btnQuiz.classList.add("visible");
   }
 }
 
@@ -713,7 +719,7 @@ function playSimulation() {
       stepForward();
       animationTimer = setTimeout(loop, 900 / state.speed);
     } else {
-      stopPlay();
+      stepForward();
     }
   }
   loop();
@@ -963,6 +969,7 @@ function setupTourControls() {
     document.querySelectorAll(".tour-highlight").forEach((el) => {
       el.style.outline = "none";
     });
+    localStorage.setItem("nqueens_tour_complete", "true");
   };
   document.getElementById("tourNext").onclick = () => {
     currentTourStep++;
@@ -1018,6 +1025,141 @@ function setupLineExplanationHandlers() {
   });
 }
 
+// Quiz State & Questions Data
+let quizState = {
+  currentQuestion: 0,
+  answers: [],
+  completed: false
+};
+
+const quizQuestions = [
+  {
+    question: "What is the primary constraint in the N-Queens problem?",
+    options: ["Place N queens so none attack each other", "Place N queens on black squares only", "Place N queens in the first row", "Place N queens diagonally"],
+    correct: 0,
+    explanation: "The N-Queens problem requires placing N queens on an N×N chessboard such that no two queens threaten each other."
+  },
+  {
+    question: "How many total N-Queens solutions exist for N=8?",
+    options: ["8", "48", "92", "3432"],
+    correct: 2,
+    explanation: "There are 92 distinct solutions for the 8-Queens problem, though only 12 are fundamentally unique under rotation/reflection."
+  },
+  {
+    question: "What is the optimal time complexity of backtracking for N-Queens?",
+    options: ["O(N!)", "O(N²)", "O(N³)", "O(2ᴺ)"],
+    correct: 0,
+    explanation: "Backtracking achieves O(N!) by pruning entire branches early when conflicts occur, rather than brute-force O(Nᴺ) evaluation."
+  }
+];
+
+// Quiz Functions
+function showQuiz() {
+  quizState = { currentQuestion: 0, answers: [], completed: false };
+  
+  const overlay = document.getElementById("quizOverlay");
+  overlay.style.display = "flex";
+  
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizQuestions[quizState.currentQuestion];
+  
+  document.getElementById("quizProgress").innerText = 
+    `Question ${quizState.currentQuestion + 1} of ${quizQuestions.length}`;
+  document.getElementById("quizQuestion").innerText = q.question;
+  document.getElementById("quizOptions").innerHTML = q.options
+    .map((opt, i) => 
+      `<div class="quiz-option" data-index="${i}" onclick="selectQuizOption(this, ${i})">${opt}</div>`
+    ).join("");
+  document.getElementById("quizFeedback").classList.remove("show");
+  document.getElementById("quizSubmit").disabled = true;
+  document.getElementById("quizSubmit").innerText = "Submit Answer";
+}
+
+function selectQuizOption(el, index) {
+  document.querySelectorAll(".quiz-option").forEach(opt => opt.classList.remove("selected"));
+  el.classList.add("selected");
+  document.getElementById("quizSubmit").disabled = false;
+}
+
+function submitQuizAnswer() {
+  const selected = document.querySelector(".quiz-option.selected");
+  
+  if (!selected) return;
+  
+  const selectedIndex = parseInt(selected.dataset.index);
+  const correctIndex = quizQuestions[quizState.currentQuestion].correct;
+  
+  quizState.answers.push({
+    question: quizState.currentQuestion,
+    selected: selectedIndex,
+    correct: correctIndex
+  });
+  
+  document.querySelectorAll(".quiz-option").forEach((opt, i) => {
+    opt.classList.remove("selected");
+    if (i === correctIndex) opt.classList.add("correct");
+    else if (i === selectedIndex && selectedIndex !== correctIndex) opt.classList.add("incorrect");
+  });
+  
+  const feedback = document.getElementById("quizFeedback");
+  feedback.innerText = quizQuestions[quizState.currentQuestion].explanation;
+  feedback.className = `quiz-feedback ${selectedIndex === correctIndex ? "correct" : "incorrect"} show`;
+  
+  document.getElementById("quizSubmit").innerText = "Continue";
+  document.getElementById("quizSubmit").onclick = advanceQuiz;
+}
+
+function advanceQuiz() {
+  if (quizState.currentQuestion < quizQuestions.length - 1) {
+    quizState.currentQuestion++;
+    renderQuizQuestion();
+    document.getElementById("quizSubmit").onclick = submitQuizAnswer;
+  } else {
+    showQuizResults();
+  }
+}
+
+function showQuizResults() {
+  const correct = quizState.answers.filter(a => a.selected === a.correct).length;
+  const total = quizState.answers.length;
+  const score = Math.round((correct / total) * 100);
+  
+  document.querySelector(".quiz-content").style.display = "none";
+  document.querySelector(".quiz-actions").style.display = "none";
+  document.getElementById("quizResults").style.display = "block";
+  
+  document.getElementById("quizScore").innerHTML = 
+    `<i class="fa-solid fa-star"></i> ${score}%`;
+  
+  document.getElementById("quizSummary").innerHTML = quizState.answers
+    .map((a, i) => {
+      const q = quizQuestions[a.question];
+      return `<div class="quiz-summary-item">
+        <span>Q${i + 1}: ${a.selected === a.correct ? '<span style="color:var(--success)">Correct</span>' : '<span style="color:var(--danger)">Incorrect</span>'}</span>
+        <span>${a.selected === a.correct ? '✓' : '✗'}</span>
+      </div>`;
+    }).join("");
+  
+  quizState.completed = true;
+  
+  document.getElementById("quizRestart").onclick = restartQuiz;
+  document.getElementById("quizClose").onclick = () => {
+    document.getElementById("quizOverlay").style.display = "none";
+  };
+}
+
+function restartQuiz() {
+  quizState = { currentQuestion: 0, answers: [], completed: false };
+  document.getElementById("quizResults").style.display = "none";
+  document.querySelector(".quiz-content").style.display = "block";
+  document.querySelector(".quiz-actions").style.display = "flex";
+  renderQuizQuestion();
+  document.getElementById("quizSubmit").onclick = submitQuizAnswer;
+}
+
 function init() {
   initDOMElements();
   initCodeEditor();
@@ -1025,6 +1167,11 @@ function init() {
   setupTourControls();
   setupLineExplanationHandlers();
   rebuildSimulation();
+  
+  document.getElementById("quizSubmit").onclick = submitQuizAnswer;
+  document.getElementById("quizSkip").onclick = () => {
+    document.getElementById("quizOverlay").style.display = "none";
+  };
 
   if (!localStorage.getItem("nqueens_tour_complete")) {
     setTimeout(triggerInteractiveTour, 800);

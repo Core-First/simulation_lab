@@ -44,6 +44,9 @@
           <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
             <i class="fa-solid fa-moon"></i>
           </button>
+          <a href="../index.html" class="back-btn">
+            <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+          </a>
         </div>
       </header>
 
@@ -149,20 +152,23 @@
                 >1.5x</span
               >
             </div>
-            <div class="controls-row">
-              <button class="btn-control btn-step" id="btnStep">
-                <i class="fa-solid fa-arrow-right"></i> Step
-              </button>
-              <button class="btn-control btn-play" id="btnPlay">
-                <i class="fa-solid fa-play"></i> Play
-              </button>
-              <button class="btn-control btn-pause" id="btnPause" disabled>
-                <i class="fa-solid fa-pause"></i> Pause
-              </button>
-              <button class="btn-control btn-reset" id="btnReset">
-                <i class="fa-solid fa-rotate-right"></i> Reset
-              </button>
-            </div>
+<div class="controls-row">
+               <button class="btn-control btn-step" id="btnStep">
+                 <i class="fa-solid fa-arrow-right"></i> Step
+               </button>
+               <button class="btn-control btn-play" id="btnPlay">
+                 <i class="fa-solid fa-play"></i> Play
+               </button>
+               <button class="btn-control btn-pause" id="btnPause" disabled>
+                 <i class="fa-solid fa-pause"></i> Pause
+               </button>
+               <button class="btn-control btn-reset" id="btnReset">
+                 <i class="fa-solid fa-rotate-right"></i> Reset
+               </button>
+               <button class="btn-control btn-quiz" id="btnQuiz" onclick="showQuiz()">
+                 <i class="fa-solid fa-circle-question"></i> Take Quiz
+               </button>
+             </div>
             <hr class="my-2 opacity-25" />
             <div
               class="d-flex justify-content-between align-items-center small"
@@ -255,11 +261,41 @@
                 <i class="fa-regular fa-file-code"></i> Explain Active Code
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+</div>
+         </div>
+       </div>
+     </div>
 
-    <script src="../assets/js/sim-backtracking-nqueens.js"></script>
+     <div class="quiz-overlay" id="quizOverlay" style="display: none">
+       <div class="quiz-backdrop"></div>
+       <div class="quiz-modal">
+         <div class="quiz-header">
+           <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> N-Queens Backtracking Quiz</h3>
+           <div class="quiz-progress">
+             <span id="quizProgress">Question 1 of 3</span>
+           </div>
+         </div>
+         <div class="quiz-content">
+           <div class="quiz-question" id="quizQuestion"></div>
+           <div class="quiz-options" id="quizOptions"></div>
+           <div class="quiz-feedback" id="quizFeedback"></div>
+         </div>
+         <div class="quiz-actions">
+           <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+           <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+         </div>
+         <div class="quiz-results" id="quizResults" style="display: none">
+           <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+           <div class="quiz-score" id="quizScore"></div>
+           <div class="quiz-summary" id="quizSummary"></div>
+           <div class="quiz-actions">
+             <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+             <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <script src="../assets/js/sim-backtracking-nqueens.js"></script>
   </body>
 </html>
