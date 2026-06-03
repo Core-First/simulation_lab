@@ -74,69 +74,146 @@
       </div>
     </header>
 
-    <div class="sim-content">
-      <div class="canvas-area">
-        <div class="stats-bar">
-          <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill swaps"><span class="lbl">Shifts</span><span class="val" id="swpCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill passes"><span class="lbl">Inserted</span><span class="val" id="passCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
-          <div class="sep"></div>
-          <div class="legend">
-            <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
-            <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Key</div>
-            <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Shifting</div>
-            <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Sorted</div>
+    <div class="sim-content sim-tabs-layout">
+
+      <!-- ── Tab Bar ─────────────────────────────────────────── -->
+      <div class="stab-bar">
+        <button class="stab active" data-tab="info"><i class="fa-solid fa-circle-info"></i> Info</button>
+        <button class="stab" data-tab="sim"><i class="fa-solid fa-play"></i> Simulation</button>
+        <button class="stab" data-tab="code"><i class="fa-solid fa-code"></i> Code</button>
+        <button class="stab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI Agent</button>
+        <button class="stab" data-tab="quiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+      </div>
+
+      <!-- ── Info Tab ────────────────────────────────────────── -->
+      <div class="spane active" id="paneInfo">
+        <div class="info-full-wrap">
+          <div class="info-hero">
+            <div class="info-hero-icon"><i class="fa-solid fa-indent"></i></div>
+            <div>
+              <h2>Insertion Sort</h2>
+              <p>Insertion Sort is a simple sorting algorithm that builds the final sorted array one item at a time. It is much less efficient on large lists than more advanced algorithms such as Quick Sort or Merge Sort, but provides key benefits for small or nearly sorted lists.</p>
+              <div class="info-badge-row">
+                <span class="info-badge badge-stable">✅ Stable</span>
+                <span class="info-badge badge-inplace">✅ In-Place</span>
+                <span class="info-badge badge-adaptive">✅ Adaptive (O(n) best case)</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="canvas-wrap"><canvas id="sortCanvas"></canvas></div>
-        <div class="ctrl-bar">
-          <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="5" max="60" value="20" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">20</span></div>
-          <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
-          <select id="arrayOrder"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
-          <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
-          <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
-          <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
-          <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
-          <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-          <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <h5>Complexity</h5>
+              <div class="cx-grid">
+                <div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n)</span></div>
+                <div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n²)</span></div>
+                <div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n²)</span></div>
+                <div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(1)</span></div>
+              </div>
+            </div>
+            <div class="info-card">
+              <h5>How it Works</h5>
+              <p style="font-size: .87rem; color: var(--muted); line-height: 1.6; margin: 0;">Insertion Sort iterates, consuming one input element each repetition, and growing a sorted output list. At each iteration, insertion sort removes one element from the input data, finds the location it belongs within the sorted list, and inserts it there. It minimizes movements for nearly sorted inputs.</p>
+            </div>
+          </div>
+
+          <div class="info-card" style="margin-bottom: 24px;">
+            <h5>How to Use the Simulation</h5>
+            <ol class="info-steps">
+              <li>Click the <strong>Simulation</strong> tab to open the canvas.</li>
+              <li>Set <strong>Size</strong> (5–60 elements) or type a <strong>Custom</strong> list of values.</li>
+              <li>Click <strong>Run</strong> to watch the animation, or use <strong>Step</strong> to advance one comparison at a time.</li>
+              <li>Toggle between <strong>Dark Mode</strong> and Light Mode via the header button.</li>
+            </ol>
+          </div>
+
+          <div class="d-flex justify-content-center">
+            <button class="info-start-btn" id="startSimBtn">Start Simulation <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
         </div>
       </div>
 
-      <div class="right-panel">
-        <div class="panel-tabs">
-          <button class="panel-tab active" data-tab="info">Info</button>
-          <button class="panel-tab" data-tab="code">Code</button>
-          <button class="panel-tab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI</button>
-        </div>
-        <div class="panel-body active" id="paneInfo">
-          <div class="info-sec info-welcome"><h6>Welcome - Start Here</h6><p>This page is an <strong>interactive lesson</strong>. Bars represent numbers; you control the sort with the buttons below the chart. No programming experience needed.</p></div>
-          <div class="info-sec"><h6>What You See on Screen</h6><ul class="info-list"><li><strong>Chart:</strong> Vertical bars = values in the array.</li><li><strong>Stats row:</strong> Live comparison/swap counts and timer.</li><li><strong>Control bar:</strong> Change data and playback.</li><li><strong>Info panel:</strong> On phones, <strong>scroll down</strong> after the chart to read everything - including sections at the very bottom.</li></ul></div>
-          <div class="info-sec"><h6>Your First Run</h6><ol class="info-steps"><li>Choose a small <strong>Size</strong> (about 10) first.</li><li>Click <strong>Run</strong> ▶ - watch the purple <strong>key</strong> move and yellow bars shift left.</li><li>Try <strong>Order → Nearly Sorted</strong> to see fewer moves (insertion sort is fast on almost-sorted data).</li><li>Use <strong>Step</strong> after <strong>Pause</strong> to study one shift at a time.</li></ol></div>
-          <div class="info-sec"><h6>Controls Explained</h6><ul class="info-list"><li><strong>Size / Speed:</strong> How many bars and how fast they animate.</li><li><strong>Order / Custom / New:</strong> Pick preset data, type <code>8, 3, 15, 1</code> with ✓, or shuffle again.</li><li><strong>☰ menu:</strong> Navigate to other sorts or lab home.</li><li><strong>Dark Mode:</strong> Switch appearance (saved locally).</li></ul></div>
-          <div class="info-sec"><h6>Colour Legend (Insertion Sort)</h6><ul class="info-list"><li><span class="leg-inline" style="background:#3b82f6"></span> Blue - not yet placed in the sorted region</li><li><span class="leg-inline" style="background:#a78bfa"></span> Purple - current key being inserted</li><li><span class="leg-inline" style="background:#f59e0b"></span> Yellow - values shifting right to make space</li><li><span class="leg-inline" style="background:#22c55e"></span> Green - sorted prefix (left side)</li></ul></div>
-          <div class="info-sec"><h6>Right Panel Tabs</h6><ul class="info-list"><li><strong>Info</strong> - Scroll for the full guide and complexity table.</li><li><strong>Code</strong> - Example code for your array.</li><li><strong>AI</strong> - Learning help in plain language.</li></ul></div>
-          <div class="info-sec"><h6>How Insertion Sort Works</h6><p>Insertion Sort grows a sorted region on the <strong>left</strong>. It takes the next value (the key), compares it with sorted neighbours, and shifts larger values one step right until the key fits - like sorting playing cards in your hand.</p></div>
-          <div class="info-sec"><h6>Complexity</h6><div class="cx-grid"><div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n)</span></div><div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n²)</span></div><div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n²)</span></div><div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(1)</span></div></div></div>
-          <div class="info-sec"><h6>Properties</h6><p>✅ Stable &nbsp; ✅ In-place &nbsp; ✅ Adaptive (O(n) on nearly-sorted) &nbsp; ✅ Online (can sort as data arrives)</p></div>
-          <div class="info-sec"><h6>Best Used When</h6><p>Excellent for small arrays (&lt;32 elements) and nearly-sorted data. Used as the base case inside Timsort and Introsort.</p></div>
-        </div>
-        <div class="panel-body" id="paneCode"><pre><code id="generatedCode"></code></pre></div>
-        <div class="panel-body" id="paneAi">
-          <div class="ai-chips">
-            <button class="ai-chip" data-q="Explain insertion sort with an example">Explain it</button>
-            <button class="ai-chip" data-q="Why is insertion sort O(n) for nearly sorted arrays?">Why O(n) best?</button>
-            <button class="ai-chip" data-q="What does adaptive mean for insertion sort?">Adaptive?</button>
-            <button class="ai-chip" data-q="Is insertion sort stable?">Stable?</button>
-            <button class="ai-chip" data-q="What is an online algorithm?">Online?</button>
+      <!-- ── Simulation Tab ──────────────────────────────────── -->
+      <div class="spane" id="paneSim">
+        <div class="sim-inner">
+          <!-- Stats -->
+          <div class="stats-bar" style="padding: 12px 20px; border-bottom: 1px solid var(--border);">
+            <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill swaps"><span class="lbl">Shifts</span><span class="val" id="swpCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill passes"><span class="lbl">Inserted</span><span class="val" id="passCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
+            <div class="sep"></div>
+            <div class="legend">
+              <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
+              <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Key</div>
+              <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Shifting</div>
+              <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Sorted</div>
+            </div>
           </div>
-          <div class="ai-msgs" id="aiMsgs"><div class="ai-msg bot">👋 Hi! Ask about Insertion Sort mechanics, why it's used inside Timsort, or how it handles nearly-sorted data.</div></div>
-          <div class="ai-row"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+
+          <!-- Canvas -->
+          <div class="canvas-wrap" style="flex: 1; min-height: 250px;"><canvas id="sortCanvas"></canvas></div>
+
+          <!-- Controls -->
+          <div class="ctrl-bar" style="padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px; justify-content: center;">
+            <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="5" max="60" value="20" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">20</span></div>
+            <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
+            <select id="arrayOrder" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
+            <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.8rem;width:120px;"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
+            <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
+            <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+            <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
+            <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+          </div>
         </div>
       </div>
+
+      <!-- ── Code Tab ────────────────────────────────────────── -->
+      <div class="spane" id="paneCode">
+        <div class="code-full-wrap">
+          <pre><code id="generatedCode"></code></pre>
+        </div>
+      </div>
+
+      <!-- ── AI Tab ──────────────────────────────────────────── -->
+      <div class="spane" id="paneAi">
+        <div class="ai-full-wrap">
+          <div class="ai-chips-full">
+            <button class="ai-chip-full" data-q="Explain insertion sort with an example">Explain it</button>
+            <button class="ai-chip-full" data-q="Why is insertion sort O(n) for nearly sorted arrays?">Why O(n) best?</button>
+            <button class="ai-chip-full" data-q="What does adaptive mean for insertion sort?">Adaptive?</button>
+            <button class="ai-chip-full" data-q="Is insertion sort stable?">Stable?</button>
+            <button class="ai-chip-full" data-q="What is an online algorithm?">Online?</button>
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs"><div class="ai-msg-f bot">👋 Hi! Ask about Insertion Sort mechanics, why it's used inside Timsort, or how it handles nearly-sorted data.</div></div>
+          <div class="ai-row-full"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+        </div>
+      </div>
+
+      <!-- ── Quiz Tab ────────────────────────────────────────── -->
+      <div class="spane" id="paneQuiz">
+        <div class="quiz-full-wrap">
+          <div id="quizContainer">
+            <!-- Start Screen -->
+            <div class="quiz-welcome-card" id="quizWelcomeScreen">
+              <div class="quiz-welcome-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+              <h3>Insertion Sort Challenge</h3>
+              <p>Test your understanding of Insertion Sort's mechanics, shifts, and online properties. You'll get 10 random questions per attempt.</p>
+              <div class="quiz-stat-row">
+                <div class="quiz-stat"><span class="qs-val">10</span><span class="qs-lbl">Questions</span></div>
+                <div class="quiz-stat"><span class="qs-val">O(n²)</span><span class="qs-lbl">Focus</span></div>
+              </div>
+              <button class="quiz-start-btn" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sim-content -->
     </div>
   </div>
 </div>
@@ -277,16 +354,204 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmp;docum
   document.getElementById('newArrayBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();initState();});
   document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
   document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmp=shifts=inserted=0;steps=[];si=0;done=false;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw();});
+  // ── Tab switching ─────────────────────────────────────────
+  document.querySelectorAll('.stab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.spane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const targetPane = document.getElementById('pane' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
+      if (targetPane) targetPane.classList.add('active');
+      if (btn.dataset.tab === 'sim') {
+        setTimeout(resizeCanvas, 50);
+      }
+    });
+  });
 
-  document.querySelectorAll('.panel-tab').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('pane'+btn.dataset.tab[0].toUpperCase()+btn.dataset.tab.slice(1)).classList.add('active');});});
+  const startSimBtn = document.getElementById('startSimBtn');
+  if (startSimBtn) {
+    startSimBtn.addEventListener('click', () => {
+      const simTab = document.querySelector('.stab[data-tab="sim"]');
+      if (simTab) simTab.click();
+    });
+  }
 
-  const KB={explain:'Insertion Sort works like sorting playing cards. You pick up one card (key) and slide it leftward past any larger sorted cards until you find its correct position.',best:'On nearly-sorted input the inner while-loop immediately stops because no sorted element is larger than the key. Each key does only one comparison → O(n) total.',adaptive:'An adaptive algorithm runs faster on partially-sorted data. Insertion Sort is highly adaptive: O(n) on nearly-sorted, O(n²) on random.',stable:'Yes - Insertion Sort is stable. The while-loop only shifts elements strictly greater than the key, so equal elements keep their original order.',online:'An online algorithm processes input one piece at a time without needing all data upfront. Insertion Sort can insert a new element into an already-sorted sequence at any time.',default:'Watch the purple bar (the key) slide leftward past yellow bars. The dashed line shows the sorted/unsorted boundary. Press Step to follow each comparison.'};
-  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('example')||l.includes('how'))return KB.explain;if(l.includes('best')||l.includes('n)'))return KB.best;if(l.includes('adapt'))return KB.adaptive;if(l.includes('stable'))return KB.stable;if(l.includes('online')||l.includes('stream'))return KB.online;return KB.default;}
-  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
-  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="ai"]').classList.add('active');document.getElementById('paneAi').classList.add('active');}
+  const KB={explain:'Insertion Sort builds the final sorted array one item at a time. It iterates, consuming one input element each repetition, and growing a sorted output list by inserting the element into its correct position.',adaptive:'Insertion Sort is adaptive. If the input is already sorted, it runs in O(n) time because the inner loop immediately terminates.',stable:'Yes, Insertion Sort is stable. It does not change the relative order of elements with equal keys because it only shifts elements strictly greater than the key.',online:'It is an online algorithm, meaning it can sort a list as it receives it, one element at a time.',default:'Watch the purple bar (boundary/key), yellow (shifting), and green (sorted). Each pass the key element is placed in its sorted position among the previously sorted elements.'};
+  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('how'))return KB.explain;if(l.includes('adaptive')||l.includes('o(n)'))return KB.adaptive;if(l.includes('stable'))return KB.stable;if(l.includes('online'))return KB.online;return KB.default;}
+  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg-f ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);}
   document.getElementById('aiSend').addEventListener('click',doSend);
   document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
-  document.querySelectorAll('.ai-chip').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+
+  // ── Quiz Engine ───────────────────────────────────────────
+  const questionPool = [
+    { q: "What is the best-case time complexity of Insertion Sort?", o: ["O(n)", "O(n log n)", "O(n²)", "O(1)"], a: 0, e: "When the array is already sorted, the inner loop terminates immediately, resulting in O(n) time." },
+    { q: "What is the worst-case time complexity of Insertion Sort?", o: ["O(n)", "O(n log n)", "O(n²)", "O(n³)"], a: 2, e: "When the array is reverse sorted, every element must be shifted, leading to O(n²) time." },
+    { q: "Is Insertion Sort an in-place sorting algorithm?", o: ["Yes", "No", "Only for small arrays", "Only for integers"], a: 0, e: "It requires O(1) auxiliary space, making it in-place." },
+    { q: "Is Insertion Sort a stable sorting algorithm?", o: ["Yes", "No", "Depends on the implementation", "Only for strings"], a: 0, e: "It preserves the relative order of equal elements because it only shifts elements strictly greater than the key." },
+    { q: "Which of the following sorting algorithms is Insertion Sort most similar to in terms of how it builds the sorted region?", o: ["Selection Sort", "Merge Sort", "Quick Sort", "Radix Sort"], a: 0, e: "Like Selection Sort, it builds a sorted region at the beginning of the array, but it inserts rather than selects the minimum." },
+    { q: "What is the main advantage of Insertion Sort over Selection Sort?", o: ["It is always faster in the worst case", "It is adaptive and performs well on nearly sorted data", "It uses less memory", "It requires fewer swaps in the worst case"], a: 1, e: "Insertion Sort can exit its inner loop early if the element is already in place, making it very fast for nearly sorted arrays." },
+    { q: "Why is Insertion Sort often used in combination with other algorithms like Quick Sort or Merge Sort?", o: ["It has a better worst-case time complexity", "It is very efficient for small sub-arrays", "It requires less stack space", "It can parallelize easily"], a: 1, e: "For small arrays (e.g., < 10-20 elements), Insertion Sort has very low overhead and is faster than more complex O(n log n) algorithms." },
+    { q: "In the inner loop of Insertion Sort, what operation is typically performed to make room for the key element?", o: ["Swapping", "Shifting", "Deleting", "Overwriting"], a: 1, e: "Elements greater than the key are shifted one position to the right to create an open slot." },
+    { q: "What does it mean that Insertion Sort is an 'online' algorithm?", o: ["It requires an internet connection", "It can sort data as it receives it", "It runs in linear time", "It uses an external API"], a: 1, e: "An online algorithm can process its input piece-by-piece in a serial fashion." },
+    { q: "If an array is sorted in reverse order, how many shifts will Insertion Sort perform for an array of size n?", o: ["n", "n(n-1)/2", "n log n", "0"], a: 1, e: "Every element must be shifted past all previously sorted elements, resulting in the maximum number of shifts." },
+    { q: "Which hybrid sorting algorithm utilizes Insertion Sort for small partitions?", o: ["Timsort", "Heap Sort", "Radix Sort", "Counting Sort"], a: 0, e: "Timsort (used in Python and Java) uses Insertion Sort to sort small chunks (runs) before merging them." },
+    { q: "During pass i (1-indexed), how many elements are guaranteed to be in sorted order relative to each other?", o: ["i", "i + 1", "i - 1", "n"], a: 1, e: "After pass i, the prefix of length i + 1 is sorted." },
+    { q: "What is the maximum number of comparisons Insertion Sort makes for an array of size 5?", o: ["5", "10", "15", "20"], a: 1, e: "The maximum number of comparisons is n(n-1)/2, which is 5*4/2 = 10." },
+    { q: "If an element is already in its correct sorted position relative to the prefix, how many comparisons does Insertion Sort make for that element?", o: ["0", "1", "i", "n"], a: 1, e: "It makes exactly 1 comparison (against the preceding element) and then the inner loop terminates." },
+    { q: "What is the average-case time complexity of Insertion Sort?", o: ["O(n)", "O(n log n)", "O(n²)", "O(n³)"], a: 2, e: "On average, each element must be compared and shifted past half of the sorted prefix." },
+    { q: "Compared to Bubble Sort, how does Insertion Sort generally perform on random data?", o: ["Slower, because it shifts instead of swaps", "Faster, because it avoids unnecessary comparisons", "Exactly the same", "Faster, because it is O(n log n)"], a: 1, e: "Insertion Sort is generally faster than Bubble Sort on random data because it breaks out of the inner loop as soon as the correct position is found." },
+    { q: "In the standard implementation, where does the sorted region start?", o: ["At the left end (index 0)", "At the right end (index n-1)", "In the middle", "At a random position"], a: 0, e: "The sorted region begins at index 0 and grows to the right." },
+    { q: "Can Insertion Sort be implemented using a binary search to find the insertion point?", o: ["Yes, and it reduces the time complexity to O(n log n)", "Yes, but shifting elements still takes O(n²)", "No, it's impossible", "Yes, but it makes the algorithm unstable"], a: 1, e: "Binary Insertion Sort reduces comparisons to O(n log n), but moving elements still requires O(n²) time." },
+    { q: "Which data structure can be sorted efficiently with Insertion Sort without shifting elements?", o: ["Array", "Linked List", "Stack", "Queue"], a: 1, e: "In a Linked List, insertion can be done in O(1) time by updating pointers, though finding the position still takes linear time." },
+    { q: "What happens if all elements in the input array are identical?", o: ["Insertion Sort runs in O(n²)", "Insertion Sort runs in O(n)", "Insertion Sort crashes", "Insertion Sort runs in O(log n)"], a: 1, e: "Each element is compared once with its predecessor and not shifted, resulting in O(n) best-case performance." }
+  ];
+
+  let currentQuestions = [];
+  let currentQIdx = 0;
+  let score = 0;
+  let quizAnswers = [];
+
+  function shuffle(array) {
+    let m = array.length, t, i;
+    while (m) {
+      i = Math.floor(Math.random() * m--);
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+    return array;
+  }
+
+  function initQuiz() {
+    currentQuestions = shuffle([...questionPool]).slice(0, 10);
+    currentQIdx = 0;
+    score = 0;
+    quizAnswers = [];
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const container = document.getElementById('quizContainer');
+    if (!container) return;
+
+    if (currentQIdx >= currentQuestions.length) {
+      renderScoreCard();
+      return;
+    }
+
+    const qItem = currentQuestions[currentQIdx];
+    const progressPct = ((currentQIdx) / currentQuestions.length) * 100;
+
+    container.innerHTML = `
+      <div class="quiz-progress-row">
+        <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width: ${progressPct}%"></div></div>
+        <div class="quiz-prog-lbl">Question ${currentQIdx + 1} of ${currentQuestions.length}</div>
+      </div>
+      <div class="quiz-qcard">
+        <div class="quiz-qnum">Insertion Sort quiz</div>
+        <div class="quiz-qtext">${qItem.q}</div>
+        <div class="quiz-opts">
+          ${qItem.o.map((opt, i) => `
+            <button class="quiz-opt" data-opt-idx="${i}">
+              <div class="quiz-opt-letter">${String.fromCharCode(65 + i)}</div>
+              <div>${opt}</div>
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="quizExpl">
+          <strong>Explanation:</strong> ${qItem.e}
+        </div>
+      </div>
+      <div class="quiz-nav-row" style="display: none;" id="quizNav">
+        <button class="quiz-next-btn" id="quizNextBtn">Next <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    `;
+
+    container.querySelectorAll('.quiz-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedIdx = parseInt(btn.dataset.optIdx);
+        handleAnswer(selectedIdx);
+      });
+    });
+  }
+
+  function handleAnswer(selectedIdx) {
+    const qItem = currentQuestions[currentQIdx];
+    const opts = document.querySelectorAll('.quiz-opt');
+    opts.forEach(btn => btn.disabled = true);
+
+    const isCorrect = selectedIdx === qItem.a;
+    quizAnswers.push({ selected: selectedIdx, correct: qItem.a });
+
+    if (isCorrect) {
+      score++;
+      opts[selectedIdx].classList.add('correct');
+    } else {
+      opts[selectedIdx].classList.add('wrong');
+      opts[qItem.a].classList.add('correct');
+    }
+
+    const expl = document.getElementById('quizExpl');
+    if (expl) expl.classList.add('show');
+
+    const navRow = document.getElementById('quizNav');
+    if (navRow) navRow.style.display = 'flex';
+
+    const nextBtn = document.getElementById('quizNextBtn');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        currentQIdx++;
+        renderQuestion();
+      };
+    }
+  }
+
+  function renderScoreCard() {
+    const container = document.getElementById('quizContainer');
+    if (!container) return;
+
+    const strokeDash = 2 * Math.PI * 52;
+    const strokeOffset = strokeDash - (score / currentQuestions.length) * strokeDash;
+
+    container.innerHTML = `
+      <div class="quiz-score-card">
+        <div class="quiz-score-ring">
+          <svg width="130" height="130">
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--primary)" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="65" cy="65" r="52"></circle>
+            <circle class="ring-fill" cx="65" cy="65" r="52" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>
+          </svg>
+          <div class="quiz-score-num">
+            ${score}<span class="quiz-score-denom">/${currentQuestions.length}</span>
+          </div>
+        </div>
+        <h3 class="quiz-score-title">Challenge Complete!</h3>
+        <p class="quiz-score-subtitle">You got a score of ${score} out of ${currentQuestions.length} questions correctly answered.</p>
+        
+        <div class="quiz-score-stats">
+          <div class="qs-stat"><span class="ssv green">${score}</span><span class="ssl">Correct</span></div>
+          <div class="qs-stat"><span class="ssv red">${currentQuestions.length - score}</span><span class="ssl">Wrong</span></div>
+          <div class="qs-stat"><span class="ssv blue">${Math.round((score / currentQuestions.length) * 100)}%</span><span class="ssl">Score</span></div>
+        </div>
+
+        <button class="quiz-retry-btn" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
+      </div>
+    `;
+
+    document.getElementById('retryQuizBtn').onclick = initQuiz;
+  }
+
+  const startQuizBtn = document.getElementById('startQuizBtn');
+  if (startQuizBtn) {
+    startQuizBtn.onclick = initQuiz;
+  }
 
   const themeBtn=document.getElementById('themeToggle');
   const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw();};

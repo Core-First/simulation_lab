@@ -76,70 +76,146 @@
       </div>
     </header>
 
-    <div class="sim-content">
-      <div class="canvas-area">
-        <div class="stats-bar">
-          <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill swaps"><span class="lbl">Merges</span><span class="val" id="swpCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
-          <div class="sep"></div>
-          <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
-          <div class="sep"></div>
-          <div class="legend">
-            <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
-            <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Active Merge</div>
-            <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Comparing</div>
-            <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Placed</div>
+    <div class="sim-content sim-tabs-layout">
+
+      <!-- ── Tab Bar ─────────────────────────────────────────── -->
+      <div class="stab-bar">
+        <button class="stab active" data-tab="info"><i class="fa-solid fa-circle-info"></i> Info</button>
+        <button class="stab" data-tab="sim"><i class="fa-solid fa-play"></i> Simulation</button>
+        <button class="stab" data-tab="code"><i class="fa-solid fa-code"></i> Code</button>
+        <button class="stab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI Agent</button>
+        <button class="stab" data-tab="quiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+      </div>
+
+      <!-- ── Info Tab ────────────────────────────────────────── -->
+      <div class="spane active" id="paneInfo">
+        <div class="info-full-wrap">
+          <div class="info-hero">
+            <div class="info-hero-icon"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+              <h2>Merge Sort</h2>
+              <p>Merge Sort is an efficient, general-purpose, and comparison-based sorting algorithm. Most implementations produce a stable sort. It is a divide-and-conquer algorithm that recursively breaks down a list into several sublists until each sublist consists of a single element and merging those sublists in a manner that results into a sorted list.</p>
+              <div class="info-badge-row">
+                <span class="info-badge badge-stable">✅ Stable</span>
+                <span class="info-badge badge-inplace">❌ Not In-Place (O(n) space)</span>
+                <span class="info-badge badge-adaptive">❌ Not Adaptive</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="canvas-wrap"><canvas id="sortCanvas"></canvas></div>
-        <div class="ctrl-bar">
-          <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="4" max="48" value="16" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">16</span></div>
-          <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
-          <select id="arrayOrder"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
-          <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
-          <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
-          <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
-          <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
-          <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-          <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <h5>Complexity</h5>
+              <div class="cx-grid">
+                <div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div>
+                <div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div>
+                <div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n log n)</span></div>
+                <div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(n)</span></div>
+              </div>
+            </div>
+            <div class="info-card">
+              <h5>How it Works</h5>
+              <p style="font-size: .87rem; color: var(--muted); line-height: 1.6; margin: 0;">Merge Sort divides the array in half until pieces have one element (already sorted). It then merges pairs of sub-arrays by always taking the smaller front value from the two sub-arrays. This guarantees O(n log n) performance always, but requires extra memory to hold the merged arrays.</p>
+            </div>
+          </div>
+
+          <div class="info-card" style="margin-bottom: 24px;">
+            <h5>How to Use the Simulation</h5>
+            <ol class="info-steps">
+              <li>Click the <strong>Simulation</strong> tab to open the canvas.</li>
+              <li>Set <strong>Size</strong> (4–48 elements) or type a <strong>Custom</strong> list of values.</li>
+              <li>Click <strong>Run</strong> to watch the animation, or use <strong>Step</strong> to advance one split/merge at a time.</li>
+              <li>Toggle between <strong>Dark Mode</strong> and Light Mode via the header button.</li>
+            </ol>
+          </div>
+
+          <div class="d-flex justify-content-center">
+            <button class="info-start-btn" id="startSimBtn">Start Simulation <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
         </div>
       </div>
 
-      <div class="right-panel">
-        <div class="panel-tabs">
-          <button class="panel-tab active" data-tab="info">Info</button>
-          <button class="panel-tab" data-tab="code">Code</button>
-          <button class="panel-tab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI</button>
-        </div>
-        <div class="panel-body active" id="paneInfo">
-          <div class="info-sec info-welcome"><h6>Welcome - Start Here</h6><p>Merge Sort is a <strong>divide-and-conquer</strong> algorithm. This simulation shows how the array is split in half, then merged back in sorted order. Use the controls like the earlier sorting labs - no code required.</p></div>
-          <div class="info-sec"><h6>What You See on Screen</h6><ul class="info-list"><li><strong>Chart:</strong> Bars may highlight during <strong>split</strong> and <strong>merge</strong> phases.</li><li><strong>Stats:</strong> Comparisons and merge steps (pass/depth counters depend on this sim).</li><li><strong>Controls:</strong> Same as other Part 1 pages - Size, Speed, Run, Step, Reset, New.</li><li><strong>Info panel:</strong> Scroll down on mobile to read complexity and when to use merge sort.</li></ul></div>
-          <div class="info-sec"><h6>Your First Run</h6><ol class="info-steps"><li>Start with <strong>Size 16</strong> (powers of two are easy to follow).</li><li>Click <strong>Run</strong> ▶ and notice the array breaking into smaller pieces, then combining.</li><li>Use <strong>Step</strong> to see each comparison during a merge.</li><li>Compare with <strong>Quick Sort</strong> (next sim) after you understand splitting and merging.</li></ol></div>
-          <div class="info-sec"><h6>Controls Explained</h6><ul class="info-list"><li><strong>Size / Speed / Order / Custom / New:</strong> Same behaviour as Bubble and Selection sorts.</li><li><strong>☰ menu:</strong> Open the sidebar to pick another simulation.</li><li><strong>Code tab:</strong> Shows merge sort pseudocode for your current array.</li></ul></div>
-          <div class="info-sec"><h6>Colour Legend (Merge Sort)</h6><ul class="info-list"><li><span class="leg-inline" style="background:#3b82f6"></span> Blue - general / unsorted context</li><li><span class="leg-inline" style="background:#a78bfa"></span> Purple - active merge segment</li><li><span class="leg-inline" style="background:#60a5fa"></span> Light blue - comparing two values during merge</li><li><span class="leg-inline" style="background:#22c55e"></span> Green - value placed in merged result</li></ul></div>
-          <div class="info-sec"><h6>Right Panel Tabs</h6><ul class="info-list"><li><strong>Info</strong> - Full beginner guide (scroll to the end).</li><li><strong>Code</strong> - Algorithm sketch with your numbers.</li><li><strong>AI</strong> - Ask about divide-and-conquer or O(n) extra space.</li></ul></div>
-          <div class="info-sec"><h6>How Merge Sort Works</h6><p>Merge Sort <strong>splits</strong> the array in half until pieces have one element (already sorted), then <strong>merges</strong> pairs by always taking the smaller front value from two sub-arrays. It always runs in O(n log n) but needs extra memory O(n).</p></div>
-          <div class="info-sec"><h6>Complexity</h6><div class="cx-grid"><div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div><div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div><div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n log n)</span></div><div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(n)</span></div></div></div>
-          <div class="info-sec"><h6>Properties</h6><p>✅ Stable &nbsp; ❌ Not in-place (O(n) space needed) &nbsp; ❌ Not adaptive &nbsp; ✅ Guaranteed O(n log n) always</p></div>
-          <div class="info-sec"><h6>Best Used When</h6><p>Ideal when stability is required, extra memory is acceptable, and guaranteed worst-case performance is needed (e.g. external sorting where data won't fit in RAM).</p></div>
-        </div>
-        <div class="panel-body" id="paneCode"><pre><code id="generatedCode"></code></pre></div>
-        <div class="panel-body" id="paneAi">
-          <div class="ai-chips">
-            <button class="ai-chip" data-q="Explain merge sort step by step">Explain it</button>
-            <button class="ai-chip" data-q="Why is merge sort always O(n log n)?">Always O(n log n)?</button>
-            <button class="ai-chip" data-q="Why does merge sort use O(n) space?">Why O(n) space?</button>
-            <button class="ai-chip" data-q="Is merge sort stable?">Stable?</button>
-            <button class="ai-chip" data-q="What is external sorting?">External sort?</button>
+      <!-- ── Simulation Tab ──────────────────────────────────── -->
+      <div class="spane" id="paneSim">
+        <div class="sim-inner">
+          <!-- Stats -->
+          <div class="stats-bar" style="padding: 12px 20px; border-bottom: 1px solid var(--border);">
+            <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill swaps"><span class="lbl">Merges</span><span class="val" id="swpCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
+            <div class="sep"></div>
+            <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
+            <div class="sep"></div>
+            <div class="legend">
+              <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
+              <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Active Merge</div>
+              <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Comparing</div>
+              <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Placed</div>
+            </div>
           </div>
-          <div class="ai-msgs" id="aiMsgs"><div class="ai-msg bot">👋 Hi! I can explain how Merge Sort divides and conquers, why it guarantees O(n log n), and when to choose it over Quick Sort.</div></div>
-          <div class="ai-row"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+
+          <!-- Canvas -->
+          <div class="canvas-wrap" style="flex: 1; min-height: 250px;"><canvas id="sortCanvas"></canvas></div>
+
+          <!-- Controls -->
+          <div class="ctrl-bar" style="padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px; justify-content: center;">
+            <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="4" max="48" value="16" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">16</span></div>
+            <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
+            <select id="arrayOrder" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
+            <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.8rem;width:120px;"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
+            <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
+            <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+            <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
+            <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- ── Code Tab ────────────────────────────────────────── -->
+      <div class="spane" id="paneCode">
+        <div class="code-full-wrap">
+          <pre><code id="generatedCode"></code></pre>
+        </div>
+      </div>
+
+      <!-- ── AI Tab ──────────────────────────────────────────── -->
+      <div class="spane" id="paneAi">
+        <div class="ai-full-wrap">
+          <div class="ai-chips-full">
+            <button class="ai-chip-full" data-q="Explain merge sort step by step">Explain it</button>
+            <button class="ai-chip-full" data-q="Why is merge sort always O(n log n)?">Always O(n log n)?</button>
+            <button class="ai-chip-full" data-q="Why does merge sort use O(n) space?">Why O(n) space?</button>
+            <button class="ai-chip-full" data-q="Is merge sort stable?">Stable?</button>
+            <button class="ai-chip-full" data-q="What is external sorting?">External sort?</button>
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs"><div class="ai-msg-f bot">👋 Hi! I can explain how Merge Sort divides and conquers, why it guarantees O(n log n), and when to choose it over Quick Sort.</div></div>
+          <div class="ai-row-full"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
+        </div>
+      </div>
+
+      <!-- ── Quiz Tab ────────────────────────────────────────── -->
+      <div class="spane" id="paneQuiz">
+        <div class="quiz-full-wrap">
+          <div id="quizContainer">
+            <!-- Start Screen -->
+            <div class="quiz-welcome-card" id="quizWelcomeScreen">
+              <div class="quiz-welcome-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+              <h3>Merge Sort Challenge</h3>
+              <p>Test your understanding of Merge Sort's divide-and-conquer strategy, recursive tree, and merging logic. You'll get 10 random questions per attempt.</p>
+              <div class="quiz-stat-row">
+                <div class="quiz-stat"><span class="qs-val">10</span><span class="qs-lbl">Questions</span></div>
+                <div class="quiz-stat"><span class="qs-val">O(n log n)</span><span class="qs-lbl">Focus</span></div>
+              </div>
+              <button class="quiz-start-btn" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sim-content -->
   </div>
 </div>
 
@@ -295,15 +371,204 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
   document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
   document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;done=false;lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
 
-  document.querySelectorAll('.panel-tab').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('pane'+btn.dataset.tab[0].toUpperCase()+btn.dataset.tab.slice(1)).classList.add('active');});});
+  // ── Tab switching ─────────────────────────────────────────
+  document.querySelectorAll('.stab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.spane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const targetPane = document.getElementById('pane' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
+      if (targetPane) targetPane.classList.add('active');
+      if (btn.dataset.tab === 'sim') {
+        setTimeout(resizeCanvas, 50);
+      }
+    });
+  });
+
+  const startSimBtn = document.getElementById('startSimBtn');
+  if (startSimBtn) {
+    startSimBtn.addEventListener('click', () => {
+      const simTab = document.querySelector('.stab[data-tab="sim"]');
+      if (simTab) simTab.click();
+    });
+  }
 
   const KB={explain:'Merge Sort uses divide and conquer. It recursively halves the array until only single elements remain, then builds the sorted array back up by merging adjacent sorted sub-arrays - picking the smaller of two front elements.',nlogn:'The array is halved log₂(n) times (the divide phase). At each depth level the merge step does O(n) work total. Total work = O(n) × O(log n) = O(n log n). This holds for ALL inputs.',space:'Merge Sort needs an auxiliary array of size n to hold the merged output before writing it back. In-place merge algorithms exist but are extremely complex and slow in practice.',stable:'Yes - Merge Sort is stable. During the merge, when two elements are equal, it always picks the element from the left sub-array first, retaining their original order.',external:'External sorting is used when data is too large for RAM. Merge Sort maps perfectly to this: read chunks into RAM, sort them, write sorted "runs" to disk, then merge the runs.',default:'Watch the purple brackets show each sub-array being merged. Blue bars are compared and green bars are placed into their final position in the merged array.'};
   function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('step')||l.includes('how'))return KB.explain;if(l.includes('n log')||l.includes('nlogn')||l.includes('always'))return KB.nlogn;if(l.includes('space')||l.includes('memory')||l.includes('o(n)'))return KB.space;if(l.includes('stable'))return KB.stable;if(l.includes('external')||l.includes('disk')||l.includes('large'))return KB.external;return KB.default;}
-  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
-  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);document.querySelectorAll('.panel-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel-body').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="ai"]').classList.add('active');document.getElementById('paneAi').classList.add('active');}
+  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg-f ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);}
   document.getElementById('aiSend').addEventListener('click',doSend);
   document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
-  document.querySelectorAll('.ai-chip').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+
+  // ── Quiz Engine ───────────────────────────────────────────
+  const questionPool = [
+    { q: "What is the time complexity of Merge Sort in the best case?", o: ["O(n log n)", "O(n)", "O(n²)", "O(log n)"], a: 0, e: "Merge Sort always divides and merges the entire array, resulting in O(n log n) time even if it is already sorted." },
+    { q: "What is the worst-case time complexity of Merge Sort?", o: ["O(n log n)", "O(n²)", "O(n)", "O(2^n)"], a: 0, e: "Merge Sort guarantees O(n log n) performance regardless of the initial order of the elements." },
+    { q: "What is the space complexity of standard Merge Sort?", o: ["O(n)", "O(log n)", "O(1)", "O(n²)"], a: 0, e: "Standard Merge Sort requires O(n) auxiliary space to hold the merged array during the merge step." },
+    { q: "Is Merge Sort a stable sorting algorithm?", o: ["Yes", "No", "Depends on the data", "Only for integers"], a: 0, e: "It is stable because the merge step preserves the relative order of equal elements by picking the left one first." },
+    { q: "What algorithm paradigm does Merge Sort use?", o: ["Divide and Conquer", "Dynamic Programming", "Greedy", "Backtracking"], a: 0, e: "It divides the array into halves, recursively sorts them, and conquers by merging the sorted halves." },
+    { q: "How many times is an array of size 16 halved to reach single elements?", o: ["4", "16", "8", "5"], a: 0, e: "log₂(16) = 4 splits are required." },
+    { q: "At the maximum recursion depth, what is the size of the sub-arrays in Merge Sort?", o: ["1", "2", "n/2", "0"], a: 0, e: "The recursion bottoms out when the sub-arrays are divided down to 1 element." },
+    { q: "Why is Merge Sort highly preferred for sorting Linked Lists?", o: ["It only requires O(1) auxiliary space for Linked Lists", "It is an in-place array sort", "It avoids recursion", "It has O(n) worst-case time"], a: 0, e: "With linked lists, nodes can be merged simply by changing pointers, reducing the space complexity to O(1) (or O(log n) for recursion stack)." },
+    { q: "What is the primary disadvantage of standard Merge Sort compared to Quick Sort?", o: ["It requires O(n) extra space", "It has a worse worst-case time", "It is unstable", "It is not a divide-and-conquer algorithm"], a: 0, e: "Quick Sort is an in-place sort (requiring O(log n) space), whereas Merge Sort needs an O(n) auxiliary array." },
+    { q: "Is Merge Sort adaptive?", o: ["No, it is not adaptive", "Yes, it is adaptive", "Only on small arrays", "Only on reversed arrays"], a: 0, e: "Merge Sort performs the same number of splits and merges regardless of whether the array is sorted or not." },
+    { q: "What is 'External Sorting'?", o: ["Sorting data that doesn't fit into RAM", "Sorting data using an external server", "Sorting data visually", "Sorting strings from external files"], a: 0, e: "External sorting handles massive datasets by reading chunks into memory, sorting them (often with Merge Sort), and merging the chunks on disk." },
+    { q: "In the merge phase, if the two halves are [2, 8] and [4, 6], what is the first element added to the merged array?", o: ["2", "4", "6", "8"], a: 0, e: "The first elements of the two sorted halves are compared (2 vs 4), and the smaller one (2) is added." },
+    { q: "What is the time complexity of the merge step for two arrays of combined size k?", o: ["O(k)", "O(k log k)", "O(1)", "O(k²)"], a: 0, e: "Merging two arrays requires a single linear pass over the elements, taking O(k) time." },
+    { q: "Which hybrid sorting algorithm uses Merge Sort as its core?", o: ["Timsort", "Introsort", "Heap Sort", "Shell Sort"], a: 0, e: "Timsort is a hybrid of Merge Sort and Insertion Sort." },
+    { q: "If the input array has an odd number of elements, how does Merge Sort handle the split?", o: ["One half will have one more element than the other", "It pads the array with a dummy element", "It fails to sort", "It removes the middle element"], a: 0, e: "The array is split as evenly as possible. For instance, 5 elements are split into 2 and 3." },
+    { q: "Can Merge Sort be implemented iteratively (bottom-up)?", o: ["Yes", "No", "Only for strings", "Only in C++"], a: 0, e: "Bottom-up Merge Sort iteratively merges adjacent sub-arrays of size 1, then size 2, then size 4, without recursion." },
+    { q: "What is the recursion depth of Merge Sort for an array of size n?", o: ["O(log n)", "O(n)", "O(n log n)", "O(1)"], a: 0, e: "The array is repeatedly halved, resulting in a recursion tree of height O(log n)." },
+    { q: "Which algorithm typically has lower constant factors (runs faster in practice) for arrays that fit in cache?", o: ["Quick Sort", "Merge Sort", "Heap Sort", "Bubble Sort"], a: 0, e: "Quick Sort is generally faster in practice due to better cache locality and no allocation of auxiliary arrays." },
+    { q: "What does the 'merge' operation do?", o: ["Combines two sorted lists into one sorted list", "Splits a list into two", "Finds the median of two lists", "Randomizes the list"], a: 0, e: "It iterates through two sorted sub-lists and builds a single combined sorted list." },
+    { q: "In Python, the built-in `list.sort()` is derived from which algorithm?", o: ["Merge Sort (Timsort)", "Quick Sort", "Heap Sort", "Insertion Sort"], a: 0, e: "Python uses Timsort, which is based heavily on Merge Sort principles." }
+  ];
+
+  let currentQuestions = [];
+  let currentQIdx = 0;
+  let score = 0;
+  let quizAnswers = [];
+
+  function shuffle(array) {
+    let m = array.length, t, i;
+    while (m) {
+      i = Math.floor(Math.random() * m--);
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+    return array;
+  }
+
+  function initQuiz() {
+    currentQuestions = shuffle([...questionPool]).slice(0, 10);
+    currentQIdx = 0;
+    score = 0;
+    quizAnswers = [];
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const container = document.getElementById('quizContainer');
+    if (!container) return;
+
+    if (currentQIdx >= currentQuestions.length) {
+      renderScoreCard();
+      return;
+    }
+
+    const qItem = currentQuestions[currentQIdx];
+    const progressPct = ((currentQIdx) / currentQuestions.length) * 100;
+
+    container.innerHTML = `
+      <div class="quiz-progress-row">
+        <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width: ${progressPct}%"></div></div>
+        <div class="quiz-prog-lbl">Question ${currentQIdx + 1} of ${currentQuestions.length}</div>
+      </div>
+      <div class="quiz-qcard">
+        <div class="quiz-qnum">Merge Sort quiz</div>
+        <div class="quiz-qtext">${qItem.q}</div>
+        <div class="quiz-opts">
+          ${qItem.o.map((opt, i) => `
+            <button class="quiz-opt" data-opt-idx="${i}">
+              <div class="quiz-opt-letter">${String.fromCharCode(65 + i)}</div>
+              <div>${opt}</div>
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="quizExpl">
+          <strong>Explanation:</strong> ${qItem.e}
+        </div>
+      </div>
+      <div class="quiz-nav-row" style="display: none;" id="quizNav">
+        <button class="quiz-next-btn" id="quizNextBtn">Next <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    `;
+
+    container.querySelectorAll('.quiz-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedIdx = parseInt(btn.dataset.optIdx);
+        handleAnswer(selectedIdx);
+      });
+    });
+  }
+
+  function handleAnswer(selectedIdx) {
+    const qItem = currentQuestions[currentQIdx];
+    const opts = document.querySelectorAll('.quiz-opt');
+    opts.forEach(btn => btn.disabled = true);
+
+    const isCorrect = selectedIdx === qItem.a;
+    quizAnswers.push({ selected: selectedIdx, correct: qItem.a });
+
+    if (isCorrect) {
+      score++;
+      opts[selectedIdx].classList.add('correct');
+    } else {
+      opts[selectedIdx].classList.add('wrong');
+      opts[qItem.a].classList.add('correct');
+    }
+
+    const expl = document.getElementById('quizExpl');
+    if (expl) expl.classList.add('show');
+
+    const navRow = document.getElementById('quizNav');
+    if (navRow) navRow.style.display = 'flex';
+
+    const nextBtn = document.getElementById('quizNextBtn');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        currentQIdx++;
+        renderQuestion();
+      };
+    }
+  }
+
+  function renderScoreCard() {
+    const container = document.getElementById('quizContainer');
+    if (!container) return;
+
+    const strokeDash = 2 * Math.PI * 52;
+    const strokeOffset = strokeDash - (score / currentQuestions.length) * strokeDash;
+
+    container.innerHTML = `
+      <div class="quiz-score-card">
+        <div class="quiz-score-ring">
+          <svg width="130" height="130">
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--primary)" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="65" cy="65" r="52"></circle>
+            <circle class="ring-fill" cx="65" cy="65" r="52" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>
+          </svg>
+          <div class="quiz-score-num">
+            ${score}<span class="quiz-score-denom">/${currentQuestions.length}</span>
+          </div>
+        </div>
+        <h3 class="quiz-score-title">Challenge Complete!</h3>
+        <p class="quiz-score-subtitle">You got a score of ${score} out of ${currentQuestions.length} questions correctly answered.</p>
+        
+        <div class="quiz-score-stats">
+          <div class="qs-stat"><span class="ssv green">${score}</span><span class="ssl">Correct</span></div>
+          <div class="qs-stat"><span class="ssv red">${currentQuestions.length - score}</span><span class="ssl">Wrong</span></div>
+          <div class="qs-stat"><span class="ssv blue">${Math.round((score / currentQuestions.length) * 100)}%</span><span class="ssl">Score</span></div>
+        </div>
+
+        <button class="quiz-retry-btn" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
+      </div>
+    `;
+
+    document.getElementById('retryQuizBtn').onclick = initQuiz;
+  }
+
+  const startQuizBtn = document.getElementById('startQuizBtn');
+  if (startQuizBtn) {
+    startQuizBtn.onclick = initQuiz;
+  }
 
   const themeBtn=document.getElementById('themeToggle');
   const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw(lastState);};
