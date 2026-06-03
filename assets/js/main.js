@@ -84,7 +84,7 @@
     const li = document.createElement('li');
     li.innerHTML = `
       <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
-        <i class="fa-solid fa-book lead-icon"></i> ${p.part}
+        <i class="fa-solid fa-book lead-icon"></i> ${p.part}${i === 5 ? '<span class="status-dot valid" id="statusDot"></span>' : ''}
         <i class="fa-solid fa-chevron-right chev"></i>
       </button>
       <div class="collapse" id="${partId}">
