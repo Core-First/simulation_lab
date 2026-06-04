@@ -1,254 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quick Sort – Part 1 | ATC SimLab</title>
-  <meta name="description" content="Quick Sort visualisation: recursive pivot selection and partitioning step-by-step on Canvas."/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
-  <link href="../assets/css/main.css" rel="stylesheet"/>
-  <link href="../assets/css/simulation-base.css" rel="stylesheet"/>
-  <style>
-    /* Quick Sort — danger accent on active tab */
-    body.sim-page .panel-tab.active { color: var(--danger); border-bottom-color: var(--danger); }
-  </style>
+  <meta name="description" content="Interactive Quick Sort visualisation with step-by-step partition animations, recursion depth tracking, and AI assistant." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
 </head>
 <body class="sim-page">
-<div class="app">
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
-    <nav id="sideNav">
-      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
-      <div class="nav-group">
-        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
-        <div class="collapse show" id="dsaMenu"><ul class="submenu">
-          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
-            <div class="collapse show" id="part1"><ul class="submenu">
-              <li><a href="index.html" class="sub-link"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
-              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
-              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
-              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
-              <li><a href="sim-04-merge-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
-              <li><a href="sim-05-quick-sort.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
-            </ul></div>
-          </li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
-        </ul></div>
-      </div>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
-    </nav>
-    <div class="sidebar-footer">
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
-    </div>
-  </aside>
-  <div class="backdrop" id="backdrop"></div>
 
-  <!-- Main -->
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
-        <div class="breadcrumb-nav">
-          <a href="index.html"><i class="fa-solid fa-chart-column"></i> Sorting Lab</a>
-          <span class="sep-bc">/</span><span class="current">Quick Sort</span>
-        </div>
+  <!-- Guided Tour Overlay -->
+  <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+      <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+      <p id="tourText" class="small mb-3"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">Skip Guide</button>
+        <button class="btn btn-sm btn-primary px-3" id="tourNext">Next <i class="fa-solid fa-arrow-right ms-1"></i></button>
       </div>
-      <div class="topbar-right">
-        <div class="sim-nav">
-          <a href="sim-04-merge-sort.html"><i class="fa-solid fa-arrow-left"></i> Merge</a>
-        </div>
-        <button class="theme-toggle" id="themeToggle"><i class="fa-solid fa-moon"></i><span>Dark Mode</span></button>
-        <div class="profile"><div class="avatar">AJ</div><div class="profile-text"><div class="profile-name">Lipweche A.</div><div class="profile-role">Student</div></div></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-bolt text-primary me-2"></i> Quick Sort Masterclass Simulation
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+          <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <a href="index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
       </div>
     </header>
 
-    <div class="sim-content sim-tabs-layout">
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Sorting Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="sortCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
 
-      <!-- ── Tab Bar ─────────────────────────────────────────── -->
-      <div class="stab-bar">
-        <button class="stab active" data-tab="info"><i class="fa-solid fa-circle-info"></i> Info</button>
-        <button class="stab" data-tab="sim"><i class="fa-solid fa-play"></i> Simulation</button>
-        <button class="stab" data-tab="code"><i class="fa-solid fa-code"></i> Code</button>
-        <button class="stab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI Agent</button>
-        <button class="stab" data-tab="quiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
-      </div>
-
-      <!-- ── Info Tab ────────────────────────────────────────── -->
-      <div class="spane active" id="paneInfo">
-        <div class="info-full-wrap">
-          <div class="info-hero">
-            <div class="info-hero-icon"><i class="fa-solid fa-bolt"></i></div>
-            <div>
-              <h2>Quick Sort</h2>
-              <p>Quick Sort is a highly efficient, comparison-based sorting algorithm that uses a divide-and-conquer strategy. It works by selecting a 'pivot' element and partitioning the other elements into two sub-arrays according to whether they are less than or greater than the pivot. The sub-arrays are then sorted recursively.</p>
-              <div class="info-badge-row">
-                <span class="info-badge badge-inplace">✅ In-Place</span>
-                <span class="info-badge badge-adaptive">❌ Not Adaptive</span>
-                <span class="info-badge badge-stable">❌ Not Stable</span>
-              </div>
-            </div>
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Quick Sort is a highly efficient, comparison-based sorting algorithm that uses a divide-and-conquer strategy. 
+            It selects a 'pivot' element and partitions the other elements into two sub-arrays according to whether they are less than or greater than the pivot. 
+            The sub-arrays are then sorted recursively.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">❌ Unstable</span>
+            <span class="badge bg-secondary">✅ In-Place</span>
+            <span class="badge bg-secondary">❌ Non-Adaptive</span>
           </div>
-
-          <div class="info-grid">
-            <div class="info-card">
-              <h5>Complexity</h5>
-              <div class="cx-grid">
-                <div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div>
-                <div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div>
-                <div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n²)</span></div>
-                <div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(log n)</span></div>
-              </div>
-            </div>
-            <div class="info-card">
-              <h5>How it Works</h5>
-              <p style="font-size: .87rem; color: var(--muted); line-height: 1.6; margin: 0;">Quick Sort chooses a pivot, partitions the array so smaller values sit left and larger values sit right, then repeats on each side. This simulation uses Lomuto partitioning. Average time is O(n log n); worst case O(n²) on bad pivots (e.g. already sorted array with naïve pivot).</p>
-            </div>
+          <div class="comparison-stats">
+            <span>Best: <strong class="text-white">O(n log n)</strong></span>
+            <span>Avg: <strong class="text-white">O(n log n)</strong></span>
+            <span>Worst: <strong class="text-white">O(n²)</strong></span>
+            <span>Space: <strong class="text-white">O(log n)</strong></span>
           </div>
+        </div>
 
-          <div class="info-card" style="margin-bottom: 24px;">
-            <h5>How to Use the Simulation</h5>
-            <ol class="info-steps">
-              <li>Click the <strong>Simulation</strong> tab to open the canvas.</li>
-              <li>Set <strong>Size</strong> (5–60 elements) or type a <strong>Custom</strong> list of values.</li>
-              <li>Click <strong>Run</strong> to watch the animation, or use <strong>Step</strong> to advance one split/partition at a time.</li>
-              <li>Toggle between <strong>Dark Mode</strong> and Light Mode via the header button.</li>
-            </ol>
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware AI Instructor Chat
           </div>
-
-          <div class="d-flex justify-content-center">
-            <button class="info-start-btn" id="startSimBtn">Start Simulation <i class="fa-solid fa-arrow-right"></i></button>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted)">
+            Ask me questions about Quick Sort pivot selection, Lomuto partitioning, or worst-case scenarios!
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs" style="max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 13px;"></div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why is it O(n²)?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Explain quick sort pivot and partition" style="font-size: 11px">Explain it simply</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why does quick sort have O(n²) worst case?" style="font-size: 11px">Why is it O(n²)?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="What is Lomuto partitioning?" style="font-size: 11px">Lomuto?</button>
           </div>
         </div>
       </div>
 
-      <!-- ── Simulation Tab ──────────────────────────────────── -->
-      <div class="spane" id="paneSim">
-        <div class="sim-inner">
-          <!-- Stats -->
-          <div class="stats-bar" style="padding: 12px 20px; border-bottom: 1px solid var(--border);">
-            <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill swaps"><span class="lbl">Swaps</span><span class="val" id="swpCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
-            <div class="sep"></div>
-            <div class="legend">
-              <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
-              <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Pivot</div>
-              <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>LOMUTO ( i )</div>
-              <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Scan ( j )</div>
-              <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Sorted</div>
-            </div>
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="5" max="60" value="20" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">20</span>
           </div>
-
-          <!-- Canvas -->
-          <div class="canvas-wrap" style="flex: 1; min-height: 250px;"><canvas id="sortCanvas"></canvas></div>
-
-          <!-- Controls -->
-          <div class="ctrl-bar" style="padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px; justify-content: center;">
-            <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="5" max="60" value="20" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">20</span></div>
-            <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
-            <select id="arrayOrder" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
-            <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.8rem;width:120px;"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
-            <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
-            <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
-            <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
-            <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-            <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
           </div>
-        </div>
-      </div>
-
-      <!-- ── Code Tab ────────────────────────────────────────── -->
-      <div class="spane" id="paneCode">
-        <div class="code-full-wrap">
-          <pre><code id="generatedCode"></code></pre>
-        </div>
-      </div>
-
-      <!-- ── AI Tab ──────────────────────────────────────────── -->
-      <div class="spane" id="paneAi">
-        <div class="ai-full-wrap">
-          <div class="ai-chips-full">
-            <button class="ai-chip-full" data-q="Explain quick sort pivot and partition">Explain it</button>
-            <button class="ai-chip-full" data-q="Why does quick sort have O(n²) worst case?">Why O(n²)?</button>
-            <button class="ai-chip-full" data-q="What is Lomuto partitioning?">Lomuto?</button>
-            <button class="ai-chip-full" data-q="Compare quick sort vs merge sort">vs Merge Sort?</button>
-            <button class="ai-chip-full" data-q="How to fix the worst case?">Fix worst case?</button>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Order:</label>
+             <select id="arrayOrder" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="random">Random</option>
+              <option value="nearly">Nearly Sorted</option>
+              <option value="reverse">Reversed</option>
+              <option value="sorted">Already Sorted</option>
+            </select>
           </div>
-          <div class="ai-msgs-full" id="aiMsgs"><div class="ai-msg-f bot">👋 I can explain Lomuto vs Hoare partitioning, how pivot selection affects performance, or why Quick Sort is usually faster than Merge Sort.</div></div>
-          <div class="ai-row-full"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
-        </div>
-      </div>
-
-      <!-- ── Quiz Tab ────────────────────────────────────────── -->
-      <div class="spane" id="paneQuiz">
-        <div class="quiz-full-wrap">
-          <div id="quizContainer">
-            <!-- Start Screen -->
-            <div class="quiz-welcome-card" id="quizWelcomeScreen">
-              <div class="quiz-welcome-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-              <h3>Quick Sort Challenge</h3>
-              <p>Test your understanding of Quick Sort pivots, partitioning schemes, and time complexity. You'll get 10 random questions per attempt.</p>
-              <div class="quiz-stat-row">
-                <div class="quiz-stat"><span class="qs-val">10</span><span class="qs-lbl">Questions</span></div>
-                <div class="quiz-stat"><span class="qs-val">O(n log n)</span><span class="qs-lbl">Focus</span></div>
-              </div>
-              <button class="quiz-start-btn" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="customArr">Custom:</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+            <button class="btn btn-sm btn-secondary" id="applyCustomBtn"><i class="fa-solid fa-check"></i></button>
+          </div>
+          
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Play</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
           </div>
         </div>
-      </div>
 
-    </div><!-- /sim-content -->
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-right-left"></i> Swaps: <span id="swpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-rotate"></i> Depth: <span id="passCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Unsorted</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#ef4444;border-radius:2px;"></div> Pivot</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#a78bfa;border-radius:2px;"></div> Lomuto (i)</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></div> Scan (j)</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Sorted</div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-code">
+          <div class="panel-title">Execution Sync Code</div>
+          <div class="code-editor" id="codeEditorWrap" spellcheck="false" style="padding-left: 12px; height: 100%; min-height: 200px; max-height: 350px; overflow-y: auto;"></div>
+        </div>
+
+      </div>
+    </div>
   </div>
-</div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none;">
+    <div class="quiz-backdrop" onclick="hideQuizOverlay()"></div>
+    <div class="quiz-modal">
+       <div class="quiz-header">
+         <h3 style="margin: 0;"><i class="fa-solid fa-circle-question text-warning"></i> Quick Sort Quiz</h3>
+         <button class="btn-close btn-close-white" onclick="hideQuizOverlay()"></button>
+       </div>
+       <div id="quizContainer">
+          <!-- Start Screen -->
+          <div class="text-center py-3" id="quizWelcomeScreen">
+            <div class="mb-3" style="font-size: 3rem; color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h4 class="text-white mb-2">Algorithm Challenge</h4>
+            <p class="text-muted small mb-4">Test your understanding of Quick Sort's pivots, partitioning schemes, and time complexity. You'll get 10 random questions.</p>
+            <div class="d-flex justify-content-center gap-4 my-3">
+              <div class="text-center"><span class="fs-4 fw-bold text-white">10</span><br><span class="text-muted small">Questions</span></div>
+              <div class="text-center"><span class="fs-4 fw-bold text-white">O(n log n)</span><br><span class="text-muted small">Focus</span></div>
+            </div>
+            <div class="text-center mt-4">
+               <button class="btn btn-primary px-4" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right ms-2"></i></button>
+            </div>
+          </div>
+       </div>
+    </div>
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/sorting-tour.js"></script>
+<script src="../assets/js/code-sync.js"></script>
 <script>
-(function(){
+(function () {
   'use strict';
-  const canvas=document.getElementById('sortCanvas'),ctx=canvas.getContext('2d');
-  function resizeCanvas(){canvas.width=canvas.parentElement.clientWidth;canvas.height=canvas.parentElement.clientHeight;}
-  resizeCanvas();window.addEventListener('resize',()=>{resizeCanvas();draw(lastState);});
+  const codeSync = new CodeSync('codeEditorWrap');
 
-  let arr=[],original=[],cmpTotal=0,swpTotal=0,maxDepth=0;
-  let running=false,done=false,rafId=null,lastTime=0;
-  let steps=[],si=0,msAcc=0,lastState=null;
-  let timerInterval=null,startTime=0;
-  let sortedSet=new Set();
-  const getSpeed=()=>Math.round(1200/parseInt(document.getElementById('speedRange').value));
+  function getHighlightLine(s) {
+    if (s.t === 'pivot')    return 12;
+    if (s.t === 'cmp')      return 15;
+    if (s.t === 'swap')     return 17;
+    if (s.t === 'swap-pvt') return 20;
+    if (s.t === 'placed')   return 21;
+    if (s.t === 'done')     return 23;
+    return -1;
+  }
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  
+  setTimeout(() => {
+    resizeCanvas();
+    draw(lastState);
+  }, 100);
+  
+  window.addEventListener('resize', () => { resizeCanvas(); draw(lastState); });
 
-  function mkRandom(n){return Array.from({length:n},()=>Math.floor(Math.random()*90)+10);}
-  function mkNearly(n){const a=Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));for(let k=0;k<Math.max(1,n>>3);k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}return a;}
-  function mkRev(n){return Array.from({length:n},(_,i)=>Math.round((n-i)*100/n));}
-  function mkSorted(n){return Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));}
-  function buildArr(){const n=parseInt(document.getElementById('arraySize').value),o=document.getElementById('arrayOrder').value;return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);}
+  // ── State ─────────────────────────────────────────────────
+  let arr = [], original = [], cmpTotal = 0, swpTotal = 0, maxDepth = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0, lastState = null;
+  let sortedSet = new Set();
+  let timerInterval = null, startTime = 0;
 
-  /**
-   * buildSteps(a) - pre-computes Quick Sort (Lomuto partitioning).
-   */
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
   function buildSteps(a){
     const d=[...a],out=[];
     function qsort(lo,hi,depth){
       if(lo>=hi){if(lo===hi)out.push({t:'placed',idx:lo,arr:[...d]});return;}
-      // Pivot selection: Lomuto uses the last element
       const pvtIdx=hi,pvtVal=d[hi];
       out.push({t:'pivot',lo,hi,pvtIdx,depth,arr:[...d]});
-      let i=lo-1; // i tracks the boundary of elements smaller than pivot
+      let i=lo-1;
       for(let j=lo;j<hi;j++){
         out.push({t:'cmp',lo,hi,pvtIdx,i,j,depth,arr:[...d]});
         if(d[j]<pvtVal){
@@ -256,7 +254,6 @@
           if(i!==j){[d[i],d[j]]=[d[j],d[i]];out.push({t:'swap',lo,hi,pvtIdx,a:i,b:j,depth,arr:[...d]});}
         }
       }
-      // Place pivot in correct position by swapping with first element > pivot
       const finalPvt=i+1;
       if(finalPvt!==hi){[d[finalPvt],d[hi]]=[d[hi],d[finalPvt]];out.push({t:'swap-pvt',lo,hi,pvtIdx:finalPvt,a:finalPvt,b:hi,depth,arr:[...d]});}
       out.push({t:'placed',idx:finalPvt,arr:[...d]});
@@ -269,22 +266,16 @@
     return out;
   }
 
-  /**
-   * draw(state) - separates rendering.
-   * Red = pivot, Purple = 'i' boundary, Orange = 'j' scanner, Green = placed.
-   * Dashed box drawn around the active partition.
-   */
   const COL={base:'#3b82f6',pvt:'#ef4444',bound_i:'#a78bfa',scan_j:'#f59e0b',placed:'#22c55e',activeBg:'rgba(255,255,255,.05)'};
   function draw(state){
     lastState=state;
     const W=canvas.width,H=canvas.height,n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b1220';
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
     ctx.fillRect(0,0,W,H);if(!n)return;
     const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
     const s=state;
     
-    // Background highlight for active partition
     if(s&&s.lo!=null&&s.hi!=null&&s.t!=='done'){
       const ax=s.lo*(bW+1)-1,aw=(s.hi-s.lo+1)*(bW+1)+1;
       ctx.fillStyle=COL.activeBg;ctx.fillRect(ax,pH-10,aw,aH+10);
@@ -309,11 +300,9 @@
     }
   }
 
-  function updateCodeView(arrData) {
-    const codeEl = document.getElementById('generatedCode');
-    if(!codeEl) return;
+  function getCodeString(arrData) {
     const arrStr = arrData.join(', ');
-    const codeTpl = `let array = [{arr}];
+    return `let array = [${arrStr}];
 
 function quickSort(arr, lo = 0, hi = arr.length - 1) {
   if (lo < hi) {
@@ -336,10 +325,19 @@ function partition(arr, lo, hi) {
   [arr[i + 1], arr[hi]] = [arr[hi], arr[i + 1]];
   return i + 1;
 }
-quickSort(array);`.replace('{arr}', arrStr);
-    codeEl.textContent = codeTpl;
+quickSort(array);`;
   }
-function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;document.getElementById('swpCount').textContent=swpTotal;document.getElementById('passCount').textContent=maxDepth;}
+
+  function updateCodeView(arrData) {
+    const code = getCodeString(arrData);
+    codeSync.init(code);
+  }
+
+  function updCounters(){
+    document.getElementById('cmpCount').textContent=cmpTotal;
+    document.getElementById('swpCount').textContent=swpTotal;
+    document.getElementById('passCount').textContent=maxDepth;
+  }
   function startClock(){startTime=Date.now();timerInterval=setInterval(()=>{document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s';},100);}
   function stopClock(){clearInterval(timerInterval);}
 
@@ -352,6 +350,8 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     else if(s.t==='placed'){sortedSet.add(s.idx);}
     else if(s.t==='done'){for(let i=0;i<arr.length;i++)sortedSet.add(i);done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
     updCounters();draw(s);
+    const hlLine = getHighlightLine(s);
+    if (hlLine >= 0) codeSync.highlight(hlLine);
   }
 
   function tick(ts){if(!running)return;const dt=ts-lastTime;lastTime=ts;msAcc+=dt;const spd=getSpeed();while(msAcc>=spd&&si<steps.length&&running){step(steps[si++]);msAcc-=spd;}if(si<steps.length&&running)rafId=requestAnimationFrame(tick);}
@@ -371,31 +371,16 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
   document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
   document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
 
-  // ── Tab switching ─────────────────────────────────────────
-  document.querySelectorAll('.stab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.spane').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      const targetPane = document.getElementById('pane' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
-      if (targetPane) targetPane.classList.add('active');
-      if (btn.dataset.tab === 'sim') {
-        setTimeout(resizeCanvas, 50);
-      }
-    });
-  });
-
-  const startSimBtn = document.getElementById('startSimBtn');
-  if (startSimBtn) {
-    startSimBtn.addEventListener('click', () => {
-      const simTab = document.querySelector('.stab[data-tab="sim"]');
-      if (simTab) simTab.click();
-    });
-  }
-
   const KB={explain:'Quick Sort is a divide and conquer algorithm. It picks an element as pivot, and partitions the array around the picked pivot so that elements smaller than the pivot are on the left, and elements greater are on the right.',worst:'If the smallest or largest element is always picked as the pivot (e.g. sorted array using last element as pivot), the array is partitioned into n-1 and 0 elements. This happens n times, giving O(n²) complexity.',lomuto:'Lomuto partitioning picks the last element as the pivot. It maintains an index i for smaller elements. As it scans with j, if it finds an element smaller than the pivot, it swaps it with the element at i and increments i.',vs:'Merge sort is always O(n log n) and stable, but needs O(n) space. Quick sort is O(n²) worst case and not stable, but sorts in-place (O(log n) stack) and is much faster in practice due to contiguous memory access (cache locality).',fix:'To avoid O(n²), use random pivot selection, or pick the median of the first, middle, and last elements as the pivot. This guarantees good partitions most of the time.',default:'Watch the red pivot. The yellow bar (j) scans for smaller elements, and swaps them to the purple boundary (i). At the end, the pivot is placed exactly in its correct sorted position.'};
   function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('partition')||l.includes('how'))return KB.explain;if(l.includes('worst')||l.includes('n²')||l.includes('n2'))return KB.worst;if(l.includes('lomuto')||l.includes('hoare'))return KB.lomuto;if(l.includes('merge')||l.includes('vs'))return KB.vs;if(l.includes('fix')||l.includes('random')||l.includes('median'))return KB.fix;return KB.default;}
-  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg-f ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+  
+  function pushMsg(text,role){ 
+    const d=document.createElement('div'); 
+    d.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+    d.textContent=text; 
+    document.getElementById('aiMsgs').appendChild(d); 
+    d.scrollIntoView({behavior:'smooth'}); 
+  }
   function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);}
   document.getElementById('aiSend').addEventListener('click',doSend);
   document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
@@ -412,31 +397,18 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     { q: "Which partitioning scheme uses a single scanning pointer and a boundary pointer?", o: ["Lomuto Partitioning", "Hoare Partitioning", "Merge Partitioning", "Pivot Partitioning"], a: 0, e: "Lomuto uses a single scan pointer (j) and a boundary pointer (i) to track smaller elements." },
     { q: "After a partition step, what is true about the pivot element?", o: ["It is in its final sorted position", "It is the largest element", "It is the smallest element", "It is at the end of the array"], a: 0, e: "The partition step guarantees the pivot is exactly where it belongs in the fully sorted array." },
     { q: "What is the worst-case space complexity of standard Quick Sort?", o: ["O(n)", "O(log n)", "O(1)", "O(n²)"], a: 0, e: "If the recursion tree is highly unbalanced (n depth), the call stack takes O(n) space. Tail call optimization can reduce this to O(log n)." },
-    { q: "Why is Quick Sort often faster than Merge Sort in practice despite the same average complexity?", o: ["Better cache locality due to contiguous memory access", "It does fewer comparisons", "It is stable", "It is an online algorithm"], a: 0, e: "In-place partitioning is extremely cache-friendly, making the constant factors smaller than Merge Sort." },
-    { q: "What does 'Divide and Conquer' mean in the context of Quick Sort?", o: ["Partition around a pivot, then recursively sort the left and right sub-arrays", "Divide the array in exactly two halves and merge", "Divide the array by the maximum value", "Conquer the array by shifting elements"], a: 0, e: "It divides the problem by partitioning, then conquers by recursively sorting the partitions." },
-    { q: "If the input array is already sorted, and the pivot is always the last element, what happens?", o: ["It encounters its worst-case O(n²)", "It runs in O(n) time", "It runs in O(n log n) time", "It exits immediately"], a: 0, e: "Lomuto partitioning on a sorted array with the last element as pivot results in n-1 and 0 splits, giving O(n²)." },
-    { q: "What is the 'Dutch National Flag' variation of Quick Sort used for?", o: ["Efficiently sorting arrays with many duplicate elements", "Sorting strings alphabetically", "Sorting linked lists", "Parallel sorting"], a: 0, e: "It partitions the array into three segments: < pivot, == pivot, and > pivot, which is highly efficient for duplicates." },
-    { q: "Which sorting algorithm is often used as a fallback for Quick Sort when the recursion gets too deep?", o: ["Heap Sort", "Merge Sort", "Bubble Sort", "Insertion Sort"], a: 0, e: "Introsort uses Quick Sort but switches to Heap Sort if the recursion depth exceeds a threshold to guarantee O(n log n) worst-case." },
-    { q: "Which algorithm is typically used for small sub-arrays within a highly optimized Quick Sort (like Introsort)?", o: ["Insertion Sort", "Selection Sort", "Bubble Sort", "Radix Sort"], a: 0, e: "Insertion Sort has less overhead for small arrays (e.g. < 16 elements)." },
-    { q: "What is the 'pivot' in Quick Sort?", o: ["An element used to divide the array into smaller and larger partitions", "The middle element of the array", "The largest element of the array", "A temporary array for merging"], a: 0, e: "The pivot is the reference value used to partition the data." },
-    { q: "If Quick Sort uses a random pivot, what is the probability of hitting the O(n²) worst case?", o: ["Extremely low (negligible)", "50%", "25%", "It is impossible"], a: 0, e: "Randomization makes hitting the worst case extremely improbable, though technically not impossible." },
-    { q: "In Lomuto partitioning, what does the index 'i' track?", o: ["The boundary of elements smaller than the pivot", "The current scanning element", "The pivot itself", "The end of the array"], a: 0, e: "Index 'i' tracks the tail of the region containing elements less than the pivot." },
-    { q: "If all elements in the array are identical, what is the time complexity of Lomuto Quick Sort?", o: ["O(n²)", "O(n log n)", "O(n)", "O(1)"], a: 0, e: "Naïve Lomuto partitioning fails to split identical elements evenly, resulting in O(n²) time. Hoare partitioning handles this better." },
-    { q: "Who invented the Quick Sort algorithm?", o: ["Tony Hoare", "John von Neumann", "Donald Knuth", "Edsger Dijkstra"], a: 0, e: "Sir Charles Antony Richard Hoare developed Quick Sort in 1959." }
+    { q: "Why is Quick Sort often faster than Merge Sort in practice despite the same average complexity?", o: ["Better cache locality due to contiguous memory access", "It does fewer comparisons", "It is stable", "It is an online algorithm"], a: 0, e: "In-place partitioning is extremely cache-friendly, making the constant factors smaller than Merge Sort." }
   ];
 
   let currentQuestions = [];
   let currentQIdx = 0;
   let score = 0;
-  let quizAnswers = [];
 
   function shuffle(array) {
     let m = array.length, t, i;
     while (m) {
       i = Math.floor(Math.random() * m--);
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
+      t = array[m]; array[m] = array[i]; array[i] = t;
     }
     return array;
   }
@@ -445,138 +417,119 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     currentQuestions = shuffle([...questionPool]).slice(0, 10);
     currentQIdx = 0;
     score = 0;
-    quizAnswers = [];
     renderQuestion();
   }
 
   function renderQuestion() {
     const container = document.getElementById('quizContainer');
-    if (!container) return;
-
     if (currentQIdx >= currentQuestions.length) {
       renderScoreCard();
       return;
     }
 
     const qItem = currentQuestions[currentQIdx];
-    const progressPct = ((currentQIdx) / currentQuestions.length) * 100;
+    const progressText = `Question ${currentQIdx + 1} of ${currentQuestions.length}`;
 
     container.innerHTML = `
-      <div class="quiz-progress-row">
-        <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width: ${progressPct}%"></div></div>
-        <div class="quiz-prog-lbl">Question ${currentQIdx + 1} of ${currentQuestions.length}</div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="quiz-progress">${progressText}</span>
       </div>
-      <div class="quiz-qcard">
-        <div class="quiz-qnum">Quick Sort quiz</div>
-        <div class="quiz-qtext">${qItem.q}</div>
-        <div class="quiz-opts">
-          ${qItem.o.map((opt, i) => `
-            <button class="quiz-opt" data-opt-idx="${i}">
-              <div class="quiz-opt-letter">${String.fromCharCode(65 + i)}</div>
-              <div>${opt}</div>
-            </button>
-          `).join('')}
-        </div>
-        <div class="quiz-explanation" id="quizExpl">
-          <strong>Explanation:</strong> ${qItem.e}
-        </div>
+      <div class="quiz-question">${qItem.q}</div>
+      <div class="quiz-options">
+        ${qItem.o.map((opt, i) => `
+          <div class="quiz-option" data-idx="${i}">
+            <strong>${String.fromCharCode(65 + i)}.</strong> ${opt}
+          </div>
+        `).join('')}
       </div>
-      <div class="quiz-nav-row" style="display: none;" id="quizNav">
-        <button class="quiz-next-btn" id="quizNextBtn">Next <i class="fa-solid fa-arrow-right"></i></button>
+      <div class="quiz-feedback" id="quizExpl">
+        <strong>Explanation:</strong> ${qItem.e}
+      </div>
+      <div class="d-flex justify-content-end mt-3" style="display: none !important;" id="quizNav">
+        <button class="btn btn-primary btn-sm" id="quizNextBtn">Next Question <i class="fa-solid fa-arrow-right ms-1"></i></button>
       </div>
     `;
 
-    container.querySelectorAll('.quiz-opt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const selectedIdx = parseInt(btn.dataset.optIdx);
-        handleAnswer(selectedIdx);
+    container.querySelectorAll('.quiz-option').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if(this.classList.contains('disabled')) return;
+        
+        container.querySelectorAll('.quiz-option').forEach(b => b.classList.add('disabled'));
+        const selectedIdx = parseInt(this.dataset.idx);
+        const isCorrect = selectedIdx === qItem.a;
+
+        if (isCorrect) {
+          score++;
+          this.classList.add('correct');
+        } else {
+          this.classList.add('incorrect');
+          container.querySelector('.quiz-option[data-idx="'+qItem.a+'"]').classList.add('correct');
+        }
+
+        const expl = document.getElementById('quizExpl');
+        expl.className = 'quiz-feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+
+        const navRow = document.getElementById('quizNav');
+        navRow.style.setProperty('display', 'flex', 'important');
+
+        document.getElementById('quizNextBtn').onclick = () => {
+          currentQIdx++;
+          renderQuestion();
+        };
       });
     });
   }
 
-  function handleAnswer(selectedIdx) {
-    const qItem = currentQuestions[currentQIdx];
-    const opts = document.querySelectorAll('.quiz-opt');
-    opts.forEach(btn => btn.disabled = true);
-
-    const isCorrect = selectedIdx === qItem.a;
-    quizAnswers.push({ selected: selectedIdx, correct: qItem.a });
-
-    if (isCorrect) {
-      score++;
-      opts[selectedIdx].classList.add('correct');
-    } else {
-      opts[selectedIdx].classList.add('wrong');
-      opts[qItem.a].classList.add('correct');
-    }
-
-    const expl = document.getElementById('quizExpl');
-    if (expl) expl.classList.add('show');
-
-    const navRow = document.getElementById('quizNav');
-    if (navRow) navRow.style.display = 'flex';
-
-    const nextBtn = document.getElementById('quizNextBtn');
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        currentQIdx++;
-        renderQuestion();
-      };
-    }
-  }
-
   function renderScoreCard() {
     const container = document.getElementById('quizContainer');
-    if (!container) return;
-
-    const strokeDash = 2 * Math.PI * 52;
-    const strokeOffset = strokeDash - (score / currentQuestions.length) * strokeDash;
-
     container.innerHTML = `
-      <div class="quiz-score-card">
-        <div class="quiz-score-ring">
-          <svg width="130" height="130">
-            <defs>
-              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary)" />
-                <stop offset="100%" stop-color="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            <circle class="ring-bg" cx="65" cy="65" r="52"></circle>
-            <circle class="ring-fill" cx="65" cy="65" r="52" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>
-          </svg>
-          <div class="quiz-score-num">
-            ${score}<span class="quiz-score-denom">/${currentQuestions.length}</span>
-          </div>
+      <div class="quiz-results">
+        <div class="quiz-score"><i class="fa-solid fa-star"></i> ${score} / ${currentQuestions.length}</div>
+        <h4>Challenge Complete!</h4>
+        <div class="quiz-summary">
+          <p class="text-muted">You have finished the quiz.</p>
         </div>
-        <h3 class="quiz-score-title">Challenge Complete!</h3>
-        <p class="quiz-score-subtitle">You got a score of ${score} out of ${currentQuestions.length} questions correctly answered.</p>
-        
-        <div class="quiz-score-stats">
-          <div class="qs-stat"><span class="ssv green">${score}</span><span class="ssl">Correct</span></div>
-          <div class="qs-stat"><span class="ssv red">${currentQuestions.length - score}</span><span class="ssl">Wrong</span></div>
-          <div class="qs-stat"><span class="ssv blue">${Math.round((score / currentQuestions.length) * 100)}%</span><span class="ssl">Score</span></div>
+        <div class="quiz-actions justify-content-center">
+          <button class="btn btn-primary" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
+          <button class="btn btn-secondary" onclick="hideQuizOverlay()">Close</button>
         </div>
-
-        <button class="quiz-retry-btn" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
       </div>
     `;
-
     document.getElementById('retryQuizBtn').onclick = initQuiz;
   }
 
-  const startQuizBtn = document.getElementById('startQuizBtn');
-  if (startQuizBtn) {
-    startQuizBtn.onclick = initQuiz;
+  document.addEventListener('click', (e) => {
+    if(e.target && e.target.id === 'startQuizBtn') {
+      initQuiz();
+    }
+  });
+
+  window.showQuizOverlay = function() {
+    document.getElementById('quizOverlay').style.display = 'flex';
+  };
+  window.hideQuizOverlay = function() {
+    document.getElementById('quizOverlay').style.display = 'none';
+  };
+
+  // Initialize tour after DOM is fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTourDOMElements);
+  } else {
+    initTourDOMElements();
   }
 
+  // Theme toggle
   const themeBtn=document.getElementById('themeToggle');
-  const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw(lastState);};
+  const applyTheme=t=>{
+    document.body.classList.toggle('light-theme',t==='light');
+    draw(lastState);
+  };
   applyTheme(localStorage.getItem('theme')||'dark');
-  themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
-  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
-  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
-  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+  themeBtn.addEventListener('click',()=>{
+    const n=document.body.classList.contains('light-theme')?'dark':'light';
+    localStorage.setItem('theme',n);
+    applyTheme(n);
+  });
 
   initState();
 })();

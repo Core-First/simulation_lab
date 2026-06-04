@@ -1,253 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Merge Sort – Part 1 | ATC SimLab</title>
-  <meta name="description" content="Merge Sort visualisation: recursive divide-and-conquer tree and merge operations shown with brackets on Canvas."/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
-  <link href="../assets/css/main.css" rel="stylesheet"/>
-  <link href="../assets/css/simulation-base.css" rel="stylesheet"/>
-  <style>
-    /* Merge Sort — success tab accent; swaps/timer stat colours differ from other sims */
-    body.sim-page .panel-tab.active { color: var(--success); border-bottom-color: var(--success); }
-    body.sim-page .stat-pill.swaps .val { color: var(--success); }
-    body.sim-page .stat-pill.timer .val { color: var(--warning); }
-  </style>
+  <meta name="description" content="Merge Sort visualisation: recursive divide-and-conquer tree and merge operations shown with brackets on Canvas." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
 </head>
 <body class="sim-page">
-<div class="app">
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
-    <nav id="sideNav">
-      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
-      <div class="nav-group">
-        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
-        <div class="collapse show" id="dsaMenu"><ul class="submenu">
-          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
-            <div class="collapse show" id="part1"><ul class="submenu">
-              <li><a href="index.html" class="sub-link"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
-              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
-              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
-              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
-              <li><a href="sim-04-merge-sort.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
-              <li><a href="sim-05-quick-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
-            </ul></div>
-          </li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
-        </ul></div>
-      </div>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
-    </nav>
-    <div class="sidebar-footer">
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
-    </div>
-  </aside>
-  <div class="backdrop" id="backdrop"></div>
 
-  <!-- Main -->
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
-        <div class="breadcrumb-nav">
-          <a href="index.html"><i class="fa-solid fa-chart-column"></i> Sorting Lab</a>
-          <span class="sep-bc">/</span><span class="current">Merge Sort</span>
-        </div>
+  <!-- Guided Tour Overlay -->
+  <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+      <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+      <p id="tourText" class="small mb-3"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">Skip Guide</button>
+        <button class="btn btn-sm btn-primary px-3" id="tourNext">Next <i class="fa-solid fa-arrow-right ms-1"></i></button>
       </div>
-      <div class="topbar-right">
-        <div class="sim-nav">
-          <a href="sim-03-insertion-sort.html"><i class="fa-solid fa-arrow-left"></i> Insertion</a>
-          <a href="sim-05-quick-sort.html"><i class="fa-solid fa-arrow-right"></i> Quick</a>
-        </div>
-        <button class="theme-toggle" id="themeToggle"><i class="fa-solid fa-moon"></i><span>Dark Mode</span></button>
-        <div class="profile"><div class="avatar">AJ</div><div class="profile-text"><div class="profile-name">Lipweche A.</div><div class="profile-role">Student</div></div></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-layer-group text-primary me-2"></i> Merge Sort Masterclass Simulation
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+          <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <a href="index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
       </div>
     </header>
 
-    <div class="sim-content sim-tabs-layout">
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Sorting Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="sortCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
 
-      <!-- ── Tab Bar ─────────────────────────────────────────── -->
-      <div class="stab-bar">
-        <button class="stab active" data-tab="info"><i class="fa-solid fa-circle-info"></i> Info</button>
-        <button class="stab" data-tab="sim"><i class="fa-solid fa-play"></i> Simulation</button>
-        <button class="stab" data-tab="code"><i class="fa-solid fa-code"></i> Code</button>
-        <button class="stab" data-tab="ai"><i class="fa-solid fa-robot"></i> AI Agent</button>
-        <button class="stab" data-tab="quiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
-      </div>
-
-      <!-- ── Info Tab ────────────────────────────────────────── -->
-      <div class="spane active" id="paneInfo">
-        <div class="info-full-wrap">
-          <div class="info-hero">
-            <div class="info-hero-icon"><i class="fa-solid fa-layer-group"></i></div>
-            <div>
-              <h2>Merge Sort</h2>
-              <p>Merge Sort is an efficient, general-purpose, and comparison-based sorting algorithm. Most implementations produce a stable sort. It is a divide-and-conquer algorithm that recursively breaks down a list into several sublists until each sublist consists of a single element and merging those sublists in a manner that results into a sorted list.</p>
-              <div class="info-badge-row">
-                <span class="info-badge badge-stable">✅ Stable</span>
-                <span class="info-badge badge-inplace">❌ Not In-Place (O(n) space)</span>
-                <span class="info-badge badge-adaptive">❌ Not Adaptive</span>
-              </div>
-            </div>
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Merge Sort is an efficient, general-purpose, and comparison-based sorting algorithm. It is a divide-and-conquer algorithm that recursively breaks down a list into several sublists until each sublist consists of a single element and merging those sublists in a manner that results into a sorted list.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">✅ Stable</span>
+            <span class="badge bg-secondary">❌ Not In-Place (O(n) space)</span>
+            <span class="badge bg-secondary">❌ Not Adaptive</span>
           </div>
-
-          <div class="info-grid">
-            <div class="info-card">
-              <h5>Complexity</h5>
-              <div class="cx-grid">
-                <div class="cx-cell"><span class="cl">Best</span><span class="cv c-best">O(n log n)</span></div>
-                <div class="cx-cell"><span class="cl">Average</span><span class="cv c-avg">O(n log n)</span></div>
-                <div class="cx-cell"><span class="cl">Worst</span><span class="cv c-worst">O(n log n)</span></div>
-                <div class="cx-cell"><span class="cl">Space</span><span class="cv c-space">O(n)</span></div>
-              </div>
-            </div>
-            <div class="info-card">
-              <h5>How it Works</h5>
-              <p style="font-size: .87rem; color: var(--muted); line-height: 1.6; margin: 0;">Merge Sort divides the array in half until pieces have one element (already sorted). It then merges pairs of sub-arrays by always taking the smaller front value from the two sub-arrays. This guarantees O(n log n) performance always, but requires extra memory to hold the merged arrays.</p>
-            </div>
+          <div class="comparison-stats">
+            <span>Best: <strong class="text-white">O(n log n)</strong></span>
+            <span>Avg: <strong class="text-white">O(n log n)</strong></span>
+            <span>Worst: <strong class="text-white">O(n log n)</strong></span>
+            <span>Space: <strong class="text-white">O(n)</strong></span>
           </div>
+        </div>
 
-          <div class="info-card" style="margin-bottom: 24px;">
-            <h5>How to Use the Simulation</h5>
-            <ol class="info-steps">
-              <li>Click the <strong>Simulation</strong> tab to open the canvas.</li>
-              <li>Set <strong>Size</strong> (4–48 elements) or type a <strong>Custom</strong> list of values.</li>
-              <li>Click <strong>Run</strong> to watch the animation, or use <strong>Step</strong> to advance one split/merge at a time.</li>
-              <li>Toggle between <strong>Dark Mode</strong> and Light Mode via the header button.</li>
-            </ol>
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware AI Instructor Chat
           </div>
-
-          <div class="d-flex justify-content-center">
-            <button class="info-start-btn" id="startSimBtn">Start Simulation <i class="fa-solid fa-arrow-right"></i></button>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted)">
+            👋 Hi! I can explain how Merge Sort divides and conquers, why it guarantees O(n log n), and when to choose it over Quick Sort.
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs" style="max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 13px;"></div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why always O(n log n)?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Explain merge sort step by step" style="font-size: 11px">Explain it</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why is merge sort always O(n log n)?" style="font-size: 11px">Always O(n log n)?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why does merge sort use O(n) space?" style="font-size: 11px">Why O(n) space?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Is merge sort stable?" style="font-size: 11px">Stable?</button>
           </div>
         </div>
       </div>
 
-      <!-- ── Simulation Tab ──────────────────────────────────── -->
-      <div class="spane" id="paneSim">
-        <div class="sim-inner">
-          <!-- Stats -->
-          <div class="stats-bar" style="padding: 12px 20px; border-bottom: 1px solid var(--border);">
-            <div class="stat-pill comps"><span class="lbl">Comparisons</span><span class="val" id="cmpCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill swaps"><span class="lbl">Merges</span><span class="val" id="swpCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill passes"><span class="lbl">Depth</span><span class="val" id="passCount">0</span></div>
-            <div class="sep"></div>
-            <div class="stat-pill timer"><span class="lbl">Time</span><span class="val" id="elapsedTime">0.0s</span></div>
-            <div class="sep"></div>
-            <div class="legend">
-              <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>Unsorted</div>
-              <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Active Merge</div>
-              <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Comparing</div>
-              <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Placed</div>
-            </div>
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="4" max="48" value="16" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">16</span>
           </div>
-
-          <!-- Canvas -->
-          <div class="canvas-wrap" style="flex: 1; min-height: 250px;"><canvas id="sortCanvas"></canvas></div>
-
-          <!-- Controls -->
-          <div class="ctrl-bar" style="padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px; justify-content: center;">
-            <div class="d-flex align-items-center gap-2"><label for="arraySize">Size</label><input type="range" id="arraySize" min="4" max="48" value="16" style="width:80px"/><span id="arraySizeVal" style="font-size:.8rem;min-width:18px">16</span></div>
-            <div class="d-flex align-items-center gap-2"><label for="speedRange">Speed</label><input type="range" id="speedRange" min="1" max="10" value="5" style="width:80px"/></div>
-            <select id="arrayOrder" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><option value="random">Random</option><option value="nearly">Nearly Sorted</option><option value="reverse">Reversed</option><option value="sorted">Already Sorted</option></select>
-            <div class="d-flex align-items-center gap-1"><label for="customArr">Custom</label><input type="text" id="customArr" placeholder="e.g. 45,12,67,3" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.8rem;width:120px;"/><button class="btn-c btn-secondary-c" id="applyCustomBtn" style="padding:5px 9px;font-size:.75rem"><i class="fa-solid fa-check"></i></button></div>
-            <button class="btn-c btn-primary-c" id="playBtn"><i class="fa-solid fa-play"></i> Run</button>
-            <button class="btn-c btn-secondary-c" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
-            <button class="btn-c btn-secondary-c" id="stepBtn"><i class="fa-solid fa-forward-step"></i> Step</button>
-            <button class="btn-c btn-secondary-c" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-            <button class="btn-c btn-secondary-c" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
           </div>
-        </div>
-      </div>
-
-      <!-- ── Code Tab ────────────────────────────────────────── -->
-      <div class="spane" id="paneCode">
-        <div class="code-full-wrap">
-          <pre><code id="generatedCode"></code></pre>
-        </div>
-      </div>
-
-      <!-- ── AI Tab ──────────────────────────────────────────── -->
-      <div class="spane" id="paneAi">
-        <div class="ai-full-wrap">
-          <div class="ai-chips-full">
-            <button class="ai-chip-full" data-q="Explain merge sort step by step">Explain it</button>
-            <button class="ai-chip-full" data-q="Why is merge sort always O(n log n)?">Always O(n log n)?</button>
-            <button class="ai-chip-full" data-q="Why does merge sort use O(n) space?">Why O(n) space?</button>
-            <button class="ai-chip-full" data-q="Is merge sort stable?">Stable?</button>
-            <button class="ai-chip-full" data-q="What is external sorting?">External sort?</button>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Order:</label>
+             <select id="arrayOrder" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="random">Random</option>
+              <option value="nearly">Nearly Sorted</option>
+              <option value="reverse">Reversed</option>
+              <option value="sorted">Already Sorted</option>
+            </select>
           </div>
-          <div class="ai-msgs-full" id="aiMsgs"><div class="ai-msg-f bot">👋 Hi! I can explain how Merge Sort divides and conquers, why it guarantees O(n log n), and when to choose it over Quick Sort.</div></div>
-          <div class="ai-row-full"><input type="text" id="aiInput" placeholder="Ask a question…"/><button id="aiSend"><i class="fa-solid fa-paper-plane"></i></button></div>
-        </div>
-      </div>
-
-      <!-- ── Quiz Tab ────────────────────────────────────────── -->
-      <div class="spane" id="paneQuiz">
-        <div class="quiz-full-wrap">
-          <div id="quizContainer">
-            <!-- Start Screen -->
-            <div class="quiz-welcome-card" id="quizWelcomeScreen">
-              <div class="quiz-welcome-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-              <h3>Merge Sort Challenge</h3>
-              <p>Test your understanding of Merge Sort's divide-and-conquer strategy, recursive tree, and merging logic. You'll get 10 random questions per attempt.</p>
-              <div class="quiz-stat-row">
-                <div class="quiz-stat"><span class="qs-val">10</span><span class="qs-lbl">Questions</span></div>
-                <div class="quiz-stat"><span class="qs-val">O(n log n)</span><span class="qs-lbl">Focus</span></div>
-              </div>
-              <button class="quiz-start-btn" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="customArr">Custom:</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+            <button class="btn btn-sm btn-secondary" id="applyCustomBtn"><i class="fa-solid fa-check"></i></button>
+          </div>
+          
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Play</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
           </div>
         </div>
-      </div>
 
-    </div><!-- /sim-content -->
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-right-left"></i> Merges: <span id="swpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-rotate"></i> Depth: <span id="passCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Unsorted</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#a78bfa;border-radius:2px;"></div> Active Merge</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#60a5fa;border-radius:2px;"></div> Comparing</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Placed</div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-code">
+          <div class="panel-title">Execution Sync Code</div>
+          <div class="code-editor" id="codeEditorWrap" spellcheck="false" style="padding-left: 12px; height: 100%; min-height: 200px; max-height: 350px; overflow-y: auto;"></div>
+        </div>
+
+      </div>
+    </div>
   </div>
-</div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none;">
+    <div class="quiz-backdrop" onclick="hideQuizOverlay()"></div>
+    <div class="quiz-modal">
+       <div class="quiz-header">
+         <h3 style="margin: 0;"><i class="fa-solid fa-circle-question text-warning"></i> Merge Sort Quiz</h3>
+         <button class="btn-close btn-close-white" onclick="hideQuizOverlay()"></button>
+       </div>
+       <div id="quizContainer">
+          <!-- Start Screen -->
+          <div class="text-center py-3" id="quizWelcomeScreen">
+            <div class="mb-3" style="font-size: 3rem; color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h4 class="text-white mb-2">Algorithm Challenge</h4>
+            <p class="text-muted small mb-4">Test your understanding of Merge Sort's divide-and-conquer strategy, recursive tree, and merging logic. You'll get 10 random questions.</p>
+            <div class="d-flex justify-content-center gap-4 my-3">
+              <div class="text-center"><span class="fs-4 fw-bold text-white">10</span><br><span class="text-muted small">Questions</span></div>
+              <div class="text-center"><span class="fs-4 fw-bold text-white">O(n log n)</span><br><span class="text-muted small">Focus</span></div>
+            </div>
+            <div class="text-center mt-4">
+               <button class="btn btn-primary px-4" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right ms-2"></i></button>
+            </div>
+          </div>
+       </div>
+    </div>
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/sorting-tour.js"></script>
+<script src="../assets/js/code-sync.js"></script>
 <script>
-(function(){
+(function () {
   'use strict';
-  const canvas=document.getElementById('sortCanvas'),ctx=canvas.getContext('2d');
-  function resizeCanvas(){canvas.width=canvas.parentElement.clientWidth;canvas.height=canvas.parentElement.clientHeight;}
-  resizeCanvas();window.addEventListener('resize',()=>{resizeCanvas();draw(lastState);});
+  const codeSync = new CodeSync('codeEditorWrap');
 
+  function getHighlightLine(s) {
+    if (s.t === 'divide')      return 4;
+    if (s.t === 'merge-start') return 11;
+    if (s.t === 'merge-cmp')   return 12;
+    if (s.t === 'merge-place') return 13;
+    if (s.t === 'merge-done')  return 16;
+    if (s.t === 'done')        return 18;
+    return -1;
+  }
+
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  
+  setTimeout(() => {
+    resizeCanvas();
+    draw(lastState);
+  }, 100);
+  
+  window.addEventListener('resize', () => { resizeCanvas(); draw(lastState); });
+
+  // ── State ─────────────────────────────────────────────────
   let arr=[],original=[],cmpTotal=0,mergeTotal=0,maxDepth=0;
   let running=false,done=false,rafId=null,lastTime=0;
   let steps=[],si=0,msAcc=0,lastState=null;
-  let timerInterval=null,startTime=0;
-  const getSpeed=()=>Math.round(1200/parseInt(document.getElementById('speedRange').value));
+  let timerInterval = null, startTime = 0;
 
-  function mkRandom(n){return Array.from({length:n},()=>Math.floor(Math.random()*90)+10);}
-  function mkNearly(n){const a=Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));for(let k=0;k<Math.max(1,n>>3);k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}return a;}
-  function mkRev(n){return Array.from({length:n},(_,i)=>Math.round((n-i)*100/n));}
-  function mkSorted(n){return Array.from({length:n},(_,i)=>Math.round((i+1)*100/n));}
-  function buildArr(){const n=parseInt(document.getElementById('arraySize').value),o=document.getElementById('arrayOrder').value;return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);}
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
 
-  /**
-   * buildSteps(a) - recursively computes Merge Sort steps.
-   */
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
   function buildSteps(a){
     const data=[...a],out=[];
     function msort(lo,hi,depth){
       if(lo>=hi)return;
       const mid=(lo+hi)>>1;
-      // Splitting phase
       out.push({t:'divide',lo,mid,hi,depth,arr:[...data]});
       msort(lo,mid,depth+1);
       msort(mid+1,hi,depth+1);
@@ -273,17 +268,14 @@
     out.push({t:'merge-done',lo,hi,depth,arr:[...data]});
   }
 
-  /**
-   * draw(state) - renders current merge window (purple), compares (blue), and placed (green).
-   * Draws a bracket underneath the active sub-array.
-   */
   const COL={base:'#3b82f6',active:'#a78bfa',cmp:'#60a5fa',placed:'#22c55e'};
   function draw(state){
     lastState=state;
     const W=canvas.width,H=canvas.height,n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg').trim()||'#0b1220';
-    ctx.fillRect(0,0,W,H);if(!n)return;
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
+    ctx.fillRect(0,0,W,H);
+    if(!n)return;
     const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
     const activeRange=state&&(state.lo!=null)?new Set(Array.from({length:state.hi-state.lo+1},(_,i)=>state.lo+i)):new Set();
 
@@ -301,7 +293,6 @@
       ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bW,h,[3,3,0,0]);ctx.fill();
       if(bW>=18){ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(arr[k],x+bW/2,y+2);}
     }
-    // bracket under active merge range
     if(state&&state.lo!=null&&state.hi!=null&&state.t!=='done'){
       const x1=state.lo*(bW+1),x2=(state.hi+1)*(bW+1)-1;
       ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=2;
@@ -310,12 +301,9 @@
     }
   }
 
-
-  function updateCodeView(arrData) {
-    const codeEl = document.getElementById('generatedCode');
-    if(!codeEl) return;
+  function getCodeString(arrData) {
     const arrStr = arrData.join(', ');
-    const codeTpl = `let array = [{arr}];
+    return `let array = [${arrStr}];
 
 function mergeSort(arr) {
   if (arr.length <= 1) return arr;
@@ -333,17 +321,23 @@ function merge(left, right) {
   }
   return res.concat(left.slice(l)).concat(right.slice(r));
 }
-array = mergeSort(array);`.replace('{arr}', arrStr);
-    codeEl.textContent = codeTpl;
+array = mergeSort(array);`;
   }
-function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;document.getElementById('swpCount').textContent=mergeTotal;document.getElementById('passCount').textContent=maxDepth;}
-  function startClock(){startTime=Date.now();timerInterval=setInterval(()=>{document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s';},100);}
-  function stopClock(){clearInterval(timerInterval);}
 
-  /**
-   * step(s) - advances the simulation by one pre-computed step.
-   */
-  function step(s){
+  function updateCodeView(arrData) {
+    const code = getCodeString(arrData);
+    codeSync.init(code);
+  }
+
+  function updateCounters() {
+    document.getElementById('cmpCount').textContent  = cmpTotal;
+    document.getElementById('swpCount').textContent  = mergeTotal;
+    document.getElementById('passCount').textContent = maxDepth;
+  }
+  function startClock() { startTime=Date.now(); timerInterval=setInterval(()=>{ document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s'; },100); }
+  function stopClock()  { clearInterval(timerInterval); }
+
+  function step(s) {
     arr=[...s.arr];
     if(s.t==='divide'){if(s.depth>maxDepth)maxDepth=s.depth;}
     else if(s.t==='merge-start'){mergeTotal++;}
@@ -351,57 +345,108 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     else if(s.t==='merge-place'){}
     else if(s.t==='merge-done'){}
     else if(s.t==='done'){done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
-    updCounters();draw(s);
+    updateCounters();draw(s);
+    const hlLine = getHighlightLine(s);
+    if (hlLine >= 0) codeSync.highlight(hlLine);
   }
 
-  function tick(ts){if(!running)return;const dt=ts-lastTime;lastTime=ts;msAcc+=dt;const spd=getSpeed();while(msAcc>=spd&&si<steps.length&&running){step(steps[si++]);msAcc-=spd;}if(si<steps.length&&running)rafId=requestAnimationFrame(tick);}
-
-  function initState(){
-    original=buildArr();arr=[...original];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;running=false;done=false;lastState=null;
-    cancelAnimationFrame(rafId);stopClock();
-    document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;
-    document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);
+  function tick(ts) {
+    if(!running) return;
+    const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
+    const spd=getSpeed();
+    while(msAcc>=spd&&si<steps.length&&running){ step(steps[si++]); msAcc-=spd; }
+    if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
   }
 
-  document.getElementById('playBtn').addEventListener('click',()=>{if(done){initState();return;}if(!steps.length)steps=buildSteps([...arr]);running=true;document.getElementById('playBtn').disabled=true;document.getElementById('pauseBtn').disabled=false;startClock();lastTime=performance.now();msAcc=0;rafId=requestAnimationFrame(tick);});
-  document.getElementById('pauseBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;});
-  document.getElementById('stepBtn').addEventListener('click',()=>{if(done)return;if(!steps.length)steps=buildSteps([...arr]);if(si<steps.length)step(steps[si++]);});
-  document.getElementById('resetBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();arr=[...original];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;done=false;lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
-  document.getElementById('newArrayBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();initState();});
-  document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
-  document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=mergeTotal=maxDepth=0;steps=[];si=0;done=false;lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+  function initState() {
+    original=buildArr(); arr=[...original];
+    cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; running=false; done=false; lastState=null;
+    cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent = '0.0s';
+    updateCounters(); updateCodeView(arr); draw(null);
+  }
 
-  // ── Tab switching ─────────────────────────────────────────
-  document.querySelectorAll('.stab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.spane').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      const targetPane = document.getElementById('pane' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
-      if (targetPane) targetPane.classList.add('active');
-      if (btn.dataset.tab === 'sim') {
-        setTimeout(resizeCanvas, 50);
-      }
-    });
+  document.getElementById('playBtn').addEventListener('click', () => {
+    if(done){ initState(); return; }
+    if(!steps.length) steps=buildSteps([...arr]);
+    running=true;
+    document.getElementById('playBtn').disabled  = true;
+    document.getElementById('pauseBtn').disabled = false;
+    startClock(); lastTime=performance.now(); msAcc=0;
+    rafId=requestAnimationFrame(tick);
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+  });
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    if(done) return;
+    if(!steps.length) steps=buildSteps([...arr]);
+    if(si<steps.length) step(steps[si++]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    arr=[...original]; cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; done=false; lastState=null;
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw(null);
+  });
+  document.getElementById('newArrayBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock(); initState();
+  });
+  document.getElementById('arraySize').addEventListener('input', function() {
+    document.getElementById('arraySizeVal').textContent=this.value;
+    if(!running) initState();
+  });
+  document.getElementById('applyCustomBtn').addEventListener('click', () => {
+    const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
+    const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
+    if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    original=parsed; arr=[...parsed]; cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; done=false; lastState=null;
+    document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw(null);
   });
 
-  const startSimBtn = document.getElementById('startSimBtn');
-  if (startSimBtn) {
-    startSimBtn.addEventListener('click', () => {
-      const simTab = document.querySelector('.stab[data-tab="sim"]');
-      if (simTab) simTab.click();
-    });
-  }
-
+  // AI assistant
   const KB={explain:'Merge Sort uses divide and conquer. It recursively halves the array until only single elements remain, then builds the sorted array back up by merging adjacent sorted sub-arrays - picking the smaller of two front elements.',nlogn:'The array is halved log₂(n) times (the divide phase). At each depth level the merge step does O(n) work total. Total work = O(n) × O(log n) = O(n log n). This holds for ALL inputs.',space:'Merge Sort needs an auxiliary array of size n to hold the merged output before writing it back. In-place merge algorithms exist but are extremely complex and slow in practice.',stable:'Yes - Merge Sort is stable. During the merge, when two elements are equal, it always picks the element from the left sub-array first, retaining their original order.',external:'External sorting is used when data is too large for RAM. Merge Sort maps perfectly to this: read chunks into RAM, sort them, write sorted "runs" to disk, then merge the runs.',default:'Watch the purple brackets show each sub-array being merged. Blue bars are compared and green bars are placed into their final position in the merged array.'};
   function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('step')||l.includes('how'))return KB.explain;if(l.includes('n log')||l.includes('nlogn')||l.includes('always'))return KB.nlogn;if(l.includes('space')||l.includes('memory')||l.includes('o(n)'))return KB.space;if(l.includes('stable'))return KB.stable;if(l.includes('external')||l.includes('disk')||l.includes('large'))return KB.external;return KB.default;}
-  function pushMsg(t,r){const d=document.createElement('div');d.className=`ai-msg-f ${r}`;d.textContent=t;document.getElementById('aiMsgs').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
-  function doSend(){const inp=document.getElementById('aiInput');const q=inp.value.trim();if(!q)return;pushMsg(q,'user');inp.value='';setTimeout(()=>pushMsg(aiAns(q),'bot'),280);}
-  document.getElementById('aiSend').addEventListener('click',doSend);
-  document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSend();});
-  document.querySelectorAll('.ai-chip-full').forEach(b=>{b.addEventListener('click',()=>{document.getElementById('aiInput').value=b.dataset.q;doSend();});});
+  function pushMsg(text,role){ 
+    const d=document.createElement('div'); 
+    d.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+    d.textContent=text; 
+    document.getElementById('aiMsgs').appendChild(d); 
+    d.scrollIntoView({behavior:'smooth'}); 
+  }
+  function doSend(){
+    const inp=document.getElementById('aiInput'); const q=inp.value.trim(); if(!q) return;
+    pushMsg(q,'user'); inp.value='';
+    setTimeout(()=>pushMsg(aiAns(q),'bot'),280);
+  }
+  document.getElementById('aiSend').addEventListener('click', doSend);
+  document.getElementById('aiInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{ b.addEventListener('click',()=>{ document.getElementById('aiInput').value=b.dataset.q; doSend(); }); });
 
-  // ── Quiz Engine ───────────────────────────────────────────
+  // Quiz Engine overlay logic
+  window.showQuizOverlay = function() {
+    document.getElementById('quizOverlay').style.display = 'flex';
+  };
+  window.hideQuizOverlay = function() {
+    document.getElementById('quizOverlay').style.display = 'none';
+  };
+
+  // Initialize tour after DOM is fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTourDOMElements);
+  } else {
+    initTourDOMElements();
+  }
+
   const questionPool = [
     { q: "What is the time complexity of Merge Sort in the best case?", o: ["O(n log n)", "O(n)", "O(n²)", "O(log n)"], a: 0, e: "Merge Sort always divides and merges the entire array, resulting in O(n log n) time even if it is already sorted." },
     { q: "What is the worst-case time complexity of Merge Sort?", o: ["O(n log n)", "O(n²)", "O(n)", "O(2^n)"], a: 0, e: "Merge Sort guarantees O(n log n) performance regardless of the initial order of the elements." },
@@ -412,31 +457,18 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     { q: "At the maximum recursion depth, what is the size of the sub-arrays in Merge Sort?", o: ["1", "2", "n/2", "0"], a: 0, e: "The recursion bottoms out when the sub-arrays are divided down to 1 element." },
     { q: "Why is Merge Sort highly preferred for sorting Linked Lists?", o: ["It only requires O(1) auxiliary space for Linked Lists", "It is an in-place array sort", "It avoids recursion", "It has O(n) worst-case time"], a: 0, e: "With linked lists, nodes can be merged simply by changing pointers, reducing the space complexity to O(1) (or O(log n) for recursion stack)." },
     { q: "What is the primary disadvantage of standard Merge Sort compared to Quick Sort?", o: ["It requires O(n) extra space", "It has a worse worst-case time", "It is unstable", "It is not a divide-and-conquer algorithm"], a: 0, e: "Quick Sort is an in-place sort (requiring O(log n) space), whereas Merge Sort needs an O(n) auxiliary array." },
-    { q: "Is Merge Sort adaptive?", o: ["No, it is not adaptive", "Yes, it is adaptive", "Only on small arrays", "Only on reversed arrays"], a: 0, e: "Merge Sort performs the same number of splits and merges regardless of whether the array is sorted or not." },
-    { q: "What is 'External Sorting'?", o: ["Sorting data that doesn't fit into RAM", "Sorting data using an external server", "Sorting data visually", "Sorting strings from external files"], a: 0, e: "External sorting handles massive datasets by reading chunks into memory, sorting them (often with Merge Sort), and merging the chunks on disk." },
-    { q: "In the merge phase, if the two halves are [2, 8] and [4, 6], what is the first element added to the merged array?", o: ["2", "4", "6", "8"], a: 0, e: "The first elements of the two sorted halves are compared (2 vs 4), and the smaller one (2) is added." },
-    { q: "What is the time complexity of the merge step for two arrays of combined size k?", o: ["O(k)", "O(k log k)", "O(1)", "O(k²)"], a: 0, e: "Merging two arrays requires a single linear pass over the elements, taking O(k) time." },
-    { q: "Which hybrid sorting algorithm uses Merge Sort as its core?", o: ["Timsort", "Introsort", "Heap Sort", "Shell Sort"], a: 0, e: "Timsort is a hybrid of Merge Sort and Insertion Sort." },
-    { q: "If the input array has an odd number of elements, how does Merge Sort handle the split?", o: ["One half will have one more element than the other", "It pads the array with a dummy element", "It fails to sort", "It removes the middle element"], a: 0, e: "The array is split as evenly as possible. For instance, 5 elements are split into 2 and 3." },
-    { q: "Can Merge Sort be implemented iteratively (bottom-up)?", o: ["Yes", "No", "Only for strings", "Only in C++"], a: 0, e: "Bottom-up Merge Sort iteratively merges adjacent sub-arrays of size 1, then size 2, then size 4, without recursion." },
-    { q: "What is the recursion depth of Merge Sort for an array of size n?", o: ["O(log n)", "O(n)", "O(n log n)", "O(1)"], a: 0, e: "The array is repeatedly halved, resulting in a recursion tree of height O(log n)." },
-    { q: "Which algorithm typically has lower constant factors (runs faster in practice) for arrays that fit in cache?", o: ["Quick Sort", "Merge Sort", "Heap Sort", "Bubble Sort"], a: 0, e: "Quick Sort is generally faster in practice due to better cache locality and no allocation of auxiliary arrays." },
-    { q: "What does the 'merge' operation do?", o: ["Combines two sorted lists into one sorted list", "Splits a list into two", "Finds the median of two lists", "Randomizes the list"], a: 0, e: "It iterates through two sorted sub-lists and builds a single combined sorted list." },
-    { q: "In Python, the built-in `list.sort()` is derived from which algorithm?", o: ["Merge Sort (Timsort)", "Quick Sort", "Heap Sort", "Insertion Sort"], a: 0, e: "Python uses Timsort, which is based heavily on Merge Sort principles." }
+    { q: "Is Merge Sort adaptive?", o: ["No, it is not adaptive", "Yes, it is adaptive", "Only on small arrays", "Only on reversed arrays"], a: 0, e: "Merge Sort performs the same number of splits and merges regardless of whether the array is sorted or not." }
   ];
 
   let currentQuestions = [];
   let currentQIdx = 0;
   let score = 0;
-  let quizAnswers = [];
 
   function shuffle(array) {
     let m = array.length, t, i;
     while (m) {
       i = Math.floor(Math.random() * m--);
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
+      t = array[m]; array[m] = array[i]; array[i] = t;
     }
     return array;
   }
@@ -445,138 +477,104 @@ function updCounters(){document.getElementById('cmpCount').textContent=cmpTotal;
     currentQuestions = shuffle([...questionPool]).slice(0, 10);
     currentQIdx = 0;
     score = 0;
-    quizAnswers = [];
     renderQuestion();
   }
 
   function renderQuestion() {
     const container = document.getElementById('quizContainer');
-    if (!container) return;
-
     if (currentQIdx >= currentQuestions.length) {
       renderScoreCard();
       return;
     }
 
     const qItem = currentQuestions[currentQIdx];
-    const progressPct = ((currentQIdx) / currentQuestions.length) * 100;
+    const progressText = `Question ${currentQIdx + 1} of ${currentQuestions.length}`;
 
     container.innerHTML = `
-      <div class="quiz-progress-row">
-        <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width: ${progressPct}%"></div></div>
-        <div class="quiz-prog-lbl">Question ${currentQIdx + 1} of ${currentQuestions.length}</div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="quiz-progress">${progressText}</span>
       </div>
-      <div class="quiz-qcard">
-        <div class="quiz-qnum">Merge Sort quiz</div>
-        <div class="quiz-qtext">${qItem.q}</div>
-        <div class="quiz-opts">
-          ${qItem.o.map((opt, i) => `
-            <button class="quiz-opt" data-opt-idx="${i}">
-              <div class="quiz-opt-letter">${String.fromCharCode(65 + i)}</div>
-              <div>${opt}</div>
-            </button>
-          `).join('')}
-        </div>
-        <div class="quiz-explanation" id="quizExpl">
-          <strong>Explanation:</strong> ${qItem.e}
-        </div>
+      <div class="quiz-question">${qItem.q}</div>
+      <div class="quiz-options">
+        ${qItem.o.map((opt, i) => `
+          <div class="quiz-option" data-idx="${i}">
+            <strong>${String.fromCharCode(65 + i)}.</strong> ${opt}
+          </div>
+        `).join('')}
       </div>
-      <div class="quiz-nav-row" style="display: none;" id="quizNav">
-        <button class="quiz-next-btn" id="quizNextBtn">Next <i class="fa-solid fa-arrow-right"></i></button>
+      <div class="quiz-feedback" id="quizExpl">
+        <strong>Explanation:</strong> ${qItem.e}
+      </div>
+      <div class="d-flex justify-content-end mt-3" style="display: none !important;" id="quizNav">
+        <button class="btn btn-primary btn-sm" id="quizNextBtn">Next Question <i class="fa-solid fa-arrow-right ms-1"></i></button>
       </div>
     `;
 
-    container.querySelectorAll('.quiz-opt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const selectedIdx = parseInt(btn.dataset.optIdx);
-        handleAnswer(selectedIdx);
+    container.querySelectorAll('.quiz-option').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if(this.classList.contains('disabled')) return;
+        
+        container.querySelectorAll('.quiz-option').forEach(b => b.classList.add('disabled'));
+        const selectedIdx = parseInt(this.dataset.idx);
+        const isCorrect = selectedIdx === qItem.a;
+
+        if (isCorrect) {
+          score++;
+          this.classList.add('correct');
+        } else {
+          this.classList.add('incorrect');
+          container.querySelector('.quiz-option[data-idx="'+qItem.a+'"]').classList.add('correct');
+        }
+
+        const expl = document.getElementById('quizExpl');
+        expl.className = 'quiz-feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+
+        const navRow = document.getElementById('quizNav');
+        navRow.style.setProperty('display', 'flex', 'important');
+
+        document.getElementById('quizNextBtn').onclick = () => {
+          currentQIdx++;
+          renderQuestion();
+        };
       });
     });
   }
 
-  function handleAnswer(selectedIdx) {
-    const qItem = currentQuestions[currentQIdx];
-    const opts = document.querySelectorAll('.quiz-opt');
-    opts.forEach(btn => btn.disabled = true);
-
-    const isCorrect = selectedIdx === qItem.a;
-    quizAnswers.push({ selected: selectedIdx, correct: qItem.a });
-
-    if (isCorrect) {
-      score++;
-      opts[selectedIdx].classList.add('correct');
-    } else {
-      opts[selectedIdx].classList.add('wrong');
-      opts[qItem.a].classList.add('correct');
-    }
-
-    const expl = document.getElementById('quizExpl');
-    if (expl) expl.classList.add('show');
-
-    const navRow = document.getElementById('quizNav');
-    if (navRow) navRow.style.display = 'flex';
-
-    const nextBtn = document.getElementById('quizNextBtn');
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        currentQIdx++;
-        renderQuestion();
-      };
-    }
-  }
-
   function renderScoreCard() {
     const container = document.getElementById('quizContainer');
-    if (!container) return;
-
-    const strokeDash = 2 * Math.PI * 52;
-    const strokeOffset = strokeDash - (score / currentQuestions.length) * strokeDash;
-
     container.innerHTML = `
-      <div class="quiz-score-card">
-        <div class="quiz-score-ring">
-          <svg width="130" height="130">
-            <defs>
-              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary)" />
-                <stop offset="100%" stop-color="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            <circle class="ring-bg" cx="65" cy="65" r="52"></circle>
-            <circle class="ring-fill" cx="65" cy="65" r="52" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>
-          </svg>
-          <div class="quiz-score-num">
-            ${score}<span class="quiz-score-denom">/${currentQuestions.length}</span>
-          </div>
+      <div class="quiz-results">
+        <div class="quiz-score"><i class="fa-solid fa-star"></i> ${score} / ${currentQuestions.length}</div>
+        <h4>Challenge Complete!</h4>
+        <div class="quiz-summary">
+          <p class="text-muted">You have finished the quiz.</p>
         </div>
-        <h3 class="quiz-score-title">Challenge Complete!</h3>
-        <p class="quiz-score-subtitle">You got a score of ${score} out of ${currentQuestions.length} questions correctly answered.</p>
-        
-        <div class="quiz-score-stats">
-          <div class="qs-stat"><span class="ssv green">${score}</span><span class="ssl">Correct</span></div>
-          <div class="qs-stat"><span class="ssv red">${currentQuestions.length - score}</span><span class="ssl">Wrong</span></div>
-          <div class="qs-stat"><span class="ssv blue">${Math.round((score / currentQuestions.length) * 100)}%</span><span class="ssl">Score</span></div>
+        <div class="quiz-actions justify-content-center">
+          <button class="btn btn-primary" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
+          <button class="btn btn-secondary" onclick="hideQuizOverlay()">Close</button>
         </div>
-
-        <button class="quiz-retry-btn" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
       </div>
     `;
-
     document.getElementById('retryQuizBtn').onclick = initQuiz;
   }
 
-  const startQuizBtn = document.getElementById('startQuizBtn');
-  if (startQuizBtn) {
-    startQuizBtn.onclick = initQuiz;
-  }
+  document.addEventListener('click', (e) => {
+    if(e.target && e.target.id === 'startQuizBtn') {
+      initQuiz();
+    }
+  });
 
-  const themeBtn=document.getElementById('themeToggle');
-  const applyTheme=t=>{document.body.classList.toggle('light-theme',t==='light');themeBtn.innerHTML=t==='light'?'<i class="fa-solid fa-sun"></i><span>Light Mode</span>':'<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';draw(lastState);};
+  // Theme toggle
+  const themeBtn = document.getElementById('themeToggle');
+  const applyTheme = t => {
+    document.body.classList.toggle('light-theme', t==='light');
+    draw(lastState);
+  };
   applyTheme(localStorage.getItem('theme')||'dark');
-  themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
-  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
-  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
-  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+  themeBtn.addEventListener('click', ()=>{
+    const next=document.body.classList.contains('light-theme')?'dark':'light';
+    localStorage.setItem('theme',next); applyTheme(next);
+  });
 
   initState();
 })();

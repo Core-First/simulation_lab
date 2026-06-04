@@ -98,51 +98,14 @@
 <body>
 <div class="app">
 
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand"><a href="../index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;"><div class="brand-logo"><i class="fa-solid fa-atom"></i></div><div class="brand-name">ATC SimLab</div></a></div>
-    <nav id="sideNav">
-      <a href="../index.html" class="nav-link-custom"><i class="fa-solid fa-house"></i> Dashboard</a>
-      <div class="nav-group">
-        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dsaMenu" aria-expanded="true"><i class="fa-solid fa-folder lead-icon"></i> DSA Practical Guides<i class="fa-solid fa-chevron-right chev"></i></button>
-        <div class="collapse show" id="dsaMenu"><ul class="submenu">
-          <li><button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#part1" aria-expanded="true"><i class="fa-solid fa-book lead-icon"></i> Part 1: Sorting<i class="fa-solid fa-chevron-right chev"></i></button>
-            <div class="collapse show" id="part1"><ul class="submenu">
-              <li><a href="index.html" class="sub-link active"><i class="fa-solid fa-circle"></i> Lab Home</a></li>
-              <li><a href="sim-01-bubble-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 1: Bubble Sort</a></li>
-              <li><a href="sim-02-selection-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 2: Selection Sort</a></li>
-              <li><a href="sim-03-insertion-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 3: Insertion Sort</a></li>
-              <li><a href="sim-04-merge-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 4: Merge Sort</a></li>
-              <li><a href="sim-05-quick-sort.html" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 5: Quick Sort</a></li>
-            </ul></div>
-          </li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part2"><i class="fa-solid fa-book lead-icon"></i> Part 2: Searching<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part2"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 6: Linear vs Binary</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 7: Hashing</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part3"><i class="fa-solid fa-book lead-icon"></i> Part 3: Linear Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part3"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 8: Linked List</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 9: Stack &amp; Queue</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part4"><i class="fa-solid fa-book lead-icon"></i> Part 4: Recursive Structures<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part4"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 10: BST</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 11: AVL/Red-Black</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 12: Heap</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part5"><i class="fa-solid fa-book lead-icon"></i> Part 5: Graphs<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part5"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 13: BFS vs DFS</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 14: Dijkstra</a></li></ul></div></li>
-          <li><button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#part6"><i class="fa-solid fa-book lead-icon"></i> Part 6: Algorithm Design<i class="fa-solid fa-chevron-right chev"></i></button><div class="collapse" id="part6"><ul class="submenu"><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 15: DP</a></li><li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> Sim 16: Backtracking</a></li></ul></div></li>
-        </ul></div>
-      </div>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-flask"></i> My Labs</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-circle-question"></i> Quizzes</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-chart-line"></i> Progress</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-trophy"></i> Achievements</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-ranking-star"></i> Leaderboard</a>
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-note-sticky"></i> Notes</a>
-    </nav>
-    <div class="sidebar-footer">
-      <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help &amp; Support</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
-    </div>
-  </aside>
-  <div class="backdrop" id="backdrop"></div>
+  <!-- Removed Sidebar -->
 
   <!-- Main Area -->
   <div class="main" style="overflow-y: auto;">
     
     <header class="topbar">
       <div class="topbar-left">
-        <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+        <!-- Hamburger removed -->
         <div class="breadcrumb-nav" style="font-size:.85rem;color:var(--muted)">
           <span><i class="fa-solid fa-folder-open"></i> DSA Practical Guides</span>
           <span style="opacity:.5;margin:0 6px">/</span>
@@ -245,9 +208,7 @@
   applyTheme(localStorage.getItem('theme')||'dark');
   themeBtn.addEventListener('click',()=>{const n=document.body.classList.contains('light-theme')?'dark':'light';localStorage.setItem('theme',n);applyTheme(n);});
   
-  const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
-  document.getElementById('hamburger').addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show');});
-  backdrop.addEventListener('click',()=>{sidebar.classList.remove('open');backdrop.classList.remove('show');});
+  // Sidebar logic removed
 })();
 </script>
 </body>
