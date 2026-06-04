@@ -1,4 +1,65 @@
-/* Simulation Base Styles */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIMULATION BASE STYLES - Unified Responsive Design (Mobile + Desktop)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- Theme Variables --- */
+:root {
+  --bg: #0f172a;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --border: #334155;
+  --primary: #2563eb;
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --danger: #ef4444;
+  --surface: #111a2e;
+  --surface-2: #16223d;
+  --muted-bg: #4b5563;
+  --radius: 8px;
+}
+
+body.light-theme {
+  --bg: #f5f7fb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e9f2;
+  --surface: #ffffff;
+  --surface-2: #f1f4fa;
+}
+
+/* --- Global Layout System --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  margin: 0;
+  transition: background 0.2s, color 0.2s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
 
 /* Canvas Container */
 .simulation-container {
@@ -128,26 +189,18 @@ canvas {
   padding: 0.5rem 1rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .simulation-container {
-    flex-direction: column;
-  }
-  
-  .ai-panel {
-    flex: 0 0 auto;
-    height: 200px;
-  }
-  
-  .controls-panel {
-    flex-wrap: wrap;
-  }
-}
 
-/* ── Part 1 sorting sim styles (sim-01 … sim-05) ───────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PART 1 SORTING SIMULATION STYLES - Fully Responsive (Mobile to Desktop)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- Main Layout Structure --- */
 body.sim-page {
   overflow-x: hidden;
   overflow-y: hidden;
+  height: 100vh;
+  height: 100dvh;
 }
 
 body.sim-page .app {
@@ -155,229 +208,379 @@ body.sim-page .app {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-  min-height: 0;
+  display: flex;
+  flex-direction: row;
 }
 
-body.sim-page .app > .main {
+body.sim-page .main {
   flex: 1;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 
 body.sim-page .topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
   flex-shrink: 0;
+  gap: 10px;
 }
 
-body.sim-page .sim-content {
+body.sim-page .page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+
+body.sim-page .page-title i {
+  color: var(--primary);
+}
+
+body.sim-page .back-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+body.sim-page .back-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* --- Two-Panel Layout --- */
+body.sim-page .sim-body {
   display: flex;
   flex: 1;
-  min-height: 0;
   overflow: hidden;
-  padding: 0;
+  gap: 0;
+  min-height: 0;
 }
 
-body.sim-page .canvas-area {
+body.sim-page .left-panel {
+  flex: 0 0 55%;
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+body.sim-page .right-panel {
   flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  padding: 12px;
-  gap: 10px;
-  min-width: 0;
+  gap: 15px;
+  background: var(--surface);
 }
 
+/* --- Canvas & Visualization --- */
 body.sim-page .canvas-wrap {
-  flex: 1;
+  width: 100%;
+  min-height: 300px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  min-height: 0;
 }
 
 body.sim-page #sortCanvas {
   width: 100%;
   height: 100%;
   display: block;
-  border-radius: 10px;
-  background: var(--bg);
+  background: var(--surface-2);
+}
+
+/* --- Panel Cards & Components --- */
+body.sim-page .panel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body.sim-page .panel-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.sim-page .panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+}
+
+/* --- Controls & Buttons --- */
+body.sim-page .controls-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  align-items: center;
+}
+
+body.sim-page .btn-control {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-width: 80px;
+  justify-content: center;
+}
+
+body.sim-page .btn-control:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+body.sim-page .btn-control:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+body.sim-page .btn-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+body.sim-page .btn-play { background: var(--success); color: white; }
+body.sim-page .btn-play:hover:not(:disabled) { background: #16a34a; }
+body.sim-page .btn-pause { background: var(--warning); color: black; }
+body.sim-page .btn-pause:hover:not(:disabled) { background: #d97706; }
+body.sim-page .btn-step { background: var(--primary); color: white; }
+body.sim-page .btn-step:hover:not(:disabled) { background: #1d4ed8; }
+body.sim-page .btn-reset { background: var(--muted-bg); color: white; }
+body.sim-page .btn-reset:hover:not(:disabled) { background: #475569; }
+body.sim-page .btn-quiz { background: var(--warning); color: #000; display: none; }
+body.sim-page .btn-quiz.visible { display: inline-flex !important; }
+
+/* --- Statistics Display --- */
+body.sim-page .stats {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  margin-top: 10px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+body.sim-page .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid var(--border);
 }
 
-body.sim-page .right-panel {
-  width: 360px;
-  flex: 0 0 360px;
+body.sim-page .stat-item i {
+  font-size: 12px;
+  color: var(--primary);
+}
+
+/* --- Algorithm Info & Complexity --- */
+body.sim-page .comparison-stats {
+  margin-top: 8px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.sim-page .comparison-stats span {
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* --- AI Companion Panel --- */
+body.sim-page .ai-box {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+body.sim-page .ai-box .ai-question {
+  color: #f8fafc;
+  line-height: 1.5;
+}
+
+body.sim-page .ai-box .ai-response {
+  color: var(--muted);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-style: italic;
+}
+
+body.sim-page .ai-msgs-full {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border);
-  background: var(--surface);
-  overflow: hidden;
-  min-height: 0;
-  position: relative;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
-body.sim-page .panel-tabs {
-  flex-shrink: 0;
+body.sim-page .ai-msg-f {
+  max-width: 90%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-body.sim-page .panel-body {
-  display: none;
-  padding: 12px;
-  -webkit-overflow-scrolling: touch;
+body.sim-page .ai-msg-f.user {
+  align-self: flex-end;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px 2px 8px 8px;
 }
 
-body.sim-page .panel-body.active {
-  display: block;
+body.sim-page .ai-msg-f.bot {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 2px 8px 8px 8px;
 }
 
-/* Desktop / laptop: scrollable info panel inside fixed viewport */
-@media (min-width: 992px) {
-  body.sim-page .right-panel {
-    align-self: stretch;
-  }
-
-  body.sim-page .panel-body {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 42px;
-    bottom: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  body.sim-page .panel-body.active {
-    overflow-y: auto;
-  }
-
-  body.sim-page .canvas-wrap {
-    min-height: 160px;
-  }
+body.sim-page .ai-chips-full {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
-@media (min-width: 992px) and (max-width: 1279.98px) {
-  body.sim-page .right-panel {
-    width: 300px;
-    flex: 0 0 300px;
-  }
+body.sim-page .ai-chip-full {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text);
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Mobile / tablet: page scroll, panel below chart */
-@media (max-width: 991.98px) {
-  html:has(body.sim-page),
-  body.sim-page {
-    height: auto;
-    min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  body.sim-page .app {
-    min-height: 100vh;
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  body.sim-page .main {
-    overflow: visible;
-    flex: none;
-  }
-
-  body.sim-page .sim-content {
-    flex-direction: column;
-    overflow: visible;
-    flex: none;
-    min-height: auto;
-  }
-
-  body.sim-page .canvas-area {
-    flex: none;
-    padding: 8px;
-    gap: 8px;
-  }
-
-  body.sim-page .canvas-wrap {
-    flex: none;
-    height: min(42vh, 280px);
-    min-height: 180px;
-  }
-
-  body.sim-page .right-panel {
-    width: 100%;
-    height: auto;
-    flex: none;
-    max-height: none;
-    border-left: 0;
-    border-top: 1px solid var(--border);
-    overflow: visible;
-  }
-
-  body.sim-page .panel-body {
-    position: static;
-    top: auto;
-    bottom: auto;
-    left: auto;
-    right: auto;
-  }
-
-  body.sim-page .panel-body.active {
-    overflow-y: visible;
-    max-height: none;
-  }
-
-  body.sim-page .stats-bar {
-    padding: 6px 10px;
-  }
-
-  body.sim-page .stat-pill {
-    font-size: 0.75rem;
-  }
-
-  body.sim-page .sep {
-    display: none;
-  }
-
-  body.sim-page .legend {
-    width: 100%;
-  }
-
-  body.sim-page .ctrl-bar {
-    padding: 6px 10px;
-  }
-
-  body.sim-page .topbar {
-    padding: 10px 12px;
-  }
-
-  body.sim-page .theme-toggle span {
-    display: none;
-  }
-
-  body.sim-page .profile-text {
-    display: none;
-  }
-
-  body.sim-page .breadcrumb-nav {
-    font-size: 0.74rem;
-    flex-wrap: wrap;
-  }
-
-  body.sim-page .sim-nav a {
-    font-size: 0.72rem;
-    padding: 4px 8px;
-  }
+body.sim-page .ai-chip-full:hover {
+  background: var(--border);
+  border-color: var(--primary);
 }
 
-@media (max-width: 575.98px) {
-  body.sim-page .ctrl-bar input[type="text"] {
-    width: 100%;
-    max-width: none;
-  }
+/* --- Input Fields & Controls --- */
+body.sim-page .form-control,
+body.sim-page .form-select,
+body.sim-page input[type="text"],
+body.sim-page input[type="range"],
+body.sim-page select {
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
 
-  body.sim-page .cx-grid {
-    grid-template-columns: 1fr;
-  }
+body.sim-page input[type="range"] {
+  accent-color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* --- Helper Text & Labels --- */
+body.sim-page .small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.sim-page .badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 2px 4px 2px 0;
+}
+
+body.sim-page .badge.bg-secondary {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+body.sim-page .d-flex {
+  display: flex;
+}
+
+body.sim-page .gap-2 {
+  gap: 8px;
+}
+
+body.sim-page .flex-wrap {
+  flex-wrap: wrap;
+}
+
+body.sim-page .mb-2 {
+  margin-bottom: 8px;
+}
+
+body.sim-page .mb-3 {
+  margin-bottom: 12px;
+}
+
+body.sim-page .mt-2 {
+  margin-top: 8px;
 }
 
 /* Beginner info panel typography (shared across Part 1 sims) */
@@ -784,4 +987,798 @@ body.sim-page .sim-nav a {
 body.sim-page .sim-nav a:hover {
   color: var(--text);
 }
-/*end of part-1-sorting sim styles
+/*end of part-1-sorting sim styles*/
+
+/* ── Adaptive VS Code Code Synchronizer Styles ───────────────────────── */
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+:root {
+  --code-bg: #1e1e1e;
+  --code-text: #d4d4d4;
+  --code-keyword: #569cd6;
+  --code-number: #b5cea8;
+  --code-string: #ce9178;
+  --code-comment: #6a9955;
+  --code-func: #dcdcaa;
+  --code-highlight-bg: rgba(251, 191, 36, 0.18);
+  --code-highlight-border: #f59e0b;
+}
+
+body.light-theme {
+  --code-bg: #ffffff;
+  --code-text: #000000;
+  --code-keyword: #0000ff;
+  --code-number: #098658;
+  --code-string: #a31515;
+  --code-comment: #008000;
+  --code-func: #795e26;
+  --code-highlight-bg: rgba(251, 191, 36, 0.25);
+  --code-highlight-border: #d97706;
+}
+
+.code-editor {
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace !important;
+}
+
+.code-line {
+  color: var(--code-text);
+  position: relative;
+  padding: 1px 0;
+  margin: 0;
+  border-left: 4px solid transparent;
+}
+
+.code-line-num {
+  display: inline-block;
+  width: 28px;
+  text-align: right;
+  margin-right: 12px;
+  color: var(--muted);
+  font-size: 11px;
+  opacity: 0.5;
+  user-select: none;
+}
+
+.code-keyword {
+  color: var(--code-keyword) !important;
+  font-weight: bold;
+}
+
+.code-number {
+  color: var(--code-number) !important;
+}
+
+.code-string {
+  color: var(--code-string) !important;
+}
+
+.code-comment {
+  color: var(--code-comment) !important;
+  font-style: italic;
+}
+
+.code-func {
+  color: var(--code-func) !important;
+}
+
+.code-highlight {
+  background: var(--code-highlight-bg) !important;
+  border-left: 4px solid var(--code-highlight-border) !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  animation: slide-in 0.3s ease;
+}
+
+/* ── Modern speech bubble chat styles ────────────────────────────────── */
+.ai-msgs-full, .ai-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 4px;
+}
+
+.ai-msgs-full .message, .ai-msgs .ai-msg {
+  max-width: 85%;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2px;
+  word-wrap: break-word;
+}
+
+/* User Message Bubble */
+.ai-msgs-full .message.user, .ai-msgs .ai-msg.user {
+  align-self: flex-end;
+  background-color: var(--primary);
+  color: #ffffff !important;
+  border-radius: 16px 16px 2px 16px;
+  border: none;
+  text-align: left;
+}
+
+/* AI Bot Message Bubble */
+.ai-msgs-full .message.ai, .ai-msgs .ai-msg.bot {
+  align-self: flex-start;
+  background-color: var(--surface-2);
+  color: var(--text) !important;
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 2px;
+  text-align: left;
+}
+
+/* ── Light Theme Color Overrides ──────────────────────────────────────── */
+
+/* Back to Dashboard button */
+body.light-theme .back-btn {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Stat item values – Bootstrap text-white must be overridden in light mode */
+body.light-theme .stat-item span,
+body.light-theme .stat-item span.text-white,
+body.light-theme .stat-item .font-monospace {
+  color: var(--text) !important;
+}
+
+/* Comparison stats (Best/Avg/Worst/Space row) */
+body.light-theme .comparison-stats strong,
+body.light-theme .comparison-stats strong.text-white,
+body.light-theme .comparison-stats span strong {
+  color: var(--text) !important;
+}
+
+/* Algorithm Information panel body text */
+body.light-theme .panel-card p,
+body.light-theme .panel-card .info-sec p {
+  color: var(--text);
+}
+
+/* Quiz modal – all text should follow theme */
+body.light-theme .quiz-modal {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+body.light-theme .quiz-modal h4,
+body.light-theme .quiz-modal .quiz-question,
+body.light-theme .quiz-modal span.text-white,
+body.light-theme .quiz-modal .fs-4.fw-bold {
+  color: var(--text) !important;
+}
+
+body.light-theme .quiz-modal p.text-muted {
+  color: var(--muted) !important;
+}
+
+/* Code editor - ensure readable in light theme */
+body.light-theme .code-editor {
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+}
+
+body.light-theme .code-line {
+  color: var(--code-text);
+}
+
+/* ── Mobile & Tablet Responsive (≤991px) ─────────────────────────────── */
+/* Uses body.sim-page prefix for specificity over simulation-base2.css    */
+@media (max-width: 991.98px) {
+  /* Allow page to scroll instead of being viewport-locked */
+  html:has(body.sim-page),
+  body.sim-page {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.sim-page .app {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  body.sim-page .main {
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Stack panels vertically */
+  body.sim-page .sim-body {
+    flex-direction: column;
+    overflow: visible;
+    height: auto;
+  }
+
+  /* Left panel: full width, no side border */
+  body.sim-page .left-panel {
+    flex: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+    height: auto;
+    padding: 14px;
+  }
+
+  /* Right panel: full width, scrollable */
+  body.sim-page .right-panel {
+    flex: none;
+    width: 100%;
+    overflow-y: visible;
+    height: auto;
+    padding: 14px;
+  }
+
+  /* Canvas: give it a sensible fixed height */
+  body.sim-page .canvas-wrap {
+    min-height: 220px;
+    max-height: 320px;
+  }
+
+  /* Topbar: tighten spacing */
+  body.sim-page .topbar {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  body.sim-page .page-title {
+    font-size: 13px;
+  }
+
+  /* Controls row: allow wrapping */
+  body.sim-page .controls-row {
+    flex-wrap: wrap;
+  }
+
+  /* Stats: smaller on mobile */
+  body.sim-page .stat-item {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* Code editor: reduce max-height */
+  body.sim-page .code-editor {
+    max-height: 200px;
+  }
+
+  /* AI chat: reduce max height */
+  body.sim-page .ai-msgs-full {
+    max-height: 120px;
+  }
+}
+
+/* ── Extra-small screens (≤575px) ─────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  body.sim-page .topbar {
+    padding: 8px 10px;
+  }
+
+  body.sim-page .page-title {
+    font-size: 12px;
+  }
+
+  body.sim-page .back-btn {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 180px;
+    max-height: 260px;
+  }
+
+  body.sim-page .panel-card {
+    padding: 12px;
+  }
+
+  body.sim-page .comparison-stats {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  body.sim-page .controls-row {
+    gap: 6px;
+  }
+
+  body.sim-page .btn-control {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+/* ── Ultra-small phones (≤360px) ──────────────────────────────────────── */
+@media (max-width: 359.98px) {
+  body.sim-page {
+    font-size: 13px;
+  }
+
+  body.sim-page .topbar {
+    padding: 6px 8px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  body.sim-page .page-title {
+    font-size: 11px;
+    width: 100%;
+  }
+
+  body.sim-page .back-btn {
+    font-size: 10px;
+    padding: 2px 6px;
+    width: 100%;
+    text-align: center;
+  }
+
+  body.sim-page .btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  body.sim-page .panel-card {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  body.sim-page .btn-control {
+    padding: 4px 8px;
+    font-size: 10px;
+    flex: 1 1 calc(50% - 2px);
+  }
+
+  body.sim-page .stat-pill {
+    font-size: 0.75rem;
+  }
+
+  body.sim-page .ctrl-bar {
+    padding: 6px 8px;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 160px;
+  }
+}
+
+/* ── Enhanced Tablet Support (576px - 768px) ──────────────────────────── */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  body.sim-page .topbar {
+    padding: 12px 14px;
+  }
+
+  body.sim-page .page-title {
+    font-size: 14px;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 240px;
+  }
+
+  body.sim-page .panel-card {
+    padding: 14px;
+  }
+
+  body.sim-page .btn-control {
+    padding: 6px 12px;
+    font-size: 12px;
+    flex: 1 1 calc(33.33% - 5px);
+  }
+
+  body.sim-page .controls-row {
+    gap: 6px;
+  }
+
+  body.sim-page .stats-bar {
+    padding: 10px 12px;
+  }
+
+  body.sim-page .stat-pill {
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Medium Landscape (768px - 992px) ─────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  body.sim-page .topbar {
+    padding: 14px 16px;
+  }
+
+  body.sim-page .page-title {
+    font-size: 15px;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 280px;
+  }
+
+  body.sim-page .panel-card {
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  body.sim-page .btn-control {
+    padding: 6px 13px;
+    font-size: 12px;
+  }
+
+  body.sim-page .stats-bar {
+    padding: 10px 14px;
+  }
+}
+
+/* ── Touch Device Optimizations ────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  body.sim-page .btn-c,
+  body.sim-page .btn-control,
+  body.sim-page .btn {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.sim-page .panel-card {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  body.sim-page .form-control,
+  body.sim-page .form-select,
+  body.sim-page input[type="range"] {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  /* Reduce animations on touch for better performance */
+  body.sim-page .btn-control:active {
+    transform: none;
+  }
+
+  body.sim-page .panel-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ── Landscape Orientation Optimizations ──────────────────────────────── */
+@media (orientation: landscape) and (max-height: 600px) {
+  body.sim-page .canvas-area {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  body.sim-page .canvas-wrap {
+    min-height: 140px;
+  }
+
+  body.sim-page .right-panel {
+    max-height: 200px;
+  }
+
+  body.sim-page .panel-card {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  body.sim-page .btn-control {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  body.sim-page .stats-bar {
+    padding: 6px 10px;
+  }
+
+  body.sim-page .stat-pill {
+    font-size: 0.75rem;
+  }
+}
+
+/* ── High DPI Screens (Retina & 2x Displays) ───────────────────────────── */
+@media (-webkit-min-device-pixel-ratio: 2) and (min-width: 992px) {
+  canvas {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* ── Print Optimization ────────────────────────────────────────────────── */
+
+/* ---------------------------------------------------------------------------
+   GUIDED TOUR OVERLAY STYLES
+   --------------------------------------------------------------------------- */
+.guided-tour-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.tour-backdrop {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.55);
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s;
+  pointer-events: all;
+}
+
+.tour-highlight {
+  position: relative;
+  z-index: 10001;
+  pointer-events: auto;
+}
+
+.tour-tooltip {
+  position: absolute;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 16px;
+  width: 320px;
+  pointer-events: all;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+.tour-tooltip h5 {
+  margin: 0 0 10px 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tour-tooltip p {
+  font-size: 13px;
+  margin: 0 0 15px 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.tour-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 575.98px) {
+  .tour-tooltip {
+    width: 280px;
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .tour-tooltip p {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   QUIZ OVERLAY & MODAL STYLES
+   --------------------------------------------------------------------------- */
+.quiz-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-backdrop {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(4px);
+}
+
+.quiz-modal {
+  position: relative;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 560px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: quiz-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes quiz-slide-up {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.quiz-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quiz-progress {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--surface-2);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.quiz-question {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.quiz-option {
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.quiz-option:hover {
+  background: var(--border);
+  transform: translateX(4px);
+}
+
+.quiz-option.disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.quiz-option.selected {
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.quiz-option.correct {
+  border-color: var(--success);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.quiz-option.incorrect {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.quiz-feedback {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+  animation: fade-in 0.3s ease;
+}
+
+.quiz-feedback.show {
+  display: block;
+}
+
+.quiz-feedback.correct {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.quiz-feedback.incorrect {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  color: #fca5a5;
+}
+
+.quiz-score {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--primary);
+  margin: 16px 0;
+}
+
+.quiz-score .fa-star {
+  color: var(--warning);
+  margin-right: 8px;
+}
+
+.quiz-summary {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.quiz-results {
+  text-align: center;
+}
+
+.quiz-results h4 {
+  color: var(--success);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 575.98px) {
+  .quiz-modal {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .quiz-header h3 {
+    font-size: 16px;
+  }
+
+  .quiz-question {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .quiz-option {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .quiz-score {
+    font-size: 36px;
+  }
+}
+@media print {
+  body.sim-page .topbar,
+  body.sim-page .ctrl-bar,
+  body.sim-page .stats-bar,
+  body.sim-page .panel-tabs {
+    display: none;
+  }
+
+  body.sim-page .canvas-area {
+    padding: 0;
+  }
+
+  body.sim-page .canvas-wrap {
+    border: 1px solid #000;
+    page-break-inside: avoid;
+  }
+}
+

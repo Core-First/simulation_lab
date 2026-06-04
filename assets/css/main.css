@@ -229,6 +229,505 @@
     .sidebar.open { left: 0; }
     .hamburger { display: inline-block; }
     .profile-text { display: none; }
+    .topbar {
+      padding: 12px 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .topbar-left, .topbar-right {
+      flex: 1;
+      min-width: 0;
+    }
+    .theme-toggle {
+      padding: 6px 12px;
+      font-size: .8rem;
+    }
+  }
+  
+  /* Tablet/Small Devices (576px - 991px) */
+  @media (min-width: 576px) and (max-width: 991.98px) {
+    .topbar {
+      padding: 14px 18px;
+    }
+    .content {
+      padding: 16px;
+    }
+    .info-full-wrap {
+      padding: 24px 16px;
+    }
+    .info-hero {
+      padding: 24px;
+      gap: 16px;
+    }
+    .info-hero-icon {
+      width: 56px;
+      height: 56px;
+      font-size: 1.4rem;
+    }
+    .info-hero h2 {
+      font-size: 1.25rem;
+    }
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+    .cx-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .quiz-progress-row {
+      gap: 10px;
+    }
+    .quiz-score-stats {
+      gap: 20px;
+    }
+  }
+  
+  /* Medium Mobile (480px - 575px) */
+  @media (max-width: 575.98px) {
+    .topbar {
+      padding: 10px 12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    
+    .topbar-left, .topbar-right {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .hamburger {
+      display: inline-block;
+      position: absolute;
+      left: 12px;
+      top: 10px;
+    }
+    
+    .theme-toggle {
+      padding: 6px 10px;
+      font-size: .75rem;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .profile {
+      width: 100%;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .profile-text {
+      display: none !important;
+    }
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+      font-size: .75rem;
+    }
+    
+    .content {
+      padding: 12px;
+    }
+    
+    .info-full-wrap {
+      padding: 16px 12px;
+      max-width: 100%;
+    }
+    
+    .info-hero {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 16px;
+      gap: 12px;
+    }
+    
+    .info-hero-icon {
+      width: 48px;
+      height: 48px;
+      font-size: 1.2rem;
+    }
+    
+    .info-hero h2 {
+      font-size: 1.1rem;
+      margin: 0 0 4px;
+    }
+    
+    .info-hero p {
+      font-size: .85rem;
+      margin: 0;
+    }
+    
+    .info-badge-row {
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .info-badge {
+      padding: 4px 10px;
+      font-size: .7rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .info-card {
+      padding: 14px;
+    }
+    
+    .info-card h5 {
+      font-size: .7rem;
+      margin-bottom: 12px;
+    }
+    
+    .cx-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    
+    .cx-cell .cl {
+      font-size: .65rem;
+    }
+    
+    .cx-cell .cv {
+      font-size: .8rem;
+    }
+    
+    .info-list, .info-steps {
+      padding-left: 16px;
+      font-size: .8rem;
+    }
+    
+    .info-start-btn {
+      padding: 10px 18px;
+      font-size: .8rem;
+      margin-top: 16px;
+    }
+    
+    /* Sim tabs & panes */
+    .stab-bar {
+      padding: 0 12px;
+      gap: 0;
+    }
+    
+    .stab {
+      padding: 10px 12px;
+      font-size: .75rem;
+      gap: 4px;
+    }
+    
+    .spane {
+      overflow-y: auto;
+    }
+    
+    .code-full-wrap {
+      padding: 16px 12px;
+    }
+    
+    .code-full-wrap pre {
+      padding: 16px;
+      font-size: .75rem;
+    }
+    
+    .ai-full-wrap {
+      max-width: 100%;
+      padding: 16px 12px;
+    }
+    
+    .ai-msgs-full {
+      min-height: 150px;
+      padding: 12px;
+    }
+    
+    .ai-msg-f {
+      max-width: 90%;
+      padding: 10px 12px;
+      font-size: .8rem;
+    }
+    
+    .ai-row-full {
+      gap: 6px;
+    }
+    
+    .ai-row-full input {
+      padding: 10px 12px;
+      font-size: .8rem;
+    }
+    
+    .ai-row-full button {
+      width: 40px;
+      font-size: .9rem;
+    }
+    
+    /* Quiz */
+    .quiz-full-wrap {
+      max-width: 100%;
+      padding: 16px 12px;
+    }
+    
+    .quiz-welcome-card {
+      padding: 32px 16px;
+    }
+    
+    .quiz-welcome-icon {
+      width: 64px;
+      height: 64px;
+      font-size: 1.6rem;
+      margin-bottom: 16px;
+    }
+    
+    .quiz-welcome-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    
+    .quiz-welcome-card p {
+      font-size: .85rem;
+      margin-bottom: 20px;
+    }
+    
+    .quiz-stat-row {
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .quiz-stat .qs-val {
+      font-size: 1.3rem;
+    }
+    
+    .quiz-start-btn {
+      padding: 10px 20px;
+      font-size: .85rem;
+    }
+    
+    .quiz-qcard {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .quiz-qtext {
+      font-size: .95rem;
+      margin-bottom: 16px;
+    }
+    
+    .quiz-opts {
+      gap: 8px;
+    }
+    
+    .quiz-opt {
+      padding: 10px 14px;
+      font-size: .8rem;
+      gap: 10px;
+    }
+    
+    .quiz-opt-letter {
+      width: 26px;
+      height: 26px;
+      font-size: .7rem;
+    }
+    
+    .quiz-explanation {
+      margin-top: 12px;
+      padding: 10px 12px;
+      font-size: .8rem;
+    }
+    
+    .quiz-score-card {
+      padding: 32px 16px;
+    }
+    
+    .quiz-score-ring {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .quiz-score-num {
+      font-size: 1.6rem;
+    }
+    
+    .quiz-score-title {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    
+    .quiz-score-subtitle {
+      margin-bottom: 20px;
+      font-size: .8rem;
+    }
+    
+    .quiz-score-stats {
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .qs-stat .ssv {
+      font-size: 1.1rem;
+    }
+    
+    .quiz-retry-btn {
+      padding: 10px 20px;
+      font-size: .8rem;
+    }
+  }
+  
+  /* Small Mobile (max 479px) */
+  @media (max-width: 479.98px) {
+    .topbar {
+      padding: 8px 10px;
+      gap: 4px;
+    }
+    
+    .page-title {
+      font-size: 11px;
+      flex: 1;
+    }
+    
+    .back-btn {
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+    
+    .hamburger {
+      font-size: 1rem;
+    }
+    
+    .theme-toggle {
+      padding: 4px 8px;
+      font-size: .7rem;
+    }
+    
+    .avatar {
+      width: 28px;
+      height: 28px;
+      font-size: .7rem;
+    }
+    
+    .btn {
+      padding: 6px 10px !important;
+      font-size: 11px !important;
+    }
+    
+    .content {
+      padding: 10px;
+    }
+    
+    .info-full-wrap {
+      padding: 12px 10px;
+    }
+    
+    .info-hero {
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .info-hero-icon {
+      width: 42px;
+      height: 42px;
+      font-size: 1rem;
+    }
+    
+    .info-hero h2 {
+      font-size: .95rem;
+    }
+    
+    .info-hero p {
+      font-size: .8rem;
+    }
+    
+    .info-card {
+      padding: 12px;
+    }
+    
+    .info-list, .info-steps {
+      padding-left: 14px;
+      font-size: .75rem;
+    }
+    
+    .stab {
+      padding: 8px 10px;
+      font-size: .7rem;
+    }
+    
+    .code-full-wrap pre {
+      padding: 12px;
+      font-size: .7rem;
+    }
+  }
+  
+  /* Ultra-small phones (max 359px) */
+  @media (max-width: 359.98px) {
+    .topbar {
+      flex-direction: column;
+      padding: 6px 8px;
+    }
+    
+    .page-title {
+      font-size: 10px;
+    }
+    
+    .back-btn {
+      font-size: 9px;
+      padding: 3px 6px;
+      width: 100%;
+    }
+    
+    .content {
+      padding: 8px;
+    }
+    
+    .info-full-wrap {
+      padding: 8px;
+    }
+    
+    .stab {
+      padding: 6px 8px;
+      font-size: .65rem;
+    }
+  }
+  
+  /* Touch device optimization */
+  @media (hover: none) and (pointer: coarse) {
+    .btn, .stab, .quiz-opt {
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .card-x, .info-card, .module {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    input, select, textarea {
+      min-height: 44px;
+      font-size: 16px;
+    }
+    
+    .btn:active:not(:disabled) {
+      transform: none;
+      opacity: 0.8;
+    }
+  }
+  
+  /* Landscape orientation adjustments */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .topbar {
+      padding: 8px 12px;
+    }
+    
+    .page-title {
+      font-size: 12px;
+    }
+    
+    .info-hero {
+      padding: 12px;
+      gap: 12px;
+    }
+    
+    .info-card {
+      padding: 10px;
+    }
   }
   .backdrop {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99;
