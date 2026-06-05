@@ -20,49 +20,49 @@ The project is built entirely with client-side web technologies and requires no 
 All dependencies are loaded via CDN. The project follows a modular architecture with shared assets and separate HTML files for each simulation.
 
 ## Folder Structure
-```
+```html
 simulation_lab/
 +-- assets/
-¦   +-- css/
-¦   ¦   +-- main.css               # Shared styles (Bootstrap overrides, dark/light theme)
-¦   ¦   +-- simulation-base.css    # Common layout for all sims (canvas, controls, AI panel)
-¦   +-- js/
-¦   ¦   +-- utils.js               # Helper functions (random array, timer, animation queue)
-¦   ¦   +-- visualizer-core.js     # Shared canvas logic (bar drawing, swapping, pointer)
-¦   ¦   +-- ai-assistant.js        # AI prompt logic (can be reused across sims)
-¦   ¦   +-- main.js                # Main dashboard JavaScript (theme, sidebar, navigation)
-¦   +-- icons/                     # Custom SVGs for visual metaphors (optional)
+   +-- css/
+   +-- main.css               # Shared styles (Bootstrap overrides, dark/light theme)
+   +-- simulation-base.css    # Common layout for all sims (canvas, controls, AI panel)
++-- js/
+   +-- utils.js               # Helper functions (random array, timer, animation queue)
+   +-- visualizer-core.js     # Shared canvas logic (bar drawing, swapping, pointer)
+   +-- ai-assistant.js        # AI prompt logic (can be reused across sims)
++-- main.js                # Main dashboard JavaScript (theme, sidebar, navigation)
++-- icons/                     # Custom SVGs for visual metaphors (optional)
 +-- .github/
-¦   +-- workflows/
-¦   ¦   +-- secure-low-code-detector.yml  # Security and low-code detection workflow
-¦   ¦   +-- dependabot.yml               # Dependency updates
-¦   +-- dependabot.yml                   # Dependabot configuration
+   +-- workflows/
+   +-- secure-low-code-detector.yml  # Security and low-code detection workflow
+   +-- dependabot.yml               # Dependency updates
+   +-- dependabot.yml                   # Dependabot configuration
 +-- .semgrep/
-¦   +-- custom-rules.yml                 # Semgrep custom rules for code quality
+   +-- custom-rules.yml                 # Semgrep custom rules for code quality
 +-- part-1-sorting/
-¦   +-- index.html                 # Part 1 landing page (links to simulations below)
-¦   +-- sim-01-bubble-sort.html
-¦   +-- sim-02-selection-sort.html
-¦   +-- sim-03-insertion-sort.html
-¦   +-- sim-04-merge-sort.html
-¦   +-- sim-05-quick-sort.html
+   +-- index.html                 # Part 1 landing page (links to simulations below)
+   +-- sim-01-bubble-sort.html
+   +-- sim-02-selection-sort.html
+   +-- sim-03-insertion-sort.html
+   +-- sim-04-merge-sort.html
+   +-- sim-05-quick-sort.html
 +-- part-2-searching/
-¦   +-- index.html
-¦   +-- sim-06-linear-binary-search.html
-¦   +-- sim-07-hashing-collision.html
+   +-- index.html
+   +-- sim-06-linear-binary-search.html
+   +-- sim-07-hashing-collision.html
 +-- part-3-linear-data-structures/
-¦   +-- index.html
-¦   +-- sim-08-singly-linked-list.html
-¦   +-- sim-09-stack-queue.html
+   +-- index.html
+   +-- sim-08-singly-linked-list.html
+   +-- sim-09-stack-queue.html
 +-- part-4-recursive-data-structures/
-¦   +-- index.html
-¦   +-- sim-10-bst.html
-¦   +-- sim-11-avl-red-black.html
-¦   +-- sim-12-heap-priority-queue.html
+   +-- index.html
+   +-- sim-10-bst.html
+   +-- sim-11-avl-red-black.html
+   +-- sim-12-heap-priority-queue.html
 +-- part-5-graphs/
-¦   +-- index.html
-¦   +-- sim-13-bfs-dfs.html
-¦   +-- sim-14-dijkstra.html
+   +-- index.html
+   +-- sim-13-bfs-dfs.html
+   +-- sim-14-dijkstra.html
 +-- part-6-algorithm-design/
     +-- index.html
     +-- sim-15-dp-memoization.html

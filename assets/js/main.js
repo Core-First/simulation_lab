@@ -1,5 +1,4 @@
-
-  // Theme toggle
+// Theme toggle
   const themeBtn = document.getElementById('themeToggle');
   const applyTheme = (theme) => {
     if (theme === 'light') {
@@ -28,7 +27,6 @@
       document.getElementById('backdrop').classList.remove('show');
     });
   });
-
 
   // Hamburger
   const sidebar = document.getElementById('sidebar');
@@ -74,18 +72,34 @@
     ]},
   ];
 
+  // Simulation file path mapping
+  const simPaths = {
+    'Simulation 1: Bubble Sort': 'part-1-sorting/sim-01-bubble-sort.html',
+    'Simulation 2: Selection Sort': 'part-1-sorting/sim-02-selection-sort.html',
+    'Simulation 3: Insertion Sort': 'part-1-sorting/sim-03-insertion-sort.html',
+    'Simulation 4: Merge Sort': 'part-1-sorting/sim-04-merge-sort.html',
+    'Simulation 5: Quick Sort': 'part-1-sorting/sim-05-quick-sort.html',
+    'Simulation 15: Dynamic Programming (Memoization)': 'part-6-algorithm-design/sim-15-dp-memoization.html',
+    'Simulation 16: Backtracking (N-Queens / Sudoku Solver)': 'part-6-algorithm-design/sim-16-backtracking-nqueens.html',
+  };
+
   const dsaRoot = document.querySelector('#dsaMenu .submenu');
   dsaData.forEach((p, i) => {
     const partId = `dsaPart${i}`;
+    const isReady = i === 0;
     const li = document.createElement('li');
     li.innerHTML = `
       <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
-        <i class="fa-solid fa-book lead-icon"></i> ${p.part}
+        <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid"></span>' : ''}
         <i class="fa-solid fa-chevron-right chev"></i>
       </button>
       <div class="collapse" id="${partId}">
         <ul class="submenu">
-          ${p.sims.map(s => `<li><a href="#" class="sub-link"><i class="fa-solid fa-circle"></i> ${s}</a></li>`).join('')}
+          ${p.sims.map(s => {
+            const href = simPaths[s] || '#';
+            const hasGlow = simPaths[s] && href !== '#';
+            return `<li><a href="${href}" class="sub-link">${hasGlow ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : '<i class="fa-solid fa-circle"></i>'} ${s}</a></li>`;
+          }).join('')}
         </ul>
       </div>
     `;
@@ -95,6 +109,11 @@
   // Simulation click handling
   document.querySelectorAll('#dsaMenu .sub-link').forEach(link => {
     link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href !== '#') {
+        // Allow navigation to simulation files
+        return;
+      }
       e.preventDefault();
       document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.submenu .sub-link').forEach(l => l.classList.remove('active'));
@@ -106,4 +125,3 @@
       }
     });
   });
-
