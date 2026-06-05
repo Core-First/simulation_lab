@@ -88,16 +88,12 @@ Use Live Server (VS Code extension) or any HTTP server for best results (some si
 
 ## Deploying the Landing Page
 
-The project includes a GitHub Actions workflow that automatically deploys the `public/` directory to Cloudflare Pages whenever code is pushed to the `web` branch.
+The project includes a GitHub Actions workflow that automatically deploys the `public/` directory to GitHub Pages whenever code is pushed to the `web` branch.
 
 ### Prerequisites
 
-Before deploying, the following must be configured by a repository administrator:
-
-- **GitHub Secrets** – Add these in `Settings > Secrets and variables > Actions`:
-  - `CLOUDFLARE_API_TOKEN` – A Cloudflare API token with the `Cloudflare Pages: Edit` permission.
-  - `CLOUDFLARE_ACCOUNT_ID` – Your Cloudflare account ID (found in the Cloudflare dashboard sidebar).
-- **Cloudflare Pages Project** – The project `simLab` must exist in your Cloudflare account.
+Before deploying, ensure GitHub Pages is enabled in the repository settings:
+- Go to `Settings > Pages` and set the source to GitHub Actions for the `web` branch (for the main landing page) or `main` branch (for full project).
 
 ### Automatic Deployment via the `web` Branch
 
@@ -123,31 +119,31 @@ Before deploying, the following must be configured by a repository administrator
    ```
 
 4. **Trigger the GitHub Actions workflow:**
-   The workflow file `.github/workflows/cloudflare_deploy.yml` is configured with:
+    The workflow file `.github/workflows/github_pages_deploy.yml` is configured with:
 
-   ```yaml
-   on:
-     push:
-       branches: [ web ]
-     pull_request:
-       branches: [ web ]
-   ```
+    ```yaml
+    on:
+      push:
+        branches: [ web ]
+      pull_request:
+        branches: [ web ]
+    ```
 
-   Pushing to `web` automatically triggers the `Deploy to Cloudflare Pages` job.
+    Pushing to `web` automatically triggers the `Deploy to GitHub Pages` job.
 
 5. **Monitor the deployment:**
-   - Go to the `Actions` tab in the GitHub repository.
-   - Select the `Deploy to Cloudflare Pages` workflow run.
-   - Verify that the job completes successfully.
+    - Go to the `Actions` tab in the GitHub repository.
+    - Select the `Deploy to GitHub Pages` workflow run.
+    - Verify that the job completes successfully.
 
 ### Deployment Workflow Details
 
 The workflow performs the following steps:
 
 1. Checks out the repository.
-2. Verifies that the `public/` directory exists.
-3. Creates the Cloudflare Pages project `simLab` (if it does not already exist) with the production branch set to `web`.
-4. Deploys the contents of `public/` to Cloudflare Pages.
+2. Sets up GitHub Pages.
+3. Uploads the `public/` directory as an artifact.
+4. Deploys to GitHub Pages.
 
 ### Notes
 

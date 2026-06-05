@@ -272,7 +272,7 @@
           BOOM BOOM + PixiJS/Canvas
           FastAPI + Supabase
           Mistral AI + Codestral
-          Cloudflare + Render
+          GitHub Pages + Render
         Impact
           1,000,000 students Year 1
           Open source MIT
@@ -343,20 +343,20 @@
             Mobile[Flutter wrapper Phase2+]
         end
         subgraph Edge
-            CF[Cloudflare Pages]
-        end
+GH[GitHub Pages]
+         end
         subgraph Backend
-            API[FastAPI on Render]
-            Cache[Redis cache]
+             API[FastAPI on Render]
+             Cache[Redis cache]
         end
         subgraph AI
-            Mistral[Mistral AI]
-            Codestral[Codestral debug]
+             Mistral[Mistral AI]
+             Codestral[Codestral debug]
         end
         subgraph Data
-            Supabase[(Supabase PG + Auth)]
+             Supabase[(Supabase PG + Auth)]
         end
-        Browser --> CF --> API
+        Browser --> GH --> API
         API --> Cache
         API --> Mistral
         API --> Codestral
@@ -406,7 +406,7 @@
         <caption><strong>Monthly infrastructure (MVP):</strong> ~$0.10</caption>
         <thead><tr><th>Service</th><th>Tier</th><th>Monthly cost</th></tr></thead>
         <tbody>
-            <tr><td>Cloudflare Pages</td><td>Free</td><td>$0</td></tr>
+            <tr><td>GitHub Pages</td><td>Free</td><td>$0</td></tr>
             <tr><td>Render backend</td><td>Free (sleep)</td><td>$0</td></tr>
             <tr><td>Supabase</td><td>Free</td><td>$0</td></tr>
             <tr><td>Upstash Redis</td><td>Free</td><td>$0</td></tr>
@@ -428,7 +428,7 @@
         <i class="fas fa-rocket"></i> <strong>Day 1 actions for the team:</strong><br>
         1. Create GitHub repository & add all 7 members.<br>
         2. Tech Lead volunteers and sets branch protection.<br>
-        3. Run `npm create vite` & deploy blank page to Cloudflare Pages.<br>
+        3. Run `npm create vite` & deploy blank page to GitHub Pages.<br>
         4. Merge first PR within 72 hours.<br>
         5. Weekly sync – every Sunday 5pm EAT.
     </div> -->
