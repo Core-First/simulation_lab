@@ -34,6 +34,9 @@
         <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
           <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
         </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
         <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
           <i class="fa-solid fa-moon"></i>
         </button>
@@ -185,10 +188,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/sorting-tour.js"></script>
 <script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sorting-audio.js"></script>
 <script>
 (function () {
   'use strict';
   const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
 
   function getHighlightLine(s) {
     if (s.t === 'pick')  return 5;
@@ -220,6 +225,15 @@
   let steps = [], si = 0, msAcc = 0;
   let timerInterval = null, startTime = 0;
 
+  // Smooth animation state
+  let curStep   = null;  // logical step currently being rendered
+  let animT     = 1.0;   // lerp progress 0→1
+  let animStart = 0;     // performance.now() when anim began
+  let animDur   = 160;   // ms
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+
   const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
 
   // ── Array generators ──────────────────────────────────────
@@ -246,44 +260,196 @@
       while(j>=0&&d[j]>key){
         out.push({t:'cmp',j,key:i,keyVal:key,boundary:i,arr:[...d]});
         d[j+1]=d[j];
-        out.push({t:'shift',from:j,to:j+1,boundary:i,arr:[...d]});
+        out.push({t:'shift',from:j,to:j+1,key:i,keyVal:key,boundary:i,arr:[...d]});
         j--;
       }
       d[j+1]=key;
-      out.push({t:'place',pos:j+1,boundary:i+1,arr:[...d]});
+      out.push({t:'place',pos:j+1,key:i,keyVal:key,boundary:i+1,arr:[...d]});
     }
     out.push({t:'done',arr:[...d]});
     return out;
   }
 
   const C={base:'#3b82f6',key:'#a78bfa',shift:'#f59e0b',sorted:'#22c55e'};
-  function draw(state) {
+
+  function _box(x,y,sz,fill,brd,txt,val,fs,glow,gsz){
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,sz,sz,9); ctx.fill();
+    if(glow){ctx.shadowBlur=gsz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;
+      ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+      ctx.shadowBlur=0;ctx.shadowColor='transparent';}
+    ctx.strokeStyle=brd;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.fillStyle=txt;ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
+  function _ghost(x,y,sz){
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#0a1818';ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.fill();
+    ctx.strokeStyle='#1a5858';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  function _keyBox(x,y,sz,val,fs){
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#f5a623';ctx.font=`bold 11px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('key',x+sz/2,y-3);
+    ctx.fillStyle='#1c1000';ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.fill();
+    ctx.shadowBlur=22;ctx.shadowColor='#f5a623';
+    ctx.strokeStyle='#f5a623';ctx.lineWidth=3;
+    ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.shadowBlur=0;ctx.shadowColor='transparent';
+    ctx.fillStyle='#ffffff';ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
+  function lerpColor(c1, c2, factor) {
+    const r1 = parseInt(c1.slice(1, 3), 16);
+    const g1 = parseInt(c1.slice(3, 5), 16);
+    const b1 = parseInt(c1.slice(5, 7), 16);
+    const r2 = parseInt(c2.slice(1, 3), 16);
+    const g2 = parseInt(c2.slice(3, 5), 16);
+    const b2 = parseInt(c2.slice(5, 7), 16);
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function draw(state, t=1.0) {
     const W=canvas.width, H=canvas.height, n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
-    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
     if(!n) return;
-    const maxV=Math.max(...arr), bW=Math.max(2,(W-n-1)/n), pH=32, pB=20, aH=H-pH-pB;
+
+    const gap=8;
+    const boxSize=Math.max(26, Math.min(56, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2;
+    const rowY=Math.round(H*0.62);        // main row
+    const floatY=rowY-boxSize-22;         // floating key y
+    const fs=Math.max(10,Math.min(20,Math.floor(boxSize*0.44)));
+    const ep=easeOut(Math.min(1,Math.max(0,t)));
     const s=state;
-    for(let k=0;k<n;k++){
-      const x=k*(bW+1), h=Math.max(3,(arr[k]/maxV)*aH), y=H-pB-h;
-      let col=C.base;
-      if(s){
-        if(s.t==='done'||(s.boundary&&k<s.boundary))col=C.sorted;
-        if(s.t==='cmp'&&k===s.j)col=C.shift;
-        if(s.t==='shift'&&(k===s.from||k===s.to))col=C.shift;
-        if((s.t==='pick'||s.t==='cmp')&&k===s.key)col=C.key;
-        if(s.t==='place'&&k===s.pos)col=C.key;
-      }
-      const g=ctx.createLinearGradient(x,y,x,y+h);
-      g.addColorStop(0,col); g.addColorStop(1,col+'88');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(x,y,bW,h,[3,3,0,0]); ctx.fill();
-      if(bW>=18){ ctx.fillStyle='#fff'; ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(arr[k],x+bW/2,y+2); }
+
+    // ── What's the current 'insertion-hole' ghost slot? ─────
+    // It starts at the pick position (s.key = i) and moves LEFT
+    // after each shift.  During 'cmp' j, hole is at j+1.
+    // During 'shift', hole animates from s.to → s.from.
+    let ghostSlot = -1;
+    if(s){
+      if(s.t==='pick')  ghostSlot = s.key;
+      else if(s.t==='cmp') ghostSlot = s.j+1;
+      else if(s.t==='shift') ghostSlot = s.from; // after shift completes
     }
+
+    // Animated ghost x (for shift: moves right-to-left)
+    let ghostX;
+    if(s && s.t==='shift'){
+      ghostX = lerpN(sx+s.to*(boxSize+gap), sx+s.from*(boxSize+gap), ep);
+    } else if(ghostSlot>=0){
+      ghostX = sx+ghostSlot*(boxSize+gap);
+    }
+
+    // Key hovers at ghost X
+    let keyX, keyY;
+    if(s && (s.t==='pick'||s.t==='cmp'||s.t==='shift')){
+      keyX = ghostX;
+      keyY = (s.t==='pick') ? lerpN(rowY, floatY, ep) : floatY;
+    } else if(s && s.t==='place'){
+      keyX = sx+s.pos*(boxSize+gap);
+      keyY = lerpN(floatY, rowY, ep);
+    }
+
+    // ── Draw regular slots ──────────────────────────────────
+    const skipSlots = new Set();
+    if(s && s.t==='shift'){
+      skipSlots.add(s.from);
+      skipSlots.add(s.to);
+    } else if(s && s.t==='place' && ep < 1.0){
+      skipSlots.add(s.pos);
+    } else if(ghostSlot>=0){
+      skipSlots.add(ghostSlot);
+    }
+
+    // Draw animating shift element (slides right)
+    if(s && s.t==='shift'){
+      const elemX = lerpN(sx+s.from*(boxSize+gap), sx+s.to*(boxSize+gap), ep);
+      _box(elemX,rowY,boxSize,'#241800','#fb923c','#fff',arr[s.to],fs,'#fb923c',14);
+    }
+
+    // Draw animated ghost
+    if(ghostX!==undefined){
+      _ghost(ghostX, rowY, boxSize);
+    }
+
+    // Draw static slots
+    for(let k=0;k<n;k++){
+      if(skipSlots.has(k)) continue;
+      const kx=sx+k*(boxSize+gap);
+
+      // Default teal
+      let fill='#0c2e2c',brd='#00bfa0',txt='#ccfff4',glow=null,gsz=0;
+
+      if(s){
+        // SORTED → solid bright green fill
+        if(s.t==='done'||(s.boundary&&k<s.boundary)){
+          fill='#007a50';brd='#22c55e';txt='#ffffff';
+        }
+        // Comparison target → amber glow
+        if(s.t==='cmp'&&k===s.j){
+          fill='#2a1600';brd='#f59e0b';txt='#fcd34d';glow='#f59e0b';gsz=14;
+        }
+        // Placed → green fill with green glow
+        if(s.t==='place'&&k===s.pos){
+          fill='#007a50';brd='#22c55e';txt='#ffffff';glow='#22c55e';gsz=16;
+        }
+      }
+      _box(kx,rowY,boxSize,fill,brd,txt,arr[k],fs,glow,gsz);
+    }
+
+    // ── Floating key (pick / cmp / shift) ──────────────────
+    if(s&&(s.t==='pick'||s.t==='cmp'||s.t==='shift')&&s.keyVal!=null){
+      _keyBox(keyX, keyY, boxSize, s.keyVal, fs);
+      // dashed connector
+      if(keyY<rowY-4){
+        ctx.strokeStyle='rgba(245,166,35,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(keyX+boxSize/2,keyY+boxSize);
+        ctx.lineTo(keyX+boxSize/2,rowY);ctx.stroke();ctx.setLineDash([]);
+      }
+    }
+
+    // ── Key dropping during place ───────────────────────────
+    if(s&&s.t==='place'&&ep<1.0){
+      // Lerp colors from gold (key) to green (placed/sorted)
+      const fillColor = lerpColor('#1c1000', '#007a50', ep);
+      const borderColor = lerpColor('#f5a623', '#22c55e', ep);
+      const textColor = '#ffffff';
+      
+      const glowColor = lerpColor('#f5a623', '#22c55e', ep);
+      const glowSize = lerpN(22, 16, ep);
+      
+      // Draw key label fading out
+      if(ep<0.8){
+        ctx.save();
+        ctx.globalAlpha=1-ep/0.8;
+        ctx.fillStyle='#f5a623';ctx.font=`bold 11px 'Segoe UI',sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        ctx.fillText('key',keyX+boxSize/2,keyY-3);
+        ctx.restore();
+      }
+      
+      _box(keyX, keyY, boxSize, fillColor, borderColor, textColor, s.keyVal != null ? s.keyVal : arr[s.pos], fs, glowColor, glowSize);
+    }
+
+    // ── Boundary divider ────────────────────────────────────
     if(s&&s.boundary&&s.boundary<n&&s.t!=='done'){
-      const lx=s.boundary*(bW+1)-1;
-      ctx.strokeStyle='rgba(167,139,250,.5)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
-      ctx.beginPath();ctx.moveTo(lx,pH);ctx.lineTo(lx,H-pB);ctx.stroke();ctx.setLineDash([]);
+      const lx=sx+s.boundary*(boxSize+gap)-gap/2;
+      ctx.shadowBlur=0;ctx.strokeStyle='rgba(167,139,250,0.5)';ctx.lineWidth=2;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(lx,rowY-14);ctx.lineTo(lx,rowY+boxSize+14);ctx.stroke();
+      ctx.setLineDash([]);
     }
   }
 
@@ -322,25 +488,60 @@ insertionSort(array);`;
 
   function step(s) {
     arr=[...s.arr];
-    if(s.t==='pick'){inserted++;}
-    else if(s.t==='cmp'){cmp++;}
-    else if(s.t==='shift'){shifts++;}
-    else if(s.t==='place'){}
-    else if(s.t==='done'){done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
-    updateCounters();draw(s);
+    if(s.t==='pick'){inserted++; sortingAudio.playTone(s.keyVal, arr);}
+    else if(s.t==='cmp'){cmp++; sortingAudio.playTone(arr[s.j], arr);}
+    else if(s.t==='shift'){shifts++; sortingAudio.playTone(arr[s.to], arr);}
+    else if(s.t==='place'){sortingAudio.playTone(arr[s.pos], arr);}
+    else if(s.t==='done'){done=true;running=false;stopClock();
+      document.getElementById('playBtn').disabled=false;
+      document.getElementById('pauseBtn').disabled=true;
+      sortingAudio.playSweep(arr);}
+    updateCounters();
     const hlLine = getHighlightLine(s);
     if (hlLine >= 0) codeSync.highlight(hlLine);
+    // draw() is called by tick() with animation progress
   }
 
   function tick(ts) {
     if(!running) return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      // animation finished — continue to step advancement below
+      lastTime = ts; msAcc = 0;
+    }
+
     const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
     const spd=getSpeed();
-    while(msAcc>=spd&&si<steps.length&&running){ step(steps[si++]); msAcc-=spd; }
+
+    while(msAcc>=spd && si<steps.length && running){
+      msAcc -= spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      // Determine if this step needs smooth animation
+      const needAnim = curStep.t==='shift'||curStep.t==='pick'||curStep.t==='place';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 220));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return; // pause step loop, wait for animation
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
+
     if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
   }
 
   function initState() {
+    sortingAudio.stop();
     original=buildArr(); arr=[...original];
     cmp=shifts=inserted=0; steps=[]; si=0; running=false; done=false;
     cancelAnimationFrame(rafId); stopClock();
@@ -351,6 +552,7 @@ insertionSort(array);`;
   }
 
   document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done){ initState(); return; }
     if(!steps.length) steps=computeSteps([...arr]);
     running=true;
@@ -365,11 +567,13 @@ insertionSort(array);`;
     document.getElementById('pauseBtn').disabled = true;
   });
   document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done) return;
     if(!steps.length) steps=computeSteps([...arr]);
     if(si<steps.length) step(steps[si++]);
   });
   document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     arr=[...original]; cmp=shifts=inserted=0; steps=[]; si=0; done=false;
     document.getElementById('playBtn').disabled  = false;
@@ -378,9 +582,11 @@ insertionSort(array);`;
     updateCounters(); updateCodeView(arr); draw();
   });
   document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock(); initState();
   });
   document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
     document.getElementById('arraySizeVal').textContent=this.value;
     if(!running) initState();
   });
@@ -388,6 +594,7 @@ insertionSort(array);`;
     const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
     const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
     if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     original=parsed; arr=[...parsed]; cmp=shifts=inserted=0; steps=[]; si=0; done=false;
     document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
