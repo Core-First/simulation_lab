@@ -34,6 +34,9 @@
         <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
           <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
         </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
         <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
           <i class="fa-solid fa-moon"></i>
         </button>
@@ -187,10 +190,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/sorting-tour.js"></script>
 <script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sorting-audio.js"></script>
 <script>
 (function () {
   'use strict';
   const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
 
   function getHighlightLine(s) {
     if (s.t === 'pivot')    return 12;
@@ -266,37 +271,113 @@
     return out;
   }
 
-  const COL={base:'#3b82f6',pvt:'#ef4444',bound_i:'#a78bfa',scan_j:'#f59e0b',placed:'#22c55e',activeBg:'rgba(255,255,255,.05)'};
-  function draw(state){
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+  // Smooth animation state
+  let curStep   = null;
+  let animT     = 1.0;
+  let animStart = 0;
+  let animDur   = 160;
+
+  function _box(x,y,sz,fill,brd,txt,val,fs,glow,gsz){
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,sz,sz,9); ctx.fill();
+    if(glow){
+      ctx.shadowBlur=gsz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;
+      ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+      ctx.shadowBlur=0;ctx.shadowColor='transparent';
+    }
+    ctx.strokeStyle=brd;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.fillStyle=txt;ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
+  function draw(state, t = 1.0){
     lastState=state;
     const W=canvas.width,H=canvas.height,n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
-    ctx.fillRect(0,0,W,H);if(!n)return;
-    const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
+    ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
+    if(!n)return;
+
+    const gap=6;
+    const boxSize=Math.max(26, Math.min(64, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2;
+    const sy=(H-boxSize)/2 - 10;
+    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
     const s=state;
+    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
     
-    if(s&&s.lo!=null&&s.hi!=null&&s.t!=='done'){
-      const ax=s.lo*(bW+1)-1,aw=(s.hi-s.lo+1)*(bW+1)+1;
-      ctx.fillStyle=COL.activeBg;ctx.fillRect(ax,pH-10,aw,aH+10);
-      ctx.strokeStyle='rgba(167,139,250,.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(ax,pH-10,aw,aH+10);ctx.setLineDash([]);
+    // Active range background highlight
+    if(s && s.lo!=null && s.hi!=null && s.t!=='done'){
+      const ax=sx+s.lo*(boxSize+gap)-gap/2;
+      const aw=(s.hi-s.lo+1)*(boxSize+gap);
+      ctx.fillStyle='rgba(167,139,250,0.06)';
+      ctx.beginPath();
+      ctx.roundRect(ax, sy-10, aw, boxSize+20, 8);
+      ctx.fill();
+      ctx.strokeStyle='rgba(167,139,250,0.35)';
+      ctx.lineWidth=1.5;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.roundRect(ax, sy-10, aw, boxSize+20, 8);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
 
+    const isSwapping = s && (s.t==='swap' || s.t==='swap-pvt');
+
+    // Draw static slots
     for(let k=0;k<n;k++){
-      const x=k*(bW+1),h=Math.max(3,(arr[k]/maxV)*aH),y=H-pB-h;
-      let col=COL.base;
+      if(isSwapping && (k===s.a || k===s.b)) continue;
+      const x=sx+k*(boxSize+gap), y=sy;
+      let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
+
       if(s){
-        if(s.t==='done'||sortedSet.has(k))col=COL.placed;
-        if(s.lo!=null&&k>=s.lo&&k<=s.hi&&!sortedSet.has(k)){
-          if(k===s.pvtIdx)col=COL.pvt;
-          if((s.t==='cmp'||s.t==='swap')&&k===s.i)col=COL.bound_i;
-          if((s.t==='cmp'||s.t==='swap')&&k===s.j)col=COL.scan_j;
-          if((s.t==='swap'||s.t==='swap-pvt')&&(k===s.a||k===s.b))col=COL.scan_j;
+        if(s.t==='done'||sortedSet.has(k)){
+          border='#22c55e'; fill='#007a50'; text='#ffffff';
+        } else if(s.lo!=null && k>=s.lo && k<=s.hi){
+          border='#a78bfa'; fill='#100e1f'; text='#c4b5fd';
+          
+          if(k===s.pvtIdx){
+            border='#ef4444'; fill='#24080c'; text='#fca5a5'; glow='#ef4444'; glowSz=14;
+          } else if(s.t==='cmp' && k===s.i){
+            border='#a78bfa'; fill='#100e1f'; text='#c4b5fd'; glow='#a78bfa'; glowSz=12;
+          } else if(s.t==='cmp' && k===s.j){
+            border='#f59e0b'; fill='#1c1000'; text='#fcd34d'; glow='#f59e0b'; glowSz=12;
+          }
         }
       }
-      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,col);g.addColorStop(1,col+'88');
-      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bW,h,[3,3,0,0]);ctx.fill();
-      if(bW>=18){ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(arr[k],x+bW/2,y+2);}
+
+      _box(x, y, boxSize, fill, border, text, arr[k], fs, glow, glowSz);
+    }
+
+    // Draw swapping slots
+    if(isSwapping){
+      const a = s.a, b = s.b;
+      const x_a_start = sx + b * (boxSize + gap);
+      const x_a_end   = sx + a * (boxSize + gap);
+      const x_b_start = sx + a * (boxSize + gap);
+      const x_b_end   = sx + b * (boxSize + gap);
+      
+      const x_a = lerpN(x_a_start, x_a_end, ep);
+      const x_b = lerpN(x_b_start, x_b_end, ep);
+      
+      const fill_a = (a===s.pvtIdx) ? '#24080c' : '#1c1000';
+      const border_a = (a===s.pvtIdx) ? '#ef4444' : '#f59e0b';
+      const text_a = (a===s.pvtIdx) ? '#fca5a5' : '#fcd34d';
+      const glow_a = (a===s.pvtIdx) ? '#ef4444' : '#f59e0b';
+      const glowSz_a = (a===s.pvtIdx) ? 14 : 12;
+      
+      const fill_b = (b===s.pvtIdx) ? '#24080c' : '#1c1000';
+      const border_b = (b===s.pvtIdx) ? '#ef4444' : '#f59e0b';
+      const text_b = (b===s.pvtIdx) ? '#fca5a5' : '#fcd34d';
+      const glow_b = (b===s.pvtIdx) ? '#ef4444' : '#f59e0b';
+      const glowSz_b = (b===s.pvtIdx) ? 14 : 12;
+
+      _box(x_a, sy, boxSize, fill_a, border_a, text_a, arr[a], fs, glow_a, glowSz_a);
+      _box(x_b, sy, boxSize, fill_b, border_b, text_b, arr[b], fs, glow_b, glowSz_b);
     }
   }
 
@@ -343,33 +424,85 @@ quickSort(array);`;
 
   function step(s){
     arr=[...s.arr];
-    if(s.t==='pivot'){if(s.depth>maxDepth)maxDepth=s.depth;}
-    else if(s.t==='cmp'){cmpTotal++;}
-    else if(s.t==='swap'){swpTotal++;}
-    else if(s.t==='swap-pvt'){swpTotal++;}
-    else if(s.t==='placed'){sortedSet.add(s.idx);}
-    else if(s.t==='done'){for(let i=0;i<arr.length;i++)sortedSet.add(i);done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
-    updCounters();draw(s);
+    if(s.t==='pivot'){if(s.depth>maxDepth)maxDepth=s.depth; sortingAudio.playTone(arr[s.pvtIdx], arr);}
+    else if(s.t==='cmp'){cmpTotal++; sortingAudio.playTone(arr[s.j], arr);}
+    else if(s.t==='swap'){swpTotal++; sortingAudio.playTone(arr[s.a], arr);}
+    else if(s.t==='swap-pvt'){swpTotal++; sortingAudio.playTone(arr[s.a], arr);}
+    else if(s.t==='placed'){sortedSet.add(s.idx); sortingAudio.playTone(arr[s.idx], arr);}
+    else if(s.t==='done'){for(let i=0;i<arr.length;i++)sortedSet.add(i);done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;sortingAudio.playSweep(arr);}
+    updCounters();
     const hlLine = getHighlightLine(s);
     if (hlLine >= 0) codeSync.highlight(hlLine);
   }
 
-  function tick(ts){if(!running)return;const dt=ts-lastTime;lastTime=ts;msAcc+=dt;const spd=getSpeed();while(msAcc>=spd&&si<steps.length&&running){step(steps[si++]);msAcc-=spd;}if(si<steps.length&&running)rafId=requestAnimationFrame(tick);}
+  function tick(ts){
+    if(!running)return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      lastTime = ts; msAcc = 0;
+    }
+
+    const dt=ts-lastTime;lastTime=ts;msAcc+=dt;
+    const spd=getSpeed();
+
+    while(msAcc>=spd&&si<steps.length&&running){
+      msAcc-=spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      const needAnim = curStep.t==='swap' || curStep.t==='swap-pvt';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 250));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return;
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
+    if(si<steps.length&&running)rafId=requestAnimationFrame(tick);
+  }
 
   function initState(){
+    sortingAudio.stop();
     original=buildArr();arr=[...original];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;running=false;done=false;sortedSet=new Set();lastState=null;
+    curStep=null; animT=1.0;
     cancelAnimationFrame(rafId);stopClock();
     document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;
     document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);
   }
 
-  document.getElementById('playBtn').addEventListener('click',()=>{if(done){initState();return;}if(!steps.length)steps=buildSteps([...arr]);running=true;document.getElementById('playBtn').disabled=true;document.getElementById('pauseBtn').disabled=false;startClock();lastTime=performance.now();msAcc=0;rafId=requestAnimationFrame(tick);});
+  document.getElementById('playBtn').addEventListener('click',()=>{
+    sortingAudio.initContext();
+    if(done){initState();return;}if(!steps.length)steps=buildSteps([...arr]);running=true;document.getElementById('playBtn').disabled=true;document.getElementById('pauseBtn').disabled=false;startClock();lastTime=performance.now();msAcc=0;rafId=requestAnimationFrame(tick);});
   document.getElementById('pauseBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;});
-  document.getElementById('stepBtn').addEventListener('click',()=>{if(done)return;if(!steps.length)steps=buildSteps([...arr]);if(si<steps.length)step(steps[si++]);});
-  document.getElementById('resetBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();arr=[...original];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
-  document.getElementById('newArrayBtn').addEventListener('click',()=>{running=false;cancelAnimationFrame(rafId);stopClock();initState();});
-  document.getElementById('arraySize').addEventListener('input',function(){document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
-  document.getElementById('applyCustomBtn').addEventListener('click',()=>{const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+  document.getElementById('stepBtn').addEventListener('click',()=>{
+    sortingAudio.initContext();
+    if(done)return;if(!steps.length)steps=buildSteps([...arr]);if(si<steps.length)step(steps[si++]);});
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    sortingAudio.stop();
+    running=false;cancelAnimationFrame(rafId);stopClock();arr=[...original];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
+  document.getElementById('newArrayBtn').addEventListener('click',()=>{
+    sortingAudio.stop();
+    running=false;cancelAnimationFrame(rafId);stopClock();initState();});
+  document.getElementById('arraySize').addEventListener('input',function(){
+    sortingAudio.stop();
+    document.getElementById('arraySizeVal').textContent=this.value;if(!running)initState();});
+  document.getElementById('applyCustomBtn').addEventListener('click',()=>{
+    const raw=document.getElementById('customArr').value.trim();if(!raw)return;const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);if(parsed.length<2){alert('Enter at least 2 valid numbers');return;}
+    sortingAudio.stop();
+    running=false;cancelAnimationFrame(rafId);stopClock();original=parsed;arr=[...parsed];cmpTotal=swpTotal=maxDepth=0;steps=[];si=0;done=false;sortedSet=new Set();lastState=null;
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;document.getElementById('elapsedTime').textContent='0.0s';updCounters();updateCodeView(arr);draw(null);});
 
   const KB={explain:'Quick Sort is a divide and conquer algorithm. It picks an element as pivot, and partitions the array around the picked pivot so that elements smaller than the pivot are on the left, and elements greater are on the right.',worst:'If the smallest or largest element is always picked as the pivot (e.g. sorted array using last element as pivot), the array is partitioned into n-1 and 0 elements. This happens n times, giving O(n²) complexity.',lomuto:'Lomuto partitioning picks the last element as the pivot. It maintains an index i for smaller elements. As it scans with j, if it finds an element smaller than the pivot, it swaps it with the element at i and increments i.',vs:'Merge sort is always O(n log n) and stable, but needs O(n) space. Quick sort is O(n²) worst case and not stable, but sorts in-place (O(log n) stack) and is much faster in practice due to contiguous memory access (cache locality).',fix:'To avoid O(n²), use random pivot selection, or pick the median of the first, middle, and last elements as the pivot. This guarantees good partitions most of the time.',default:'Watch the red pivot. The yellow bar (j) scans for smaller elements, and swaps them to the purple boundary (i). At the end, the pivot is placed exactly in its correct sorted position.'};
   function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('partition')||l.includes('how'))return KB.explain;if(l.includes('worst')||l.includes('n²')||l.includes('n2'))return KB.worst;if(l.includes('lomuto')||l.includes('hoare'))return KB.lomuto;if(l.includes('merge')||l.includes('vs'))return KB.vs;if(l.includes('fix')||l.includes('random')||l.includes('median'))return KB.fix;return KB.default;}

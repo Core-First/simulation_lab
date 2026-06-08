@@ -34,6 +34,9 @@
         <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
           <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
         </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
         <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
           <i class="fa-solid fa-moon"></i>
         </button>
@@ -185,10 +188,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/sorting-tour.js"></script>
 <script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sorting-audio.js"></script>
 <script>
 (function () {
   'use strict';
   const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
 
   function getHighlightLine(s) {
     if (s.type === 'pass')    return 4;  // for (let i = 0; i < n - 1; i++)
@@ -259,25 +264,80 @@
   }
 
   const COLORS = { base:'#3b82f6', compare:'#f59e0b', swap:'#ef4444', sorted:'#22c55e' };
-  function draw(state) {
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+  // Smooth animation state
+  let curStep   = null;
+  let animT     = 1.0;
+  let animStart = 0;
+  let animDur   = 160;
+
+  function draw(state, t = 1.0) {
     const W=canvas.width, H=canvas.height, n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
-    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
     if(!n) return;
-    const maxV=Math.max(...arr), bW=Math.max(2,(W-n-1)/n), pH=32, pB=20, aH=H-pH-pB;
+    const gap=6;
+    const boxSize=Math.max(28, Math.min(64, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2, sy=(H-boxSize)/2;
+    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
+
+    // Draw static slots (skipping the active swapping pair)
     for(let k=0;k<n;k++){
-      const x=k*(bW+1), h=Math.max(3,(arr[k]/maxV)*aH), y=H-pB-h;
-      let col=COLORS.base;
+      if(state && state.type==='swap' && (k===state.a || k===state.b)) continue;
+      
+      const x=sx+k*(boxSize+gap), y=sy;
+      let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
       if(state){
-        if(state.type==='done'||sortedIndices.has(k)) col=COLORS.sorted;
-        if(state.type==='compare'&&(k===state.a||k===state.b)) col=COLORS.compare;
-        if(state.type==='swap'&&(k===state.a||k===state.b)) col=COLORS.swap;
+        if(state.type==='done'||sortedIndices.has(k)){border='#22c55e';fill='#007a50';text='#ffffff';}
+        if(state.type==='compare'&&(k===state.a||k===state.b)){border='#f59e0b';fill='#1a1000';text='#fcd34d';glow='#f59e0b';glowSz=14;}
       }
-      const g=ctx.createLinearGradient(x,y,x,y+h);
-      g.addColorStop(0,col); g.addColorStop(1,col+'88');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(x,y,bW,h,[3,3,0,0]); ctx.fill();
-      if(bW>=18){ ctx.fillStyle='#fff'; ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(arr[k],x+bW/2,y+2); }
+      
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.fill();
+      if(glow){ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x,y,boxSize,boxSize,8);ctx.stroke();}
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[k], x+boxSize/2, y+boxSize/2);
+    }
+
+    // Draw swapping slots
+    if(state && state.type==='swap'){
+      const a = state.a, b = state.b;
+      const x_a_start = sx + b * (boxSize + gap);
+      const x_a_end   = sx + a * (boxSize + gap);
+      const x_b_start = sx + a * (boxSize + gap);
+      const x_b_end   = sx + b * (boxSize + gap);
+      
+      const x_a = lerpN(x_a_start, x_a_end, ep);
+      const x_b = lerpN(x_b_start, x_b_end, ep);
+      
+      const fill='#1a0808', border='#ef4444', text='#fca5a5', glow='#ef4444', glowSz=18;
+      
+      // Draw box A
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_a,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[a], x_a+boxSize/2, sy+boxSize/2);
+      
+      // Draw box B
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_b,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[b], x_b+boxSize/2, sy+boxSize/2);
     }
   }
 
@@ -320,34 +380,62 @@ bubbleSort(array);`;
   function step(s) {
     arr = [...s.arr];
     if(s.type==='pass')    { pass=s.pass;  }
-    if(s.type==='compare') { cmp++;  }
-    if(s.type==='swap')    { swp++;  }
+    if(s.type==='compare') { cmp++; sortingAudio.playTone(arr[s.a], arr); }
+    if(s.type==='swap')    { swp++; sortingAudio.playTone(arr[s.a], arr); }
     if(s.type==='sorted')  { sortedIndices.add(s.idx);  }
     if(s.type==='done')    {
       for(let k=0;k<arr.length;k++) sortedIndices.add(k);
       done=true; running=false; stopClock();
-      
       document.getElementById('playBtn').disabled  = false;
       document.getElementById('pauseBtn').disabled = true;
+      sortingAudio.playSweep(arr);
     }
     updateCounters();
-    draw(s);
     const hlLine = getHighlightLine(s);
     if (hlLine >= 0) codeSync.highlight(hlLine);
   }
 
   function tick(ts) {
     if(!running) return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      // animation finished
+      lastTime = ts; msAcc = 0;
+    }
+
     const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
     const spd=getSpeed();
-    while(msAcc>=spd&&si<steps.length&&running){ step(steps[si++]); msAcc-=spd; }
+
+    while(msAcc>=spd&&si<steps.length&&running){
+      msAcc -= spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      const needAnim = curStep.type==='swap';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 250));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return;
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
     if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
   }
 
   function initState() {
+    sortingAudio.stop();
     original=buildArr(); arr=[...original];
     cmp=swp=pass=0; steps=[]; si=0; running=false; done=false;
-    sortedIndices=new Set();
+    sortedIndices=new Set(); curStep=null; animT=1.0;
     cancelAnimationFrame(rafId); stopClock();
     document.getElementById('playBtn').disabled  = false;
     document.getElementById('pauseBtn').disabled = true;
@@ -356,6 +444,7 @@ bubbleSort(array);`;
   }
 
   document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done){ initState(); return; }
     if(!steps.length) steps=computeSteps([...arr]);
     running=true;
@@ -370,22 +459,27 @@ bubbleSort(array);`;
     document.getElementById('pauseBtn').disabled = true;
   });
   document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done) return;
     if(!steps.length) steps=computeSteps([...arr]);
     if(si<steps.length) step(steps[si++]);
   });
   document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     arr=[...original]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    curStep=null; animT=1.0;
     document.getElementById('playBtn').disabled  = false;
     document.getElementById('pauseBtn').disabled = true;
     document.getElementById('elapsedTime').textContent='0.0s';
     updateCounters(); updateCodeView(arr); draw();
   });
   document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock(); initState();
   });
   document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
     document.getElementById('arraySizeVal').textContent=this.value;
     if(!running) initState();
   });
@@ -393,8 +487,10 @@ bubbleSort(array);`;
     const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
     const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
     if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     original=parsed; arr=[...parsed]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    curStep=null; animT=1.0;
     document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
     document.getElementById('elapsedTime').textContent='0.0s';
     updateCounters(); updateCodeView(arr); draw();

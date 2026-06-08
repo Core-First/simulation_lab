@@ -34,6 +34,9 @@
         <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
           <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
         </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
         <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
           <i class="fa-solid fa-moon"></i>
         </button>
@@ -185,10 +188,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/sorting-tour.js"></script>
 <script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sorting-audio.js"></script>
 <script>
 (function () {
   'use strict';
   const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
 
   function getHighlightLine(s) {
     if (s.t === 'divide')      return 4;
@@ -268,36 +273,79 @@
     out.push({t:'merge-done',lo,hi,depth,arr:[...data]});
   }
 
-  const COL={base:'#3b82f6',active:'#a78bfa',cmp:'#60a5fa',placed:'#22c55e'};
+  function _box(x,y,sz,fill,brd,txt,val,fs,glow,gsz){
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,sz,sz,9); ctx.fill();
+    if(glow){
+      ctx.shadowBlur=gsz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;
+      ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+      ctx.shadowBlur=0;ctx.shadowColor='transparent';
+    }
+    ctx.strokeStyle=brd;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.fillStyle=txt;ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
   function draw(state){
     lastState=state;
     const W=canvas.width,H=canvas.height,n=arr.length;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface-2').trim()||'#16223d';
-    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
     if(!n)return;
-    const maxV=Math.max(...arr),bW=Math.max(2,(W-n-1)/n),pH=32,pB=20,aH=H-pH-pB;
+
+    const gap=6;
+    const boxSize=Math.max(26, Math.min(64, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2;
+    const sy=(H-boxSize)/2 - 15;
+    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+
     const activeRange=state&&(state.lo!=null)?new Set(Array.from({length:state.hi-state.lo+1},(_,i)=>state.lo+i)):new Set();
 
     for(let k=0;k<n;k++){
-      const x=k*(bW+1),h=Math.max(3,(arr[k]/maxV)*aH),y=H-pB-h;
-      let col=COL.base;
+      const x=sx+k*(boxSize+gap), y=sy;
+      let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
+
       if(state){
-        if(state.t==='done')col=COL.placed;
-        else if(activeRange.has(k))col=COL.active;
-        if(state.t==='merge-cmp'&&(k===state.lo||k===state.mid+1))col=COL.cmp;
-        if(state.t==='merge-place'&&k===state.pos)col=COL.placed;
-        if(state.t==='merge-done')col=COL.placed;
+        if(state.t==='done') {
+          border='#22c55e'; fill='#007a50'; text='#ffffff';
+        } else if(activeRange.has(k)) {
+          border='#a78bfa'; fill='#100e1f'; text='#c4b5fd'; glow='#a78bfa'; glowSz=12;
+        }
+
+        if(state.t==='merge-cmp' && (k===state.lo || k===state.mid+1)) {
+          border='#f59e0b'; fill='#1a1000'; text='#fcd34d'; glow='#f59e0b'; glowSz=14;
+        }
+
+        if(state.t==='merge-place' && k===state.pos) {
+          border='#22c55e'; fill='#007a50'; text='#ffffff'; glow='#22c55e'; glowSz=16;
+        }
+
+        if(state.t==='merge-done' && activeRange.has(k)) {
+          border='#22c55e'; fill='#007a50'; text='#ffffff';
+        }
       }
-      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,col);g.addColorStop(1,col+'88');
-      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bW,h,[3,3,0,0]);ctx.fill();
-      if(bW>=18){ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(11,bW-4)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(arr[k],x+bW/2,y+2);}
+
+      _box(x, y, boxSize, fill, border, text, arr[k], fs, glow, glowSz);
     }
+
     if(state&&state.lo!=null&&state.hi!=null&&state.t!=='done'){
-      const x1=state.lo*(bW+1),x2=(state.hi+1)*(bW+1)-1;
+      const x1=sx+state.lo*(boxSize+gap)-gap/2;
+      const x2=sx+state.hi*(boxSize+gap)+boxSize+gap/2;
+      const bracketY=sy+boxSize+10;
       ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(x1,H-pB+4);ctx.lineTo(x1,H-pB+10);ctx.lineTo(x2,H-pB+10);ctx.lineTo(x2,H-pB+4);ctx.stroke();
-      if(state.depth!=null){ctx.fillStyle='rgba(167,139,250,.7)';ctx.font='10px Segoe UI';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(`depth=${state.depth}`,(x1+x2)/2,H-pB+12);}
+      ctx.beginPath();
+      ctx.moveTo(x1,bracketY);
+      ctx.lineTo(x1,bracketY+8);
+      ctx.lineTo(x2,bracketY+8);
+      ctx.lineTo(x2,bracketY);
+      ctx.stroke();
+
+      if(state.depth!=null){
+        ctx.fillStyle='rgba(167,139,250,.7)';ctx.font='11px Segoe UI';
+        ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(`depth = ${state.depth}`,(x1+x2)/2,bracketY+12);
+      }
     }
   }
 
@@ -341,10 +389,10 @@ array = mergeSort(array);`;
     arr=[...s.arr];
     if(s.t==='divide'){if(s.depth>maxDepth)maxDepth=s.depth;}
     else if(s.t==='merge-start'){mergeTotal++;}
-    else if(s.t==='merge-cmp'){cmpTotal++;}
-    else if(s.t==='merge-place'){}
+    else if(s.t==='merge-cmp'){cmpTotal++; sortingAudio.playTone(s.lv, arr);}
+    else if(s.t==='merge-place'){sortingAudio.playTone(arr[s.pos], arr);}
     else if(s.t==='merge-done'){}
-    else if(s.t==='done'){done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;}
+    else if(s.t==='done'){done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;sortingAudio.playSweep(arr);}
     updateCounters();draw(s);
     const hlLine = getHighlightLine(s);
     if (hlLine >= 0) codeSync.highlight(hlLine);
@@ -359,6 +407,7 @@ array = mergeSort(array);`;
   }
 
   function initState() {
+    sortingAudio.stop();
     original=buildArr(); arr=[...original];
     cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; running=false; done=false; lastState=null;
     cancelAnimationFrame(rafId); stopClock();
@@ -369,6 +418,7 @@ array = mergeSort(array);`;
   }
 
   document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done){ initState(); return; }
     if(!steps.length) steps=buildSteps([...arr]);
     running=true;
@@ -383,11 +433,13 @@ array = mergeSort(array);`;
     document.getElementById('pauseBtn').disabled = true;
   });
   document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
     if(done) return;
     if(!steps.length) steps=buildSteps([...arr]);
     if(si<steps.length) step(steps[si++]);
   });
   document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     arr=[...original]; cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; done=false; lastState=null;
     document.getElementById('playBtn').disabled  = false;
@@ -396,9 +448,11 @@ array = mergeSort(array);`;
     updateCounters(); updateCodeView(arr); draw(null);
   });
   document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock(); initState();
   });
   document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
     document.getElementById('arraySizeVal').textContent=this.value;
     if(!running) initState();
   });
@@ -406,6 +460,7 @@ array = mergeSort(array);`;
     const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
     const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
     if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
     running=false; cancelAnimationFrame(rafId); stopClock();
     original=parsed; arr=[...parsed]; cmpTotal=mergeTotal=maxDepth=0; steps=[]; si=0; done=false; lastState=null;
     document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
