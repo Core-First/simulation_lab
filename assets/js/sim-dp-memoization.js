@@ -18,36 +18,36 @@ function toggleMemoizationSetting() {
 const lineExplanations = {
   fibonacci: {
     memo: [
-      'Function declaration with memo array to cache results.',
-      'Return cached value immediately if already computed.',
-      'Base case: return n directly for fib(0) and fib(1).',
-      'Recursive step: store fib(n-1) + fib(n-2) in memo and return it.',
+      "Function declaration with memo array to cache results.",
+      "Return cached value immediately if already computed.",
+      "Base case: return n directly for fib(0) and fib(1).",
+      "Recursive step: store fib(n-1) + fib(n-2) in memo and return it.",
     ],
     naive: [
-      'Function declaration without memoization.',
-      'Base case: return n for fib(0) and fib(1).',
-      'Direct recursive computation of fib(n-1) + fib(n-2).',
+      "Function declaration without memoization.",
+      "Base case: return n for fib(0) and fib(1).",
+      "Direct recursive computation of fib(n-1) + fib(n-2).",
     ],
   },
   coinchange: {
     memo: [
-      'Function declaration with memo object to cache results.',
-      'Return cached result if this amount has been computed before.',
-      'Base case: zero coins needed for zero amount.',
-      'Initialize minimum coins to infinity.',
-      'Iterate through each coin denomination.',
-      'Only consider coins that do not exceed the current amount.',
-      'Recursive call to find minimum coins for the remaining amount.',
-      'Store the minimum result in memo and return it.',
+      "Function declaration with memo object to cache results.",
+      "Return cached result if this amount has been computed before.",
+      "Base case: zero coins needed for zero amount.",
+      "Initialize minimum coins to infinity.",
+      "Iterate through each coin denomination.",
+      "Only consider coins that do not exceed the current amount.",
+      "Recursive call to find minimum coins for the remaining amount.",
+      "Store the minimum result in memo and return it.",
     ],
     naive: [
-      'Function declaration without memoization.',
-      'Base case: zero coins needed for zero amount.',
-      'Initialize minimum coins to infinity.',
-      'Iterate through each coin denomination.',
-      'Only consider coins that do not exceed the current amount.',
-      'Direct recursive computation of minCoins for remaining amount + 1.',
-      'Return the minimum number of coins found.',
+      "Function declaration without memoization.",
+      "Base case: zero coins needed for zero amount.",
+      "Initialize minimum coins to infinity.",
+      "Iterate through each coin denomination.",
+      "Only consider coins that do not exceed the current amount.",
+      "Direct recursive computation of minCoins for remaining amount + 1.",
+      "Return the minimum number of coins found.",
     ],
   },
 };
@@ -111,7 +111,7 @@ function initSimulationProblem() {
   document.getElementById("quizOverlay").style.display = "none";
   const btnQuiz = document.getElementById("btnQuiz");
   if (btnQuiz) btnQuiz.classList.remove("visible");
-  
+
   const problem = document.getElementById("algoProblem").value;
   const size = parseInt(document.getElementById("inputSize").value) || 5;
   const isMemo = document
@@ -129,7 +129,7 @@ function initSimulationProblem() {
   codeEditor.innerHTML = lines
     .map(
       (l, i) =>
-        `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ''}">ⓘ</span></span>`,
+        `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ""}">ⓘ</span></span>`,
     )
     .join("");
 
@@ -458,16 +458,18 @@ function renderTreeSnapshot() {
 let quizState = {
   currentQuestion: 0,
   answers: [],
-  completed: false
+  completed: false,
 };
 
 const quizQuestions = {
   fibonacci: [
     {
-      question: "What is the time complexity of the naive recursive Fibonacci algorithm?",
+      question:
+        "What is the time complexity of the naive recursive Fibonacci algorithm?",
       options: ["O(N)", "O(2ᴺ)", "O(N²)", "O(log N)"],
       correct: 1,
-      explanation: "The naive Fibonacci makes two recursive calls per step, creating a binary tree of height N, resulting in exponential O(2ᴺ) time complexity."
+      explanation:
+        "The naive Fibonacci makes two recursive calls per step, creating a binary tree of height N, resulting in exponential O(2ᴺ) time complexity.",
     },
     {
       question: "How does memoization improve the Fibonacci calculation?",
@@ -475,24 +477,28 @@ const quizQuestions = {
         "It eliminates recursion entirely",
         "It stores computed values to avoid redundant calculations",
         "It reduces space complexity to O(1)",
-        "It parallelizes the computation"
+        "It parallelizes the computation",
       ],
       correct: 1,
-      explanation: "Memoization caches results of subproblems, ensuring each value is computed only once, reducing time to O(N)."
+      explanation:
+        "Memoization caches results of subproblems, ensuring each value is computed only once, reducing time to O(N).",
     },
     {
       question: "What is the space complexity of memoized Fibonacci?",
       options: ["O(1)", "O(N)", "O(2ᴺ)", "O(N²)"],
       correct: 1,
-      explanation: "The memo table stores N values, giving O(N) space complexity, plus the recursion stack depth O(N)."
-    }
+      explanation:
+        "The memo table stores N values, giving O(N) space complexity, plus the recursion stack depth O(N).",
+    },
   ],
   coinchange: [
     {
-      question: "Which coins are available for the coin change problem in this simulation?",
+      question:
+        "Which coins are available for the coin change problem in this simulation?",
       options: ["[1, 5, 10]", "[1, 2, 3]", "[2, 5, 10]", "[1, 5, 25]"],
       correct: 1,
-      explanation: "The simulation uses denominations [1, 2, 3] to demonstrate the coin change algorithm."
+      explanation:
+        "The simulation uses denominations [1, 2, 3] to demonstrate the coin change algorithm.",
     },
     {
       question: "What does a cache hit indicate in the coin change algorithm?",
@@ -500,10 +506,11 @@ const quizQuestions = {
         "A coin was found in the pocket",
         "The solution for that amount was already computed",
         "The algorithm hit a base case",
-        "An error occurred in computation"
+        "An error occurred in computation",
       ],
       correct: 1,
-      explanation: "A cache hit means the minimum coins for that amount were previously computed and stored."
+      explanation:
+        "A cache hit means the minimum coins for that amount were previously computed and stored.",
     },
     {
       question: "What is the key principle of Dynamic Programming?",
@@ -511,46 +518,51 @@ const quizQuestions = {
         "Always use iteration over recursion",
         "Solve problems by breaking them into overlapping subproblems and caching results",
         "Use the fastest possible sorting algorithm",
-        "Avoid using any additional memory"
+        "Avoid using any additional memory",
       ],
       correct: 1,
-      explanation: "Dynamic Programming solves overlapping subproblems once and stores results for future reference."
-    }
-  ]
+      explanation:
+        "Dynamic Programming solves overlapping subproblems once and stores results for future reference.",
+    },
+  ],
 };
 
 // Quiz Functions
 function showQuiz() {
   const problem = document.getElementById("algoProblem").value;
   quizState = { currentQuestion: 0, answers: [], completed: false };
-  
+
   const overlay = document.getElementById("quizOverlay");
   overlay.style.display = "flex";
-  
+
   const title = document.getElementById("quizTitle");
   title.innerHTML = `<i class="fa-solid fa-circle-question"></i> DP Concept Quiz: ${problem === "fibonacci" ? "Fibonacci" : "Coin Change"}`;
-  
+
   renderQuizQuestion(problem);
 }
 
 function renderQuizQuestion(problem) {
   const questions = quizQuestions[problem];
   const q = questions[quizState.currentQuestion];
-  
-  document.getElementById("quizProgress").innerText = 
+
+  document.getElementById("quizProgress").innerText =
     `Question ${quizState.currentQuestion + 1} of ${questions.length}`;
   document.getElementById("quizQuestion").innerText = q.question;
   document.getElementById("quizOptions").innerHTML = q.options
-    .map((opt, i) => 
-      `<div class="quiz-option" data-index="${i}" onclick="selectQuizOption(this, ${i})">${opt}</div>`
-    ).join("");
+    .map(
+      (opt, i) =>
+        `<div class="quiz-option" data-index="${i}" onclick="selectQuizOption(this, ${i})">${opt}</div>`,
+    )
+    .join("");
   document.getElementById("quizFeedback").classList.remove("show");
   document.getElementById("quizSubmit").disabled = true;
   document.getElementById("quizSubmit").innerText = "Submit Answer";
 }
 
 function selectQuizOption(el, index) {
-  document.querySelectorAll(".quiz-option").forEach(opt => opt.classList.remove("selected"));
+  document
+    .querySelectorAll(".quiz-option")
+    .forEach((opt) => opt.classList.remove("selected"));
   el.classList.add("selected");
   document.getElementById("quizSubmit").disabled = false;
 }
@@ -559,28 +571,29 @@ function submitQuizAnswer() {
   const problem = document.getElementById("algoProblem").value;
   const questions = quizQuestions[problem];
   const selected = document.querySelector(".quiz-option.selected");
-  
+
   if (!selected) return;
-  
+
   const selectedIndex = parseInt(selected.dataset.index);
   const correctIndex = questions[quizState.currentQuestion].correct;
-  
+
   quizState.answers.push({
     question: quizState.currentQuestion,
     selected: selectedIndex,
-    correct: correctIndex
+    correct: correctIndex,
   });
-  
+
   document.querySelectorAll(".quiz-option").forEach((opt, i) => {
     opt.classList.remove("selected");
     if (i === correctIndex) opt.classList.add("correct");
-    else if (i === selectedIndex && selectedIndex !== correctIndex) opt.classList.add("incorrect");
+    else if (i === selectedIndex && selectedIndex !== correctIndex)
+      opt.classList.add("incorrect");
   });
-  
+
   const feedback = document.getElementById("quizFeedback");
   feedback.innerText = questions[quizState.currentQuestion].explanation;
   feedback.className = `quiz-feedback ${selectedIndex === correctIndex ? "correct" : "incorrect"} show`;
-  
+
   document.getElementById("quizSubmit").innerText = "Continue";
   document.getElementById("quizSubmit").onclick = advanceQuiz;
 }
@@ -588,7 +601,7 @@ function submitQuizAnswer() {
 function advanceQuiz() {
   const problem = document.getElementById("algoProblem").value;
   const questions = quizQuestions[problem];
-  
+
   if (quizState.currentQuestion < questions.length - 1) {
     quizState.currentQuestion++;
     renderQuizQuestion(problem);
@@ -599,29 +612,32 @@ function advanceQuiz() {
 }
 
 function showQuizResults() {
-  const correct = quizState.answers.filter(a => a.selected === a.correct).length;
+  const correct = quizState.answers.filter(
+    (a) => a.selected === a.correct,
+  ).length;
   const total = quizState.answers.length;
   const score = Math.round((correct / total) * 100);
-  
+
   document.querySelector(".quiz-content").style.display = "none";
   document.querySelector(".quiz-actions").style.display = "none";
   document.getElementById("quizResults").style.display = "block";
-  
-  document.getElementById("quizScore").innerHTML = 
+
+  document.getElementById("quizScore").innerHTML =
     `<i class="fa-solid fa-star"></i> ${score}%`;
-  
+
   document.getElementById("quizSummary").innerHTML = quizState.answers
     .map((a, i) => {
       const problem = document.getElementById("algoProblem").value;
       const q = quizQuestions[problem][a.question];
       return `<div class="quiz-summary-item">
         <span>Q${i + 1}: ${a.selected === a.correct ? '<span style="color:var(--success)">Correct</span>' : '<span style="color:var(--danger)">Incorrect</span>'}</span>
-        <span>${a.selected === a.correct ? '✓' : '✗'}</span>
+        <span>${a.selected === a.correct ? "✓" : "✗"}</span>
       </div>`;
-    }).join("");
-  
+    })
+    .join("");
+
   quizState.completed = true;
-  
+
   document.getElementById("quizRestart").onclick = restartQuiz;
   document.getElementById("quizClose").onclick = () => {
     document.getElementById("quizOverlay").style.display = "none";
@@ -697,7 +713,7 @@ function hideNodeTooltip() {
 // Self-start application frame on script evaluation
 window.addEventListener("DOMContentLoaded", () => {
   initSimulationProblem();
-  
+
   document.getElementById("quizSubmit").onclick = submitQuizAnswer;
   document.getElementById("quizSkip").onclick = closeQuiz;
 });
