@@ -98,12 +98,13 @@ If you generate code that assumes a React build environment, Webpack, or an API 
 
 ### Branch Strategy
 
-| Branch  | Purpose |
-|---------|---------|
-| `stage` | Production-ready code; always contains a running, stable project before any merge to `main` |
-| `develop` | Integration branch for features; contains the latest development work |
-| `main` | Stable production release branch |
-| `hotfix/*` | Contains fixes from personal feature branches to be merged into `develop` |
+| Branch       | Purpose |
+|--------------|---------|
+| `stage`      | Production-ready code; always contains a running, stable project before any merge to `main` |
+| `develop`    | Integration branch for features; contains the latest development work |
+| `main`       | Stable production release branch |
+| `feature/*`  | Personal feature branches containing new features being developed |
+| `hotfix/*`   | Contains urgent fixes to be merged into `develop` |
 
 ### Branch Usage
 
