@@ -20,7 +20,7 @@ themeBtn.addEventListener("click", () => {
   applyTheme(next);
 });
 
-// Sidebar active state (top-level links only � skip nested submenu links here)
+// Sidebar active state (top-level links only — skip nested submenu links here)
 document
   .querySelectorAll("nav > .nav-link-custom, .sidebar-footer .nav-link-custom")
   .forEach((link) => {
@@ -116,25 +116,25 @@ const simPaths = {
 const dsaRoot = document.querySelector("#dsaMenu .submenu");
 dsaData.forEach((p, i) => {
   const partId = `dsaPart${i}`;
-  const isReady = i === 0 || i == 5;
+  const isReady = i === 0 || i === 1 || i === 5;
   const li = document.createElement("li");
   li.innerHTML = `
-      <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
-        <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid" style="width:10px;height:10px;></span>' : ""}
-        <i class="fa-solid fa-chevron-right chev"></i>
-      </button>
-      <div class="collapse" id="${partId}"> 
-        <ul class="submenu">
-          ${p.sims
-            .map((s) => {
-              const href = simPaths[s] || "#";
-              const hasGlow = simPaths[s] && href !== "#";
-              return `<li><a href="${href}" class="sub-link">${hasGlow ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : '<i class="fa-solid fa-circle"></i>'} ${s}</a></li>`;
-            })
-            .join("")}
-        </ul>
-      </div>
-    `;
+    <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
+      <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : ""}
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </button>
+    <div class="collapse" id="${partId}">
+      <ul class="submenu">
+        ${p.sims
+          .map((s) => {
+            const href = simPaths[s] || "#";
+            const hasGlow = simPaths[s] && href !== "#";
+            return `<li><a href="${href}" class="sub-link">${hasGlow ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : '<i class="fa-solid fa-circle"></i>'} ${s}</a></li>`;
+          })
+          .join("")}
+      </ul>
+    </div>
+  `;
   dsaRoot.appendChild(li);
 });
 
