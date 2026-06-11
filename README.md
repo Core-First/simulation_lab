@@ -94,6 +94,46 @@ If you are participating in this project using "vibe coding" (generating large c
 
 If you generate code that assumes a React build environment, Webpack, or an API backend, your pull request will be rejected. Please vibe responsibly.
 
+## Git Workflow
+
+### Branch Strategy
+
+| Branch       | Purpose |
+|--------------|---------|
+| `stage`      | Production-ready code; always contains a running, stable project before any merge to `main` |
+| `develop`    | Integration branch for features; contains the latest development work |
+| `main`       | Stable production release branch |
+| `feature/*`  | Personal feature branches containing new features being developed |
+| `hotfix/*`   | Contains urgent fixes to be merged into `develop` |
+
+### Branch Usage
+
+**`stage`** - Currently serves as the pre-production branch. Always contains a running, stable project before any merge to `main`. Use this for final testing and staging.
+
+**`develop`** - The primary integration branch. All completed features should be merged here. This is where CI/CD pipelines run tests and quality checks.
+
+**`hotfix/*`** - Used for urgent fixes. Branch from `develop`, apply the fix, then merge back into `develop` via pull request.
+
+### Pull Request Process
+
+1. Create a personal feature branch from `develop`:
+   ```bash
+   git checkout develop
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Make your changes and commit with clear messages.
+
+3. Open a pull request **against `develop`** (not `main` or `stage`):
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+   Then open PR via GitHub UI or `gh pr create --base develop`.
+
+4. Ensure CI checks pass and get approval before merge.
+
+5. After merge, the feature will be integrated into `develop` and eventually promoted to `stage` for staging tests.
+
 ## License
 
 Will be validated later

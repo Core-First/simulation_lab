@@ -1,21 +1,34 @@
 # Security Policy
 
 ## Supported Versions
-
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| main    | :white_check_mark: |
 
 ## Reporting a Vulnerability
+Please report security vulnerabilities via GitHub Issues. Response within 72 hours.
 
-Use this section to tell people how to report a vulnerability.
+## Security Considerations
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+### Client-Side Architecture
+This is a purely client-side educational application with no backend services, databases, or server-side processing. All code executes in the browser.
+
+### Local Storage
+- Theme preference stored in `localStorage` (non-sensitive data only)
+- No personally identifiable information or credentials stored
+
+### External Dependencies
+- Bootstrap 5.3.2 (CDN)
+- Font Awesome 6.4.2 (CDN)
+- Uses Subresource Integrity (SRI) should be added for production CDN links
+
+### Potential Attack Vectors
+- XSS: All user interactions are UI-only; no input fields accept arbitrary data
+- CSP: Consider adding Content-Security-Policy header if deployed on custom domain
+- No authentication/authorization mechanisms required
+
+### Recommendations
+- Add SRI attributes to external CDN script/style tags
+- Implement CSP headers: `default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net`
+- Enable HTTPS for all deployments
+- Regular dependency audit on Bootstrap and Font Awesome versions
