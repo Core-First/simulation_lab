@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Singly Linked List Simulator (C)</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #0f172a; color: #e2e8f0; }
+    h1, h2 { color: #60a5fa; }
+    .container { max-width: 1200px; margin: auto; }
+    .viz { border: 3px solid #60a5fa; padding: 25px; background: #1e2937; border-radius: 16px; min-height: 220px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .node { border: 3px solid #3b82f6; padding: 15px 20px; border-radius: 12px; background: #1e40af; text-align: center; min-width: 90px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; transition: all 0.6s; }
+    .node.new { animation: popIn 0.6s ease; background: #22c55e; }
+    .node.removing { animation: removeNode 0.6s ease forwards; }
+    .node::after { content: '→'; position: absolute; right: -25px; top: 50%; font-size: 28px; color: #f87171; }
+    .node:last-child::after { content: 'NULL'; color: #4ade80; font-weight: bold; }
+    
+    @keyframes popIn { from { transform: scale(0.3) translateY(-30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    @keyframes removeNode { to { transform: scale(0.4) rotate(-15deg); opacity: 0; } }
+
+    button { padding: 12px 18px; margin: 6px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #2563eb; }
+    .controls { margin: 20px 0; }
+    input { padding: 10px; margin: 5px; border-radius: 6px; border: none; width: 110px; }
+    
+    .code { background: #1e2937; color: #67e8f9; padding: 18px; border-radius: 12px; overflow-x: auto; font-family: monospace; white-space: pre; margin: 15px 0; }
+    .log { background: #1e2937; border: 1px solid #475569; padding: 12px; height: 160px; overflow-y: auto; font-family: monospace; }
+    
+    .quiz { background: #1e2937; padding: 25px; border-radius: 16px; margin: 25px 0; border: 2px solid #64748b; }
+    .feedback { margin: 15px 0; padding: 14px; border-radius: 8px; font-weight: bold; }
+    .correct { background: #166534; color: #86efac; }
+    .wrong { background: #7f1d1d; color: #fda4af; }
+    .next-btn { background: #22c55e; padding: 14px 28px; font-size: 1.1em; margin-top: 15px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🧬 Singly Linked List Simulator (C Programming)</h1>
+  <p><strong>Animation + Sound + Improved Quiz with Next Button</strong></p>
+
+  <div class="viz" id="visual"></div>
+
+  <div class="controls">
+    <h2>Operations</h2>
+    <button onclick="insertBegin()">Insert at Beginning</button>
+    <button onclick="insertEnd()">Insert at End</button>
+    <button onclick="insertAtPos()">Insert at Position</button>
+    <button onclick="deleteBegin()">Delete Beginning</button>
+    <button onclick="deleteEnd()">Delete End</button>
+    <button onclick="deleteAtPos()">Delete at Position</button>
+    <button onclick="search()">Search</button>
+    <button onclick="resetList()" style="background:#ef4444;">Reset</button>
+  </div>
+
+  <input type="number" id="value" placeholder="Value" value="42">
+  <input type="number" id="position" placeholder="Position (1-based)" value="1">
+
+  <h2>Operation Log</h2>
+  <div class="log" id="log"></div>
+
+  <h2>Real C Code</h2>
+  <pre class="code" id="codeDisplay">/* Click any operation to see C code */</pre>
+
+  <h2>🧠 Practice Quiz (20 Questions)</h2>
+  <div class="quiz" id="quizContainer">
+    <button onclick="startQuiz()" style="padding:15px 30px; font-size:1.1em;">Start 20-Question Quiz</button>
+  </div>
+</div>
+
+<script>
+// Audio (same as before)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(freq, duration, type = 'sine', volume = 0.3) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.value = freq; gain.gain.value = volume;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  setTimeout(() => osc.stop(), duration);
+}
+
+function playCrackSound() {
+  playSound(120, 80, 'sawtooth', 0.6);
+  setTimeout(() => playSound(80, 120, 'sawtooth', 0.5), 50);
+  setTimeout(() => playSound(200, 60, 'square', 0.4), 120);
+}
+
+let list = [];
+
+// Render, log, showCode (same)
+function render(highlight = -1) {
+  const viz = document.getElementById('visual');
+  viz.innerHTML = list.length === 0 ? 
+    '<p style="color:#64748b; font-size:1.2em;">Empty List → Head = NULL</p>' : 
+    list.map((val, i) => {
+      const node = document.createElement('div');
+      node.className = `node ${i===highlight ? 'new' : ''}`;
+      node.innerHTML = `<strong>${val}</strong><br><small>Node ${i+1}</small>`;
+      return node.outerHTML;
+    }).join('');
+}
+
+function log(msg) {
+  const logDiv = document.getElementById('log');
+  logDiv.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+function showCode(title, code) {
+  document.getElementById('codeDisplay').textContent = `// ${title}\n${code}`;
+}
+
+// Operations (same as previous)
+async function insertBegin() {
+  const val = parseInt(document.getElementById('value').value) || 42;
+  list.unshift(val);
+  playSound(800, 150);
+  render(0);
+  log(`Inserted ${val} at Beginning`);
+  showCode("Insert at Beginning", `struct Node* insertBegin(struct Node* head, int data) {\n    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));\n    newNode->data = data;\n    newNode->next = head;\n    return newNode;\n}`);
+}
+
+async function insertEnd() { /* ... same as before */ 
+  const val = parseInt(document.getElementById('value').value) || 42;
+  list.push(val);
+  playSound(600, 200);
+  render(list.length-1);
+  log(`Inserted ${val} at End`);
+}
+
+async function deleteBegin() {
+  if (!list.length) return;
+  playCrackSound();
+  const val = list.shift();
+  render();
+  log(`Deleted ${val} from Beginning`);
+}
+
+async function deleteEnd() {
+  if (!list.length) return;
+  playCrackSound();
+  const val = list.pop();
+  render();
+  log(`Deleted ${val} from End`);
+}
+
+async function deleteAtPos() {
+  let pos = parseInt(document.getElementById('position').value) || 1;
+  if (pos < 1 || pos > list.length) return;
+  playCrackSound();
+  const val = list.splice(pos-1, 1)[0];
+  render();
+  log(`Deleted ${val} at Position ${pos}`);
+}
+
+async function insertAtPos() {
+  const val = parseInt(document.getElementById('value').value) || 77;
+  let pos = parseInt(document.getElementById('position').value) || 1;
+  if (pos < 1) pos = 1; if (pos > list.length+1) pos = list.length+1;
+  list.splice(pos-1, 0, val);
+  playSound(700, 250);
+  render(pos-1);
+  log(`Inserted ${val} at Position ${pos}`);
+}
+
+function search() {
+  const val = parseInt(document.getElementById('value').value);
+  if (isNaN(val)) return;
+  const idx = list.indexOf(val);
+  idx !== -1 ? (playSound(900,400), log(`Found ${val} at pos ${idx+1}`), render(idx)) : 
+               (playSound(300,600,'sawtooth'), log(`${val} not found`));
+}
+
+function resetList() {
+  list = [];
+  document.getElementById('log').innerHTML = '';
+  render();
+  log('List Reset');
+}
+
+// ==================== QUIZ WITH NEXT BUTTON ====================
+const quizQuestions = [
+  {q: "What is the time complexity of inserting at the beginning?", a: "O(1)", o: ["O(1)","O(n)","O(log n)","O(n²)"]},
+  {q: "How is the end of a singly linked list indicated?", a: "Next pointer is NULL", o: ["Next pointer is NULL","Next points to head","Next is -1","Next points to tail"]},
+  {q: "Which operation usually needs full traversal?", a: "Insert at End (without tail)", o: ["Insert at Beginning","Insert at End (without tail)","Delete from Beginning","Search by index"]},
+  {q: "What should you do when deleting from empty list?", a: "Do nothing (handle edge case)", o: ["Crash","Do nothing (handle edge case)","Return random","Infinite loop"]},
+  {q: "Memory allocation for new node in C?", a: "malloc()", o: ["malloc()","new","calloc()","alloc()"]},
+  {q: "Function to free memory of a node?", a: "free()", o: ["free()","delete","release()","destroy()"]},
+  {q: "Main advantage of linked list over array?", a: "Dynamic size", o: ["Dynamic size","Faster access","Less memory","Fixed size"]},
+  {q: "Biggest disadvantage of singly linked list?", a: "Cannot go backwards easily", o: ["Cannot go backwards easily","Uses more memory","Slower access","All of above"]},
+  {q: "A node in linked list contains?", a: "Data + Next pointer", o: ["Data + Next pointer","Only data","Only pointer","Array of data"]},
+  {q: "Head pointer always points to?", a: "First node", o: ["First node","Last node","Middle node","NULL"]},
+  {q: "Time complexity of searching an element?", a: "O(n)", o: ["O(1)","O(log n)","O(n)","O(n²)"]},
+  {q: "Can we insert a node before the current head?", a: "Yes, by returning new head", o: ["Yes, by returning new head","No","Only at end","Depends"]},
+  {q: "Last node's next pointer should be?", a: "NULL", o: ["NULL","Head","Previous","Garbage"]},
+  {q: "To delete a node (not first), you need pointer to?", a: "Previous node", o: ["Previous node","The node only","Head only","Next node"]},
+  {q: "Linked list is best when we need?", a: "Frequent insertions/deletions", o: ["Frequent insertions/deletions","Frequent random access","Small fixed size","Sorting"]},
+  {q: "What does 'traversal' mean?", a: "Visiting each node once", o: ["Visiting each node once","Sorting","Reversing","Merging"]},
+  {q: "Can singly linked list implement Stack?", a: "Yes", o: ["Yes","No","Only Queue","Only Deque"]},
+  {q: "Good real-world use of singly linked list?", a: "Adjacency list in graphs", o: ["Adjacency list in graphs","Binary search","Large sorting","Matrix"]},
+  {q: "If head is NULL, the list is?", a: "Empty", o: ["Empty","Full","One node","Invalid"]},
+  {q: "How to reverse a singly linked list?", a: "Three pointer technique", o: ["Three pointer technique","Swap head","Recursion only","Impossible"]}
+];
+
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  currentQuestion = 0;
+  score = 0;
+  answered = false;
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  const q = quizQuestions[currentQuestion];
+  let html = `<h3>Question ${currentQuestion + 1} / 20</h3>
+              <p><strong>${q.q}</strong></p>`;
+
+  q.o.forEach(opt => {
+    html += `<button onclick="selectAnswer('${opt}', '${q.a}')" style="display:block; width:100%; margin:8px 0; padding:12px;">${opt}</button>`;
+  });
+
+  html += `<p style="margin-top:20px;">Score: <strong>${score}</strong> / ${currentQuestion}</p>`;
+  document.getElementById('quizContainer').innerHTML = html;
+}
+
+function selectAnswer(selected, correct) {
+  if (answered) return;
+  answered = true;
+
+  const isCorrect = selected === correct;
+  if (isCorrect) score++;
+
+  const feedbackHTML = isCorrect ?
+    `<div class="feedback correct">✅ Correct! Well done.</div>` :
+    `<div class="feedback wrong">❌ Wrong. The correct answer is: <strong>${correct}</strong></div>`;
+
+  // Add feedback and Next button
+  const container = document.getElementById('quizContainer');
+  container.innerHTML += feedbackHTML + 
+    `<button class="next-btn" onclick="nextQuestion()">Next Question →</button>`;
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < quizQuestions.length) {
+    showQuestion();
+  } else {
+    // Final Result
+    document.getElementById('quizContainer').innerHTML = `
+      <h2>Quiz Completed! 🎉</h2>
+      <h3>Your Final Score: ${score} / 20</h3>
+      <p>${score >= 16 ? "Excellent! You really understand Singly Linked Lists!" : 
+           score >= 12 ? "Good Job! Review the weak areas." : 
+           "Keep practicing. You will improve!"}</p>
+      <button onclick="startQuiz()" style="padding:15px 30px;">Restart Quiz</button>
+    `;
+  }
+}
+
+// Initialize Simulator
+render();
+log("🚀 Simulator Ready! Quiz now has Next button.");
+</script>
+</body>
+</html>
