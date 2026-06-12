@@ -1,288 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Stack & Queue Visualizer | Live C Code Execution Style</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stack &amp; Queue — Part 3 | ATC SimLab</title>
+  <meta name="description" content="Interactive Stack and Queue visualiser with LIFO/FIFO animations, real C code display, and a 10-question practice quiz." />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
   <link href="../assets/css/simulation-base.css" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0; padding: 0; display: block; overflow-y: auto;
-      font-family: 'Segoe UI', 'Fira Code', 'Consolas', monospace;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      margin: 20px 0;
-    }
-
-    h1 {
-      font-size: 2rem;
-      background: linear-gradient(135deg, var(--warning), #38bdf8);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: -0.5px;
-    }
-
-    .badge {
+    /* ── Stack visualization ─────────────────────────────────── */
+    .ds-viz-wrap {
       background: var(--surface-2);
-      padding: 6px 14px;
-      border-radius: 60px;
-      font-size: 0.75rem;
-      font-weight: 500;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .ds-viz-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       color: var(--muted);
-      border: 1px solid var(--border);
-    }
-
-    .ds-panel {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 28px;
-      margin: 20px 0 20px;
-    }
-
-    .card {
-      flex: 1;
-      min-width: 300px;
-      background: var(--surface);
-      backdrop-filter: blur(4px);
-      border: 1px solid var(--border);
-      border-radius: 36px;
-      padding: 20px 22px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    .card h2 {
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 1.6rem;
-      border-left: 6px solid var(--warning);
-      padding-left: 16px;
-      margin-bottom: 20px;
-      color: var(--text);
+      gap: 6px;
     }
 
-    .viz-stack, .viz-queue {
-      background: var(--bg);
-      border-radius: 28px;
-      min-height: 260px;
-      padding: 20px 12px;
+    /* Stack — vertical column (newest on top) */
+    .stack-col {
       display: flex;
       flex-direction: column-reverse;
       align-items: center;
-      gap: 12px;
-      border: 1px solid var(--border);
-      margin: 15px 0;
+      gap: 6px;
+      min-height: 140px;
+      padding: 8px 0;
     }
 
     .stack-item {
-      background: var(--surface-2);
+      background: var(--surface);
       border: 2px solid var(--warning);
-      padding: 12px 20px;
-      width: 85%;
+      border-radius: 8px;
+      padding: 8px 20px;
+      width: 90%;
       text-align: center;
-      border-radius: 60px;
-      font-weight: bold;
-      font-size: 1.2rem;
+      font-weight: 700;
+      font-size: 1rem;
       color: var(--text);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
       animation: slideUp 0.3s ease;
+      position: relative;
     }
 
-    .queue-container {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 14px;
-      align-items: center;
-      min-height: 110px;
-    }
-
-    .queue-item {
-      background: var(--surface-2);
-      border: 2px solid var(--primary);
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: var(--text);
-      min-width: 70px;
-      text-align: center;
-      animation: popIn 0.25s ease;
-    }
-
-    .empty-msg {
-      color: var(--muted);
-      font-style: italic;
-      padding: 20px;
+    .stack-item.top-marker::after {
+      content: "← TOP";
+      position: absolute;
+      right: -54px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--warning);
     }
 
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes popIn {
-      from { transform: scale(0.7); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
     }
 
-    .controls {
-      background: var(--bg);
-      padding: 15px 20px;
-      border-radius: 32px;
-      margin-top: 15px;
-      border: 1px solid var(--border);
-    }
-
-    button {
-      background: var(--primary);
-      border: none;
-      padding: 8px 18px;
-      margin: 6px 6px;
-      border-radius: 40px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.85rem;
-    }
-
-    button:hover {
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-    }
-
-    .danger-btn {
-      background: var(--danger);
-    }
-    .danger-btn:hover {
-      filter: brightness(1.1);
-    }
-
-    input {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 40px;
-      color: var(--text);
-      width: 130px;
-      margin: 6px;
-    }
-
-    .code-section {
-      margin: 20px 0;
-      background: var(--bg);
-      border-radius: 24px;
-      padding: 6px;
-      border: 1px solid var(--border);
-    }
-
-    .code-header {
+    /* Queue — horizontal row */
+    .queue-row {
       display: flex;
-      justify-content: space-between;
+      flex-direction: row;
       align-items: center;
-      padding: 12px 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 60px;
+      padding: 8px 0;
+    }
+
+    .queue-item {
       background: var(--surface);
-      border-radius: 18px 18px 0 0;
-      font-weight: bold;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      text-align: center;
+      min-width: 58px;
+      animation: popIn 0.25s ease;
+      position: relative;
     }
 
-    .code-dots {
-      display: flex;
-      gap: 6px;
-    }
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    .d-red { background: var(--danger); }
-    .d-yel { background: var(--warning); }
-    .d-grn { background: var(--success); }
-
-    .c-code {
-      padding: 20px;
-      font-family: 'Fira Code', 'Consolas', monospace;
-      font-size: 0.95rem;
-      white-space: pre-wrap;
-      overflow-x: auto;
+    .queue-item .q-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
       color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 2px;
     }
 
-    /* Logs */
-    .logs-wrapper {
-      margin-top: 20px;
+    .queue-arrow {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    @keyframes popIn {
+      from { transform:scale(0.6); opacity:0; }
+      to   { transform:scale(1);   opacity:1; }
+    }
+
+    .ds-empty-msg {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 12px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* ── Controls area ───────────────────────────────────────── */
+    .op-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 10px 0 6px;
+    }
+
+    .sim-input {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 16px;
-      min-height: 120px;
-      max-height: 250px;
-      overflow-y: auto;
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 90px;
+      transition: border-color 0.2s;
     }
-    .log-entry {
-      padding: 6px 0;
-      border-bottom: 1px dashed var(--border);
-      font-size: 0.9rem;
+    .sim-input:focus { outline: none; border-color: var(--primary); }
+
+    /* ── Log ─────────────────────────────────────────────────── */
+    .op-log {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      height: 120px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
       color: var(--text);
     }
-    .log-err {
-      color: var(--danger);
-      font-weight: bold;
-    }
-
-    .quiz-section {
-      background: var(--surface);
-      border-radius: 32px;
-      padding: 20px;
-      margin-top: 30px;
-      border: 1px solid var(--border);
-    }
-
-    .feedback {
-      padding: 12px;
-      border-radius: 28px;
-      margin: 15px 0;
-    }
-    .correct { background: rgba(34,197,94,0.2); color: var(--success); border-left: 6px solid var(--success); }
-    .wrong { background: rgba(239,68,68,0.2); color: var(--danger); border-left: 6px solid var(--danger); }
+    .op-log-entry { border-bottom: 1px dashed var(--border); padding: 3px 0; }
+    .op-log-entry:last-child { border-bottom: none; }
+    .op-log-err { color: var(--danger); }
   </style>
 </head>
-<body>
+<body class="sim-page">
+<div class="main">
 
-  <!-- Header Bar -->
+  <!-- Topbar -->
   <header class="topbar">
     <div class="page-title">
-      <i class="fa-solid fa-layer-group text-primary me-2"></i> Part 3: Linear Data Structures &nbsp;›&nbsp; Stack & Queue
+      <i class="fa-solid fa-layer-group text-primary me-2"></i>
+      Part 3: Linear Data Structures &nbsp;›&nbsp; Stack &amp; Queue
     </div>
-    <div class="topbar-right d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
       <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
         <i class="fa-solid fa-volume-high"></i>
-      </button>
-      <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
-        <i class="fa-solid fa-moon"></i> <span>Dark Mode</span>
       </button>
       <a href="../index.html" class="back-btn">
         <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
@@ -290,94 +182,125 @@
     </div>
   </header>
 
-<div class="container">
-  <div class="header">
-    <h1>📚 Stack & Queue: C Code + Live Simulation</h1>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span class="badge">⚡ LIFO / FIFO | Real-time C implementations</span>
-    </div>
-  </div>
+  <div class="sim-body">
 
-  <div class="ds-panel">
-    <!-- STACK CARD -->
-    <div class="card">
-      <h2>🥞 STACK (LIFO)</h2>
-      <div id="stackViz" class="viz-stack">
-        <div class="empty-msg">⬆️ Stack is empty (Top = -1)</div>
-      </div>
-      <div class="controls">
-        <button id="stackPushBtn">📥 Push (C)</button>
-        <button id="stackPopBtn">📤 Pop (C)</button>
-        <button id="stackPeekBtn">🔍 Peek (C)</button>
-        <button id="stackResetBtn" class="danger-btn">🗑️ Reset Stack</button>
-        <input type="number" id="stackValue" placeholder="Value" value="42">
-      </div>
-    </div>
+    <!-- ══ LEFT PANEL: Dual Visualizations ═══════════════════════ -->
+    <div class="left-panel">
 
-    <!-- QUEUE CARD -->
-    <div class="card">
-      <h2>🚦 QUEUE (FIFO)</h2>
-      <div id="queueViz" class="viz-stack" style="flex-direction: column;">
-        <div id="queueItems" class="queue-container">
-          <div class="empty-msg">🚪 Queue is empty (Front = Rear = -1)</div>
+      <!-- ─ STACK ─ -->
+      <div class="panel-title">
+        <span><i class="fa-solid fa-layer-group text-warning me-1"></i> Stack (LIFO)</span>
+        <span id="stackSizeBadge" style="font-size:11px; color:var(--muted);">0 items</span>
+      </div>
+      <div class="ds-viz-wrap">
+        <div class="stack-col" id="stackViz">
+          <div class="ds-empty-msg">Stack is empty — Top = −1</div>
         </div>
       </div>
-      <div class="controls">
-        <button id="queueEnqueueBtn">➕ Enqueue (C)</button>
-        <button id="queueDequeueBtn">➖ Dequeue (C)</button>
-        <button id="queueFrontBtn">👀 Front (C)</button>
-        <button id="queueResetBtn" class="danger-btn">🔄 Reset Queue</button>
-        <input type="number" id="queueValue" placeholder="Value" value="100">
+
+      <!-- ─ QUEUE ─ -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span><i class="fa-solid fa-arrow-right-arrow-left text-info me-1"></i> Queue (FIFO)</span>
+        <span id="queueSizeBadge" style="font-size:11px; color:var(--muted);">0 items</span>
+      </div>
+      <div class="ds-viz-wrap">
+        <div style="font-size:10px; color:var(--muted); display:flex; gap:16px; margin-bottom:6px;">
+          <span>⬅ DEQUEUE (front)</span><span style="margin-left:auto;">ENQUEUE (rear) ➡</span>
+        </div>
+        <div class="queue-row" id="queueViz">
+          <div class="ds-empty-msg">Queue is empty — Front = Rear = −1</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-item"><i class="fa-solid fa-layer-group"></i> Stack: <span id="statStackSize" class="stat-value">0</span></div>
+        <div class="stat-item"><i class="fa-solid fa-arrow-right-arrow-left"></i> Queue: <span id="statQueueSize" class="stat-value">0</span></div>
+        <div class="stat-item"><i class="fa-solid fa-bolt"></i> Ops: <span id="statOps" class="stat-value">0</span></div>
       </div>
     </div>
-  </div>
 
-  <!-- EXECUTABLE C CODE DISPLAY - shows complete functions -->
-  <div class="code-section">
-    <div class="code-header">
-      <span>📟 C Implementation (ready to compile)</span>
-      <span style="font-size:0.7rem;">// Click any operation → full C function appears</span>
-    </div>
-    <div class="c-code" id="cCodeDisplay">
-      /* Welcome to Stack & Queue C Simulator */<br>
-      /* Click any push/pop/enqueue/dequeue to see the full C code */
-    </div>
-  </div>
+    <!-- ══ RIGHT PANEL: Controls + Code + Log + Quiz ═════════════ -->
+    <div class="right-panel">
 
-  <div class="logs-wrapper" id="globalLog">[system] Stack & Queue ready — C code snippets shown for each operation. 🧠</div>
+      <!-- Controls -->
+      <div class="panel-card" id="tour-controls">
+        <div class="panel-title">Controls &amp; Operations</div>
 
-  <!-- QUIZ SECTION -->
-  <div class="quiz-section" id="quizContainer">
-    <h3>📖 Stack & Queue Fundamentals Quiz (10 questions)</h3>
-    <button onclick="showQuizOverlay()" style="background:var(--success); padding: 12px 28px;"><i class="fa-solid fa-graduation-cap"></i> Start Practice Quiz</button>
-  </div>
-</div>
+        <!-- Stack controls -->
+        <div class="op-group-title"><i class="fa-solid fa-layer-group text-warning me-1"></i> Stack</div>
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+          <input type="number" id="stackValue" class="sim-input" value="42" placeholder="Value" />
+          <button class="btn-control btn-play"  id="btnStackPush"><i class="fa-solid fa-arrow-up"></i> Push</button>
+          <button class="btn-control btn-pause" id="btnStackPop"><i class="fa-solid fa-arrow-down"></i> Pop</button>
+          <button class="btn-control btn-step"  id="btnStackPeek"><i class="fa-solid fa-eye"></i> Peek</button>
+          <button class="btn-control btn-reset" id="btnStackReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+        </div>
+
+        <!-- Queue controls -->
+        <div class="op-group-title" style="margin-top:14px;"><i class="fa-solid fa-arrow-right-arrow-left text-info me-1"></i> Queue</div>
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+          <input type="number" id="queueValue" class="sim-input" value="100" placeholder="Value" />
+          <button class="btn-control btn-play"  id="btnQueueEnqueue"><i class="fa-solid fa-plus"></i> Enqueue</button>
+          <button class="btn-control btn-pause" id="btnQueueDequeue"><i class="fa-solid fa-minus"></i> Dequeue</button>
+          <button class="btn-control btn-step"  id="btnQueueFront"><i class="fa-solid fa-eye"></i> Front</button>
+          <button class="btn-control btn-reset" id="btnQueueReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+        </div>
+
+        <div class="controls-row" style="margin-top:14px;">
+          <button class="btn-control btn-quiz visible" onclick="showQuizOverlay()" style="display:inline-flex;">
+            <i class="fa-solid fa-circle-question"></i> Take Quiz
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Playground -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <span>C Code — Execution Synchronizer</span>
+          <i class="fa-solid fa-terminal" style="color:var(--muted)"></i>
+        </div>
+        <div class="code-editor-wrapper">
+          <div class="code-editor" id="codePlayground" style="min-height:180px; max-height:280px; overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Operation Log -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <span><i class="fa-solid fa-list-check me-1"></i> Operation Log</span>
+          <button class="btn btn-outline-secondary btn-sm" id="clearLogBtn" style="font-size:10px;">Clear</button>
+        </div>
+        <div class="op-log" id="opLog"></div>
+      </div>
+
+    </div><!-- right-panel -->
+  </div><!-- sim-body -->
+</div><!-- main -->
 
 <!-- Quiz Overlay -->
-<div class="quiz-overlay" id="quizOverlay" style="display: none">
+<div class="quiz-overlay" id="quizOverlay" style="display:none">
   <div class="quiz-backdrop"></div>
   <div class="quiz-modal">
     <div class="quiz-header">
-      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Stack & Queue Quiz</h3>
-      <div class="quiz-progress">
-        <span id="quizProgress">Question 1 of 10</span>
-      </div>
+      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Stack &amp; Queue Quiz</h3>
+      <div class="quiz-progress"><span id="quizProgress">Question 1 of 10</span></div>
     </div>
     <div class="quiz-content">
       <div class="quiz-question" id="quizQuestion"></div>
-      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-options"  id="quizOptions"></div>
       <div class="quiz-feedback" id="quizFeedback"></div>
     </div>
     <div class="quiz-actions">
-      <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+      <button class="btn-control btn-reset" id="quizSkip" style="display:none">Skip Quiz</button>
       <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
     </div>
-    <div class="quiz-results" id="quizResults" style="display: none">
+    <div class="quiz-results" id="quizResults" style="display:none">
       <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
-      <div class="quiz-score" id="quizScore"></div>
+      <div class="quiz-score"   id="quizScore"></div>
       <div class="quiz-summary" id="quizSummary"></div>
       <div class="quiz-actions">
-        <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+        <button class="btn-control btn-step"  id="quizRestart">Retry Quiz</button>
         <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
       </div>
     </div>
@@ -387,63 +310,17 @@
 <script src="../assets/js/theme-toggle.js"></script>
 <script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sim-audio.js"></script>
-
+<script src="../assets/js/code-sync.js"></script>
 <script>
-  // ---------- Data Models ----------
-  let stack = [];       // array as stack (top is last)
-  let queue = [];       // simple FIFO queue
+(function () {
+  'use strict';
 
-  // DOM elements
-  const stackVizDiv = document.getElementById('stackViz');
-  const queueItemsDiv = document.getElementById('queueItems');
-  const cCodeDisplay = document.getElementById('cCodeDisplay');
-  const globalLogDiv = document.getElementById('globalLog');
+  // ── CodeSync ──────────────────────────────────────────────────
+  const codeSync = new CodeSync('codePlayground');
 
-  // Audio — using shared sim-audio module
-  function initAudio() {
-    if (window.simAudio) window.simAudio.initContext();
-  }
-  function playBeep(freq, duration, type = 'sine', vol = 0.2) {
-    if (window.simAudio) window.simAudio.playSound(freq, duration, type, vol);
-  }
-
-  function addLog(msg, isError = false) {
-    const time = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    const prefix = isError ? '⚠️' : '🔹';
-    globalLogDiv.innerHTML += `<div>${prefix} [${time}] ${msg}</div>`;
-    globalLogDiv.scrollTop = globalLogDiv.scrollHeight;
-  }
-
-  function renderStack() {
-    if (stack.length === 0) {
-      stackVizDiv.innerHTML = `<div class="empty-msg">⬆️ Stack is empty (Top = -1)</div>`;
-      return;
-    }
-    let html = '';
-    for (let i = 0; i < stack.length; i++) {
-      html += `<div class="stack-item">${stack[i]} <span style="font-size: 0.7rem; opacity:0.7;">[idx ${i}]</span></div>`;
-    }
-    stackVizDiv.innerHTML = html + `<div style="font-size:0.7rem; margin-top:8px;">🔝 TOP → ${stack[stack.length-1]}</div>`;
-  }
-
-  function renderQueue() {
-    if (queue.length === 0) {
-      queueItemsDiv.innerHTML = `<div class="empty-msg">🚪 Queue is empty (Front = Rear = -1)</div>`;
-      return;
-    }
-    let itemsHtml = '';
-    queue.forEach((val, idx) => {
-      let label = (idx === 0) ? 'FRONT' : (idx === queue.length-1) ? 'REAR' : '';
-      itemsHtml += `<div class="queue-item">${val}<br><small style="font-size:0.6rem;">${label}</small></div>`;
-    });
-    queueItemsDiv.innerHTML = itemsHtml;
-  }
-
-  // ---- FULL C CODE SNIPPETS (Ready to see and execute conceptually) ----
-  function showStackCode(operation, details) {
-    let fullCode = '';
-    if (operation === 'push') {
-      fullCode = `// STACK PUSH operation (Array-based, C)
+  const codeTemplates = {
+    push:
+`// STACK PUSH — O(1)
 #define MAX 100
 int stack[MAX], top = -1;
 
@@ -452,53 +329,37 @@ void push(int data) {
         printf("Stack Overflow\\n");
         return;
     }
-    top++;
-    stack[top] = data;
-    printf("Pushed %d onto stack\\n", data);
-}
-
-// Current call: push(${details.value})`;
-    } else if (operation === 'pop') {
-      fullCode = `// STACK POP operation
+    stack[++top] = data;
+    printf("Pushed %d, Top = %d\\n", data, top);
+}`,
+    pop:
+`// STACK POP — O(1)
 int pop() {
     if (top == -1) {
         printf("Stack Underflow\\n");
-        return -999;
+        return INT_MIN;
     }
-    int popped = stack[top];
-    top--;
-    printf("Popped %d from stack\\n", popped);
-    return popped;
-}
-
-// Popped value: ${details.value !== undefined ? details.value : 'last element'}`;
-    } else if (operation === 'peek') {
-      fullCode = `// STACK PEEK (Top element without removal)
+    int val = stack[top--];
+    printf("Popped %d, Top = %d\\n", val, top);
+    return val;
+}`,
+    peek:
+`// STACK PEEK — O(1)
 int peek() {
     if (top == -1) {
-        printf("Stack empty\\n");
+        printf("Stack is empty\\n");
         return -1;
     }
-    return stack[top];
-}
-
-// Current top: ${details.top !== undefined ? details.top : 'stack top'}`;
-    } else if (operation === 'resetStack') {
-      fullCode = `// Reset Stack (reinitialize)
+    return stack[top]; // top element
+}`,
+    resetStack:
+`// STACK RESET
 void resetStack() {
     top = -1;
     printf("Stack reset to empty\\n");
-}
-
-// Stack is now empty.`;
-    }
-    cCodeDisplay.innerHTML = fullCode.replace(/\n/g, '<br>');
-  }
-
-  function showQueueCode(operation, details) {
-    let fullCode = '';
-    if (operation === 'enqueue') {
-      fullCode = `// QUEUE Enqueue (Linear array based, simple version)
+}`,
+    enqueue:
+`// QUEUE ENQUEUE — O(1)
 #define MAX 100
 int queue[MAX], front = -1, rear = -1;
 
@@ -508,192 +369,248 @@ void enqueue(int data) {
         return;
     }
     if (front == -1) front = 0;
-    rear++;
-    queue[rear] = data;
-    printf("Enqueued %d at rear\\n", data);
-}
-
-// Enqueued value: ${details.value}`;
-    } else if (operation === 'dequeue') {
-      fullCode = `// QUEUE Dequeue
+    queue[++rear] = data;
+    printf("Enqueued %d at rear=%d\\n", data, rear);
+}`,
+    dequeue:
+`// QUEUE DEQUEUE — O(1)
 int dequeue() {
     if (front == -1 || front > rear) {
         printf("Queue Underflow\\n");
-        return -999;
+        return INT_MIN;
     }
-    int val = queue[front];
-    front++;
+    int val = queue[front++];
     if (front > rear) front = rear = -1;
-    printf("Dequeued %d from front\\n", val);
+    printf("Dequeued %d\\n", val);
     return val;
-}
-
-// Dequeued value: ${details.value !== undefined ? details.value : 'front element'}`;
-    } else if (operation === 'front') {
-      fullCode = `// QUEUE Front (Peek front element)
+}`,
+    frontPeek:
+`// QUEUE FRONT PEEK — O(1)
 int getFront() {
     if (front == -1 || front > rear) {
-        printf("Queue empty\\n");
+        printf("Queue is empty\\n");
         return -1;
     }
     return queue[front];
-}
-
-// Current front element: ${details.front !== undefined ? details.front : 'queue front'}`;
-    } else if (operation === 'resetQueue') {
-      fullCode = `// Reset Queue
+}`,
+    resetQueue:
+`// QUEUE RESET
 void resetQueue() {
     front = -1;
-    rear = -1;
+    rear  = -1;
     printf("Queue reset to empty\\n");
-}
+}`
+  };
 
-// Queue is now empty.`;
+  // highlight lines (0-based)
+  const highlightMap = {
+    push: 8, pop: 6, peek: 5, resetStack: 2,
+    enqueue: 8, dequeue: 5, frontPeek: 5, resetQueue: 2
+  };
+
+  function showCode(op) {
+    codeSync.init(codeTemplates[op] || '');
+    if (highlightMap[op] !== undefined) {
+      setTimeout(() => codeSync.highlight(highlightMap[op]), 80);
     }
-    cCodeDisplay.innerHTML = fullCode.replace(/\n/g, '<br>');
   }
 
-  // ---------- STACK OPERATIONS ----------
+  // ── Data models ───────────────────────────────────────────────
+  let stack = [];
+  let queue = [];
+  let opCount = 0;
+
+  // ── Audio ─────────────────────────────────────────────────────
+  function sfxPush()    { if (window.simAudio) window.simAudio.playSound(660, 120, 'sine',     0.22); }
+  function sfxPop()     { if (window.simAudio) window.simAudio.playSound(450, 180, 'triangle', 0.25); }
+  function sfxEnqueue() { if (window.simAudio) window.simAudio.playSound(640, 130, 'sine',     0.22); }
+  function sfxDequeue() { if (window.simAudio) window.simAudio.playSound(400, 200, 'triangle', 0.25); }
+  function sfxPeek()    { if (window.simAudio) window.simAudio.playSound(880, 150, 'sine',     0.18); }
+  function sfxError()   { if (window.simAudio) window.simAudio.playCrackSound(); }
+  function sfxReset()   { if (window.simAudio) window.simAudio.playSound(500, 100, 'square',   0.15); }
+
+  // ── Log ───────────────────────────────────────────────────────
+  function addLog(msg, isError = false) {
+    const log = document.getElementById('opLog');
+    const t   = new Date().toLocaleTimeString();
+    const cls = isError ? 'op-log-err' : '';
+    log.innerHTML = `<div class="op-log-entry ${cls}">[${t}] ${msg}</div>` + log.innerHTML;
+    document.getElementById('statOps').textContent = ++opCount;
+  }
+
+  // ── Render helpers ────────────────────────────────────────────
+  function updateStatBadge(id, badgeId, val) {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    el.classList.add('updated');
+    setTimeout(() => el.classList.remove('updated'), 350);
+    document.getElementById(badgeId).textContent = `${val} item${val !== 1 ? 's' : ''}`;
+  }
+
+  function renderStack() {
+    const viz = document.getElementById('stackViz');
+    updateStatBadge('statStackSize', 'stackSizeBadge', stack.length);
+    if (stack.length === 0) {
+      viz.innerHTML = '<div class="ds-empty-msg">Stack is empty — Top = −1</div>';
+      return;
+    }
+    viz.innerHTML = stack.map((val, i) => {
+      const isTop = (i === stack.length - 1);
+      return `<div class="stack-item ${isTop ? 'top-marker' : ''}">${val}
+              <span style="font-size:0.65rem; opacity:0.6; margin-left:6px;">[idx ${i}]</span></div>`;
+    }).join('');
+  }
+
+  function renderQueue() {
+    const viz = document.getElementById('queueViz');
+    updateStatBadge('statQueueSize', 'queueSizeBadge', queue.length);
+    if (queue.length === 0) {
+      viz.innerHTML = '<div class="ds-empty-msg">Queue is empty — Front = Rear = −1</div>';
+      return;
+    }
+    viz.innerHTML = queue.map((val, i) => {
+      let label = '';
+      if (i === 0 && queue.length === 1) label = 'FRONT/REAR';
+      else if (i === 0) label = 'FRONT';
+      else if (i === queue.length - 1) label = 'REAR';
+      return `<div class="queue-item">${val}<span class="q-label">${label}</span></div>
+              ${i < queue.length - 1 ? '<span class="queue-arrow">→</span>' : ''}`;
+    }).join('');
+  }
+
+  // ── STACK OPERATIONS ──────────────────────────────────────────
   function stackPush() {
     if (window.simAudio) window.simAudio.initContext();
-    const valInput = document.getElementById('stackValue');
-    let val = parseInt(valInput.value);
+    let val = parseInt(document.getElementById('stackValue').value);
     if (isNaN(val)) val = 42;
     stack.push(val);
     renderStack();
-    playBeep(660, 120, 'sine', 0.2);
-    addLog(`📥 Stack PUSH: ${val} | Top = ${val}`);
-    showStackCode('push', { value: val });
-    valInput.value = '';
+    sfxPush();
+    addLog(`📥 Stack PUSH: ${val} → Top = ${val}`);
+    showCode('push');
   }
 
   function stackPop() {
     if (window.simAudio) window.simAudio.initContext();
     if (stack.length === 0) {
-      addLog(`❌ Stack POP failed: Underflow`, true);
-      if (window.simAudio) window.simAudio.playCrackSound();
-      cCodeDisplay.innerHTML = `// Stack Underflow!\nint pop() {\n    if(top == -1) {\n        printf("Underflow!\\n");\n        return INT_MIN;\n    }\n    return stack[top--];\n}\n\n// ERROR: Stack empty, cannot pop.`;
-      return;
+      sfxError();
+      addLog('❌ Stack POP failed: Underflow — stack is empty', true);
+      showCode('pop'); return;
     }
-    const popped = stack.pop();
+    const val = stack.pop();
     renderStack();
-    playBeep(450, 180, 'triangle', 0.25);
-    addLog(`📤 Stack POP: removed ${popped} | New size = ${stack.length}`);
-    showStackCode('pop', { value: popped });
+    sfxPop();
+    addLog(`📤 Stack POP: removed ${val} | size = ${stack.length}`);
+    showCode('pop');
   }
 
   function stackPeek() {
     if (window.simAudio) window.simAudio.initContext();
     if (stack.length === 0) {
-      addLog(`🔎 Stack peek: Stack is empty`, true);
-      playBeep(280, 200, 'sawtooth', 0.2);
-      cCodeDisplay.innerHTML = `// Peek operation\nint peek() {\n    if(top == -1) return -1;\n    return stack[top];\n}\n\n// Current stack is empty.`;
-      return;
+      sfxError();
+      addLog('🔎 Stack PEEK: empty — nothing to peek', true);
+      showCode('peek'); return;
     }
-    const topVal = stack[stack.length-1];
-    addLog(`👁️ Stack Top/Peek: ${topVal}`);
-    playBeep(880, 150, 'sine', 0.2);
-    showStackCode('peek', { top: topVal });
+    sfxPeek();
+    addLog(`👁️ Stack PEEK: Top = ${stack[stack.length - 1]}`);
+    showCode('peek');
   }
 
   function resetStack() {
     stack = [];
     renderStack();
-    addLog(`♻️ Stack reset — now empty`);
-    playBeep(500, 100, 'square', 0.15);
-    showStackCode('resetStack', {});
+    sfxReset();
+    addLog('♻️ Stack reset — now empty');
+    showCode('resetStack');
   }
 
-  // ---------- QUEUE OPERATIONS ----------
+  // ── QUEUE OPERATIONS ──────────────────────────────────────────
   function queueEnqueue() {
     if (window.simAudio) window.simAudio.initContext();
-    const valInput = document.getElementById('queueValue');
-    let val = parseInt(valInput.value);
+    let val = parseInt(document.getElementById('queueValue').value);
     if (isNaN(val)) val = 100;
     queue.push(val);
     renderQueue();
-    playBeep(640, 130, 'sine', 0.2);
-    addLog(`➕ Queue ENQUEUE → ${val} | size = ${queue.length}`);
-    showQueueCode('enqueue', { value: val });
-    valInput.value = '';
+    sfxEnqueue();
+    addLog(`➕ Queue ENQUEUE: ${val} at rear | size = ${queue.length}`);
+    showCode('enqueue');
   }
 
   function queueDequeue() {
     if (window.simAudio) window.simAudio.initContext();
     if (queue.length === 0) {
-      addLog(`❌ Queue DEQUEUE failed: underflow`, true);
-      if (window.simAudio) window.simAudio.playCrackSound();
-      cCodeDisplay.innerHTML = `// Dequeue operation (C)\nint dequeue() {\n    if(front == -1 || front > rear) {\n        printf("Queue Underflow\\n");\n        return -1;\n    }\n    return queue[front++];\n}\n\n// ERROR: Queue empty, cannot dequeue.`;
-      return;
+      sfxError();
+      addLog('❌ Queue DEQUEUE failed: Underflow — queue is empty', true);
+      showCode('dequeue'); return;
     }
-    const dequeued = queue.shift();
+    const val = queue.shift();
     renderQueue();
-    playBeep(400, 200, 'triangle', 0.25);
-    addLog(`➖ Queue DEQUEUE → removed ${dequeued} | remaining = ${queue.length}`);
-    showQueueCode('dequeue', { value: dequeued });
+    sfxDequeue();
+    addLog(`➖ Queue DEQUEUE: removed ${val} from front | remaining = ${queue.length}`);
+    showCode('dequeue');
   }
 
   function queueFront() {
     if (window.simAudio) window.simAudio.initContext();
     if (queue.length === 0) {
-      addLog(`👀 Queue front: empty queue`, true);
-      playBeep(260, 180, 'sawtooth', 0.2);
-      cCodeDisplay.innerHTML = `// Get Front of Queue\nint front() {\n    if(isEmpty()) return -1;\n    return queue[front];\n}\n\n// Queue is empty.`;
-      return;
+      sfxError();
+      addLog('👀 Queue FRONT peek: empty queue', true);
+      showCode('frontPeek'); return;
     }
-    const frontVal = queue[0];
-    addLog(`🔍 Queue Front element: ${frontVal}`);
-    playBeep(900, 140, 'sine', 0.2);
-    showQueueCode('front', { front: frontVal });
+    sfxPeek();
+    addLog(`🔍 Queue FRONT: ${queue[0]}`);
+    showCode('frontPeek');
   }
 
   function resetQueue() {
     queue = [];
     renderQueue();
-    addLog(`♻️ Queue reset — empty`);
-    playBeep(480, 100, 'square', 0.15);
-    showQueueCode('resetQueue', {});
+    sfxReset();
+    addLog('♻️ Queue reset — now empty');
+    showCode('resetQueue');
   }
 
-  // attach event listeners
-  document.getElementById('stackPushBtn').onclick = stackPush;
-  document.getElementById('stackPopBtn').onclick = stackPop;
-  document.getElementById('stackPeekBtn').onclick = stackPeek;
-  document.getElementById('stackResetBtn').onclick = resetStack;
-  document.getElementById('queueEnqueueBtn').onclick = queueEnqueue;
-  document.getElementById('queueDequeueBtn').onclick = queueDequeue;
-  document.getElementById('queueFrontBtn').onclick = queueFront;
-  document.getElementById('queueResetBtn').onclick = resetQueue;
+  // ── Bind buttons ──────────────────────────────────────────────
+  document.getElementById('btnStackPush').onclick    = stackPush;
+  document.getElementById('btnStackPop').onclick     = stackPop;
+  document.getElementById('btnStackPeek').onclick    = stackPeek;
+  document.getElementById('btnStackReset').onclick   = resetStack;
+  document.getElementById('btnQueueEnqueue').onclick = queueEnqueue;
+  document.getElementById('btnQueueDequeue').onclick = queueDequeue;
+  document.getElementById('btnQueueFront').onclick   = queueFront;
+  document.getElementById('btnQueueReset').onclick   = resetQueue;
+  document.getElementById('clearLogBtn').onclick     = () => {
+    document.getElementById('opLog').innerHTML = '';
+  };
 
-  // initial renders
-  renderStack();
-  renderQueue();
-  addLog("✅ Stack & Queue Ready — Every operation shows compilable C code.");
-
-  // ---------- QUIZ (10 questions about Stack & Queue) ----------
+  // ── Quiz ──────────────────────────────────────────────────────
   const quizData = [
-    { q: "What does LIFO stand for?", a: 0, o: ["Last In First Out", "First In First Out", "Last In Last Out", "Random Access"] },
-    { q: "Which data structure uses FIFO principle?", a: 1, o: ["Stack", "Queue", "Array", "Linked List"] },
-    { q: "Time complexity of push operation in stack (array-based, no resize)?", a: 0, o: ["O(1)", "O(n)", "O(log n)", "O(n²)"] },
-    { q: "In a queue, new elements are added at:", a: 1, o: ["Front", "Rear", "Middle", "Anywhere"] },
-    { q: "What happens when you pop from an empty stack?", a: 1, o: ["Overflow", "Underflow", "Segfault", "Garbage value"] },
-    { q: "Which one is a real-world application of stack?", a: 0, o: ["Function Call Stack", "Printer Spooler", "Ticket Counter", "BFS traversal"] },
-    { q: "In a circular queue, the advantage over linear queue is:", a: 0, o: ["Better memory utilization", "Faster access", "Less code", "Dynamic size"] },
-    { q: "Enqueue and Dequeue operations are performed at?", a: 1, o: ["Front and Rear", "Rear and Front respectively", "Both at front", "Both at rear"] },
-    { q: "If elements are inserted 10,20,30 into stack and then popped once, which remains?", a: 0, o: ["10,20", "20,30", "10,30", "10"] },
-    { q: "Which of the following is an application of Queue?", a: 0, o: ["CPU Scheduling", "Expression Evaluation", "Undo/Redo", "Recursion"] }
+    {q:"What does LIFO stand for?",a:0,o:["Last In First Out","First In First Out","Last In Last Out","Random Access"]},
+    {q:"Which data structure uses FIFO principle?",a:1,o:["Stack","Queue","Array","Linked List"]},
+    {q:"Time complexity of push in array-based stack (no resize)?",a:0,o:["O(1)","O(n)","O(log n)","O(n²)"]},
+    {q:"In a queue, new elements are added at:",a:1,o:["Front","Rear","Middle","Anywhere"]},
+    {q:"What happens when you pop from an empty stack?",a:1,o:["Overflow","Underflow","Segfault","Garbage value"]},
+    {q:"Real-world application of Stack?",a:0,o:["Function Call Stack","Printer Spooler","Ticket Counter","BFS traversal"]},
+    {q:"Advantage of circular queue over linear queue?",a:0,o:["Better memory utilization","Faster access","Less code","Dynamic size"]},
+    {q:"Enqueue and Dequeue are performed at:",a:1,o:["Front and Rear","Rear and Front respectively","Both at front","Both at rear"]},
+    {q:"Elements 10, 20, 30 pushed then popped once — which remain?",a:0,o:["10, 20","20, 30","10, 30","Only 10"]},
+    {q:"Application of Queue in OS?",a:0,o:["CPU Scheduling","Expression Evaluation","Undo/Redo","Recursion"]}
   ];
 
-  window.showQuizOverlay = function() {
-    window.quizModule.initQuiz(quizData, "Stack & Queue Quiz");
+  window.showQuizOverlay = function () {
+    window.quizModule.initQuiz(quizData, 'Stack & Queue Quiz');
   };
-  window.hideQuizOverlay = function() {
+  window.hideQuizOverlay = function () {
     window.quizModule.closeQuiz();
   };
 
-  window.addEventListener('load', () => {
-    addLog("🔊 Click any stack/queue button — see complete C code and animation");
-  });
+  // ── Init ──────────────────────────────────────────────────────
+  renderStack();
+  renderQueue();
+  addLog('✅ Stack & Queue ready — every operation shows compilable C code');
+  codeSync.init('// Click any Stack or Queue button\n// to see the full C implementation here.');
+
+})();
 </script>
 </body>
 </html>
