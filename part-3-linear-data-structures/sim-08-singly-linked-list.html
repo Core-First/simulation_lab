@@ -1,50 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Singly Linked List Simulator (C)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Singly Linked List — Part 3 | ATC SimLab</title>
+  <meta name="description" content="Interactive Singly Linked List visualiser with animated node operations, C code display, and a 20-question practice quiz." />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
   <link href="../assets/css/simulation-base.css" rel="stylesheet" />
   <style>
-    body { margin: 0; padding: 0; display: block; overflow-y: auto; }
-    h1, h2 { color: var(--primary); }
-    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-    .viz { border: 3px solid var(--primary); padding: 25px; background: var(--surface); border-radius: 16px; min-height: 220px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .node { border: 3px solid var(--primary); padding: 15px 20px; border-radius: 12px; background: var(--surface-2); text-align: center; min-width: 90px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; transition: all 0.6s; }
-    .node.new { animation: popIn 0.6s ease; background: var(--success); }
-    .node.removing { animation: removeNode 0.6s ease forwards; }
-    .node::after { content: '→'; position: absolute; right: -25px; top: 50%; font-size: 28px; color: var(--danger); }
-    .node:last-child::after { content: 'NULL'; color: var(--success); font-weight: bold; }
-    
-    @keyframes popIn { from { transform: scale(0.3) translateY(-30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-    @keyframes removeNode { to { transform: scale(0.4) rotate(-15deg); opacity: 0; } }
+    /* ── Linked-list node chain ───────────────────────────────── */
+    .ll-canvas {
+      width: 100%;
+      min-height: 180px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 14px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      row-gap: 14px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      position: relative;
+    }
 
-    button { padding: 12px 18px; margin: 6px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    button:hover { filter: brightness(1.1); }
-    .controls { margin: 20px 0; }
-    input { padding: 10px; margin: 5px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 110px; }
-    
-    .code { background: var(--surface); color: var(--primary); padding: 18px; border-radius: 12px; overflow-x: auto; font-family: monospace; white-space: pre; margin: 15px 0; border: 1px solid var(--border); }
-    .log { background: var(--surface); border: 1px solid var(--border); padding: 12px; height: 160px; overflow-y: auto; font-family: monospace; color: var(--text); }
-    
-    .quiz { background: var(--surface); padding: 25px; border-radius: 16px; margin: 25px 0; border: 2px solid var(--border); }
-    .feedback { margin: 15px 0; padding: 14px; border-radius: 8px; font-weight: bold; }
-    .correct { background: rgba(34,197,94,0.2); color: var(--success); }
-    .wrong { background: rgba(239,68,68,0.2); color: var(--danger); }
-    .next-btn { background: var(--success); padding: 14px 28px; font-size: 1.1em; margin-top: 15px; }
+    .ll-empty {
+      color: var(--muted);
+      font-size: 13px;
+      font-style: italic;
+      width: 100%;
+      text-align: center;
+    }
+
+    .ll-node {
+      display: flex;
+      align-items: center;
+      animation: nodeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ll-node-box {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 68px;
+      position: relative;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .ll-node-box.highlight {
+      border-color: var(--success);
+      background: rgba(34,197,94,0.12);
+    }
+
+    .ll-node-box.found {
+      border-color: var(--warning);
+      background: rgba(251,191,36,0.15);
+    }
+
+    .ll-node-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .ll-node-idx {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .ll-arrow {
+      font-size: 1.2rem;
+      color: var(--danger);
+      padding: 0 6px;
+      line-height: 1;
+    }
+
+    .ll-null {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--success);
+      padding: 4px 8px;
+      border: 1px solid var(--success);
+      border-radius: 6px;
+      background: rgba(34,197,94,0.08);
+      white-space: nowrap;
+    }
+
+    @keyframes nodeIn {
+      from { transform: scale(0.3) translateY(-20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);        opacity: 1; }
+    }
+
+    /* ── Log panel ───────────────────────────────────────────── */
+    .op-log {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      height: 130px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .op-log-entry { border-bottom: 1px dashed var(--border); padding: 3px 0; }
+    .op-log-entry:last-child { border-bottom: none; }
+
+    /* ── Inputs inside panel ─────────────────────────────────── */
+    .sim-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border-color 0.2s;
+    }
+    .sim-input:focus { outline: none; border-color: var(--primary); }
   </style>
 </head>
-<body>
-  <!-- Header Bar -->
+<body class="sim-page">
+<div class="main">
+
+  <!-- Topbar -->
   <header class="topbar">
     <div class="page-title">
-      <i class="fa-solid fa-code-branch text-primary me-2"></i> Part 3: Linear Data Structures &nbsp;›&nbsp; Singly Linked List
+      <i class="fa-solid fa-code-branch text-primary me-2"></i>
+      Part 3: Linear Data Structures &nbsp;›&nbsp; Singly Linked List
     </div>
-    <div class="topbar-right d-flex align-items-center gap-2">
-      <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
-        <i class="fa-solid fa-moon"></i> <span>Dark Mode</span>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+        <i class="fa-solid fa-volume-high"></i>
       </button>
       <a href="../index.html" class="back-btn">
         <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
@@ -52,215 +146,437 @@
     </div>
   </header>
 
-<div class="container">
-  <h1>🧬 Singly Linked List Simulator (C Programming)</h1>
-  <p><strong>Animation + Sound + Improved Quiz with Next Button</strong></p>
+  <div class="sim-body">
 
-  <div class="viz" id="visual"></div>
+    <!-- ══ LEFT PANEL: Visualization + Info ══════════════════════ -->
+    <div class="left-panel">
 
-  <div class="controls">
-    <h2>Operations</h2>
-    <button onclick="insertBegin()">Insert at Beginning</button>
-    <button onclick="insertEnd()">Insert at End</button>
-    <button onclick="insertAtPos()">Insert at Position</button>
-    <button onclick="deleteBegin()">Delete Beginning</button>
-    <button onclick="deleteEnd()">Delete End</button>
-    <button onclick="deleteAtPos()">Delete at Position</button>
-    <button onclick="search()">Search</button>
-    <button onclick="resetList()" style="background:#ef4444;">Reset</button>
-  </div>
+      <div class="panel-title" id="tour-canvas">
+        <span><i class="fa-solid fa-link text-info me-1"></i> Linked List Visualizer</span>
+        <span style="font-size:11px; color:var(--muted);" id="listLenBadge">0 nodes</span>
+      </div>
 
-  <input type="number" id="value" placeholder="Value" value="42">
-  <input type="number" id="position" placeholder="Position (1-based)" value="1">
+      <!-- Node chain -->
+      <div class="ll-canvas" id="llCanvas">
+        <div class="ll-empty">Empty list → Head = NULL</div>
+      </div>
 
-  <h2>Operation Log</h2>
-  <div class="log" id="log"></div>
+      <!-- Algorithm info -->
+      <div class="panel-title" style="margin-top:4px;">Algorithm Information</div>
+      <div class="panel-card mb-3">
+        <p id="algoDesc" style="font-size:0.88rem; color:var(--muted); margin-bottom:10px;">
+          A <strong>singly linked list</strong> stores elements in nodes where each node holds data and a pointer
+          to the next node. The last node's <code>next</code> is <code>NULL</code>. Operations vary from
+          <em>O(1)</em> at the head to <em>O(n)</em> at the tail.
+        </p>
+        <div class="d-flex gap-2 mb-2 flex-wrap">
+          <span class="badge bg-secondary">✅ Dynamic Size</span>
+          <span class="badge bg-secondary">✅ O(1) Head Ops</span>
+          <span class="badge bg-secondary">✅ O(1) Space Insert</span>
+        </div>
+        <div class="comparison-stats" id="algoComplexity">
+          <span>Insert Head: <strong class="text-white">O(1)</strong></span>
+          <span>Insert Tail: <strong class="text-white">O(n)</strong></span>
+          <span>Search: <strong class="text-white">O(n)</strong></span>
+          <span>Delete: <strong class="text-white">O(n)</strong></span>
+        </div>
+      </div>
 
-  <h2>Real C Code</h2>
-  <pre class="code" id="codeDisplay">/* Click any operation to see C code */</pre>
+      <!-- Stats row -->
+      <div class="stats">
+        <div class="stat-item"><i class="fa-solid fa-circle-nodes"></i> Nodes: <span id="statNodes" class="stat-value">0</span></div>
+        <div class="stat-item"><i class="fa-solid fa-magnifying-glass"></i> Ops: <span id="statOps" class="stat-value">0</span></div>
+      </div>
+    </div>
 
-  <h2>🧠 Practice Quiz (20 Questions)</h2>
-  <div class="quiz" id="quizContainer">
-    <button onclick="showQuizOverlay()" style="padding:15px 30px; font-size:1.1em;"><i class="fa-solid fa-graduation-cap"></i> Start Practice Quiz</button>
+    <!-- ══ RIGHT PANEL: Controls + Code + Log + Quiz ═════════════ -->
+    <div class="right-panel">
+
+      <!-- Controls -->
+      <div class="panel-card" id="tour-controls">
+        <div class="panel-title">Controls &amp; Operations</div>
+
+        <div class="d-flex gap-2 mb-3">
+          <div style="flex:1;">
+            <label class="small" style="color:var(--muted)">Value</label>
+            <input type="number" id="valueInput" class="sim-input" value="42" placeholder="Value" />
+          </div>
+          <div style="flex:1;">
+            <label class="small" style="color:var(--muted)">Position (1-based)</label>
+            <input type="number" id="posInput" class="sim-input" value="1" placeholder="Position" />
+          </div>
+        </div>
+
+        <div class="controls-row" style="flex-wrap:wrap;">
+          <button class="btn-control btn-play"  id="btnInsBegin" title="Insert at beginning"><i class="fa-solid fa-arrow-up-to-line"></i> Insert Head</button>
+          <button class="btn-control btn-play"  id="btnInsEnd"   title="Insert at end"><i class="fa-solid fa-arrow-down-to-line"></i> Insert Tail</button>
+          <button class="btn-control btn-step"  id="btnInsPos"   title="Insert at position"><i class="fa-solid fa-at"></i> Insert @ Pos</button>
+          <button class="btn-control btn-pause" id="btnDelBegin" title="Delete first node"><i class="fa-solid fa-minus"></i> Del Head</button>
+          <button class="btn-control btn-pause" id="btnDelEnd"   title="Delete last node"><i class="fa-solid fa-xmark"></i> Del Tail</button>
+          <button class="btn-control btn-pause" id="btnDelPos"   title="Delete at position"><i class="fa-solid fa-eraser"></i> Del @ Pos</button>
+          <button class="btn-control btn-step"  id="btnSearch"  title="Search for value"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+          <button class="btn-control btn-reset" id="btnReset"   title="Clear list"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+          <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;" title="Practice quiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+        </div>
+      </div>
+
+      <!-- Code Playground -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <span>C Code — Execution Synchronizer</span>
+          <i class="fa-solid fa-terminal" style="color:var(--muted)"></i>
+        </div>
+        <div class="code-editor-wrapper">
+          <div class="code-editor" id="codePlayground" style="min-height:180px; max-height:280px; overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Operation Log -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <span><i class="fa-solid fa-list-check me-1"></i> Operation Log</span>
+          <button class="btn btn-outline-secondary btn-sm" id="clearLogBtn" style="font-size:10px;">Clear</button>
+        </div>
+        <div class="op-log" id="opLog"></div>
+      </div>
+
+    </div><!-- right-panel -->
+  </div><!-- sim-body -->
+</div><!-- main -->
+
+<!-- Quiz Overlay -->
+<div class="quiz-overlay" id="quizOverlay" style="display:none">
+  <div class="quiz-backdrop"></div>
+  <div class="quiz-modal">
+    <div class="quiz-header">
+      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Singly Linked List Quiz</h3>
+      <div class="quiz-progress"><span id="quizProgress">Question 1 of 10</span></div>
+    </div>
+    <div class="quiz-content">
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div class="quiz-options"  id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn-control btn-reset" id="quizSkip" style="display:none">Skip Quiz</button>
+      <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+    </div>
+    <div class="quiz-results" id="quizResults" style="display:none">
+      <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+      <div class="quiz-score"   id="quizScore"></div>
+      <div class="quiz-summary" id="quizSummary"></div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-step"  id="quizRestart">Retry Quiz</button>
+        <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script src="../assets/js/theme-toggle.js"></script>
 <script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sim-audio.js"></script>
-
+<script src="../assets/js/code-sync.js"></script>
 <script>
-// Audio wrapper using shared sim-audio.js
-function playSound(freq, duration, type = 'sine', volume = 0.3) {
-  window.simAudio.playSound(freq, duration, type, volume);
-}
+(function () {
+  'use strict';
 
-function playCrackSound() {
-  window.simAudio.playCrackSound();
-}
+  // ── CodeSync setup ──────────────────────────────────────────
+  const codeSync = new CodeSync('codePlayground');
 
-let list = [];
+  const codeTemplates = {
+    insertBegin:
+`// Insert at Beginning — O(1)
+struct Node* insertBegin(struct Node* head, int data) {
+    struct Node* newNode = malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = head;  // point to old head
+    return newNode;        // new head
+}`,
+    insertEnd:
+`// Insert at End — O(n)
+struct Node* insertEnd(struct Node* head, int data) {
+    struct Node* newNode = malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    if (head == NULL) return newNode;
+    struct Node* cur = head;
+    while (cur->next != NULL) cur = cur->next;
+    cur->next = newNode;
+    return head;
+}`,
+    insertPos:
+`// Insert at Position — O(n)
+struct Node* insertAtPos(struct Node* head, int data, int pos) {
+    struct Node* newNode = malloc(sizeof(struct Node));
+    newNode->data = data;
+    if (pos == 1) { newNode->next = head; return newNode; }
+    struct Node* cur = head;
+    for (int i = 1; i < pos - 1 && cur; i++) cur = cur->next;
+    newNode->next = cur->next;
+    cur->next = newNode;
+    return head;
+}`,
+    deleteBegin:
+`// Delete at Beginning — O(1)
+struct Node* deleteBegin(struct Node* head) {
+    if (head == NULL) return NULL;
+    struct Node* temp = head;
+    head = head->next;
+    free(temp);
+    return head;
+}`,
+    deleteEnd:
+`// Delete at End — O(n)
+struct Node* deleteEnd(struct Node* head) {
+    if (!head) return NULL;
+    if (!head->next) { free(head); return NULL; }
+    struct Node* cur = head;
+    while (cur->next->next) cur = cur->next;
+    free(cur->next);
+    cur->next = NULL;
+    return head;
+}`,
+    deletePos:
+`// Delete at Position — O(n)
+struct Node* deleteAtPos(struct Node* head, int pos) {
+    if (!head) return NULL;
+    if (pos == 1) {
+        struct Node* temp = head;
+        head = head->next;
+        free(temp); return head;
+    }
+    struct Node* cur = head;
+    for (int i = 1; i < pos - 1 && cur->next; i++) cur = cur->next;
+    struct Node* temp = cur->next;
+    cur->next = temp->next;
+    free(temp);
+    return head;
+}`,
+    search:
+`// Linear Search — O(n)
+int search(struct Node* head, int target) {
+    int pos = 1;
+    struct Node* cur = head;
+    while (cur != NULL) {
+        if (cur->data == target) return pos; // found!
+        cur = cur->next;
+        pos++;
+    }
+    return -1; // not found
+}`
+  };
 
-// Render, log, showCode (same)
-function render(highlight = -1) {
-  const viz = document.getElementById('visual');
-  viz.innerHTML = list.length === 0 ? 
-    '<p style="color:#64748b; font-size:1.2em;">Empty List → Head = NULL</p>' : 
-    list.map((val, i) => {
-      const node = document.createElement('div');
-      node.className = `node ${i===highlight ? 'new' : ''}`;
-      node.innerHTML = `<strong>${val}</strong><br><small>Node ${i+1}</small>`;
-      return node.outerHTML;
-    }).join('');
-}
+  // line to highlight per operation (0-based)
+  const highlightMap = {
+    insertBegin: 3, insertEnd: 3, insertPos: 3,
+    deleteBegin: 3, deleteEnd: 3, deletePos: 4,
+    search: 4
+  };
 
-function log(msg) {
-  const logDiv = document.getElementById('log');
-  logDiv.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-  logDiv.scrollTop = logDiv.scrollHeight;
-}
+  function showCode(op) {
+    codeSync.init(codeTemplates[op] || '');
+    if (highlightMap[op] !== undefined) {
+      setTimeout(() => codeSync.highlight(highlightMap[op]), 80);
+    }
+  }
 
-function showCode(title, code) {
-  document.getElementById('codeDisplay').textContent = `// ${title}\n${code}`;
-}
+  // ── Data model ────────────────────────────────────────────────
+  let list   = [];
+  let opCount = 0;
 
-// Operations (same as previous)
-async function insertBegin() {
-  const val = parseInt(document.getElementById('value').value) || 42;
-  list.unshift(val);
-  playSound(800, 150);
-  render(0);
-  log(`Inserted ${val} at Beginning`);
-  showCode("Insert at Beginning", `struct Node* insertBegin(struct Node* head, int data) {\n    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));\n    newNode->data = data;\n    newNode->next = head;\n    return newNode;\n}`);
-}
+  // ── Audio helpers ─────────────────────────────────────────────
+  function sfxInsert() { if (window.simAudio) window.simAudio.playSound(700, 180, 'sine', 0.25); }
+  function sfxDelete() { if (window.simAudio) window.simAudio.playCrackSound(); }
+  function sfxFound()  { if (window.simAudio) window.simAudio.playSound(900, 350, 'sine', 0.25); }
+  function sfxMiss()   { if (window.simAudio) window.simAudio.playSound(280, 400, 'sawtooth', 0.2); }
+  function sfxReset()  { if (window.simAudio) window.simAudio.playSound(440, 100, 'square', 0.15); }
 
-async function insertEnd() { /* ... same as before */ 
-  const val = parseInt(document.getElementById('value').value) || 42;
-  list.push(val);
-  playSound(600, 200);
-  render(list.length-1);
-  log(`Inserted ${val} at End`);
-}
+  // ── Render ────────────────────────────────────────────────────
+  function render(highlightIdx = -1) {
+    const canvas = document.getElementById('llCanvas');
+    const badge  = document.getElementById('listLenBadge');
+    const statN  = document.getElementById('statNodes');
 
-async function deleteBegin() {
-  if (!list.length) return;
-  playCrackSound();
-  const val = list.shift();
+    badge.textContent = `${list.length} node${list.length !== 1 ? 's' : ''}`;
+    statN.textContent = list.length;
+    statN.classList.add('updated');
+    setTimeout(() => statN.classList.remove('updated'), 400);
+
+    if (list.length === 0) {
+      canvas.innerHTML = '<div class="ll-empty">Empty list → Head = <strong>NULL</strong></div>';
+      return;
+    }
+
+    let html = '';
+    list.forEach((val, i) => {
+      const cls = (i === highlightIdx) ? (highlightIdx === -2 ? 'found' : 'highlight') : '';
+      html += `
+        <div class="ll-node">
+          <div class="ll-node-box ${cls}">
+            <div class="ll-node-val">${val}</div>
+            <div class="ll-node-idx">Node ${i + 1}</div>
+          </div>
+          ${i < list.length - 1
+            ? '<span class="ll-arrow">→</span>'
+            : '<span class="ll-arrow" style="color:var(--muted)">→</span><span class="ll-null">NULL</span>'}
+        </div>`;
+    });
+    canvas.innerHTML = html;
+  }
+
+  // ── Log ───────────────────────────────────────────────────────
+  function addLog(msg) {
+    const log = document.getElementById('opLog');
+    const t   = new Date().toLocaleTimeString();
+    log.innerHTML = `<div class="op-log-entry">[${t}] ${msg}</div>` + log.innerHTML;
+    document.getElementById('statOps').textContent = ++opCount;
+  }
+
+  // ── Operations ────────────────────────────────────────────────
+  function getVal() { return parseInt(document.getElementById('valueInput').value) || 42; }
+  function getPos() { return parseInt(document.getElementById('posInput').value) || 1; }
+
+  function insertBegin() {
+    if (window.simAudio) window.simAudio.initContext();
+    const val = getVal();
+    list.unshift(val);
+    sfxInsert();
+    render(0);
+    addLog(`🟢 Inserted <strong>${val}</strong> at head`);
+    showCode('insertBegin');
+  }
+
+  function insertEnd() {
+    if (window.simAudio) window.simAudio.initContext();
+    const val = getVal();
+    list.push(val);
+    sfxInsert();
+    render(list.length - 1);
+    addLog(`🟢 Inserted <strong>${val}</strong> at tail`);
+    showCode('insertEnd');
+  }
+
+  function insertAtPos() {
+    if (window.simAudio) window.simAudio.initContext();
+    const val = getVal();
+    let pos = getPos();
+    pos = Math.max(1, Math.min(pos, list.length + 1));
+    list.splice(pos - 1, 0, val);
+    sfxInsert();
+    render(pos - 1);
+    addLog(`🟢 Inserted <strong>${val}</strong> at position ${pos}`);
+    showCode('insertPos');
+  }
+
+  function deleteBegin() {
+    if (window.simAudio) window.simAudio.initContext();
+    if (!list.length) { addLog('⚠️ List is empty'); sfxMiss(); return; }
+    const val = list.shift();
+    sfxDelete();
+    render();
+    addLog(`🔴 Deleted <strong>${val}</strong> from head`);
+    showCode('deleteBegin');
+  }
+
+  function deleteEnd() {
+    if (window.simAudio) window.simAudio.initContext();
+    if (!list.length) { addLog('⚠️ List is empty'); sfxMiss(); return; }
+    const val = list.pop();
+    sfxDelete();
+    render();
+    addLog(`🔴 Deleted <strong>${val}</strong> from tail`);
+    showCode('deleteEnd');
+  }
+
+  function deleteAtPos() {
+    if (window.simAudio) window.simAudio.initContext();
+    let pos = getPos();
+    if (!list.length || pos < 1 || pos > list.length) {
+      addLog(`⚠️ Invalid position ${pos}`); sfxMiss(); return;
+    }
+    const val = list.splice(pos - 1, 1)[0];
+    sfxDelete();
+    render();
+    addLog(`🔴 Deleted <strong>${val}</strong> at position ${pos}`);
+    showCode('deletePos');
+  }
+
+  function search() {
+    if (window.simAudio) window.simAudio.initContext();
+    const val = getVal();
+    const idx = list.indexOf(val);
+    if (idx !== -1) {
+      sfxFound();
+      render(idx);
+      addLog(`🔍 Found <strong>${val}</strong> at node ${idx + 1}`);
+    } else {
+      sfxMiss();
+      render();
+      addLog(`🔍 <strong>${val}</strong> not found in list`);
+    }
+    showCode('search');
+  }
+
+  function resetList() {
+    list = [];
+    sfxReset();
+    render();
+    addLog('♻️ List cleared');
+    codeSync.init('// Operations will show corresponding C code here.\n// Try inserting a node to begin!');
+  }
+
+  // ── Bind buttons ──────────────────────────────────────────────
+  document.getElementById('btnInsBegin').onclick = insertBegin;
+  document.getElementById('btnInsEnd').onclick   = insertEnd;
+  document.getElementById('btnInsPos').onclick   = insertAtPos;
+  document.getElementById('btnDelBegin').onclick = deleteBegin;
+  document.getElementById('btnDelEnd').onclick   = deleteEnd;
+  document.getElementById('btnDelPos').onclick   = deleteAtPos;
+  document.getElementById('btnSearch').onclick   = search;
+  document.getElementById('btnReset').onclick    = resetList;
+  document.getElementById('clearLogBtn').onclick = () => {
+    document.getElementById('opLog').innerHTML = '';
+  };
+
+  // ── Quiz ──────────────────────────────────────────────────────
+  const quizQuestions = [
+    {q:"What is the time complexity of inserting at the beginning?",a:0,o:["O(1)","O(n)","O(log n)","O(n²)"]},
+    {q:"How is the end of a singly linked list indicated?",a:0,o:["Next pointer is NULL","Next points to head","Next is -1","Next points to tail"]},
+    {q:"Which operation usually needs full traversal?",a:1,o:["Insert at Beginning","Insert at End (no tail ptr)","Delete from Beginning","Get length of 1"]},
+    {q:"What should you do when deleting from empty list?",a:1,o:["Crash","Do nothing (handle edge case)","Return random","Infinite loop"]},
+    {q:"Memory allocation for new node in C?",a:0,o:["malloc()","new","calloc()","alloc()"]},
+    {q:"Function to free memory of a node?",a:0,o:["free()","delete","release()","destroy()"]},
+    {q:"Main advantage of linked list over array?",a:0,o:["Dynamic size","Faster access","Less memory","Fixed size"]},
+    {q:"Biggest disadvantage of singly linked list?",a:0,o:["Cannot traverse backwards","Uses more memory","Slower access","All of above"]},
+    {q:"A node in linked list contains?",a:0,o:["Data + Next pointer","Only data","Only pointer","Array of data"]},
+    {q:"Head pointer always points to?",a:0,o:["First node","Last node","Middle node","NULL"]},
+    {q:"Time complexity of searching an element?",a:2,o:["O(1)","O(log n)","O(n)","O(n²)"]},
+    {q:"Can we insert a node before the current head?",a:0,o:["Yes, by returning new head","No","Only at end","Depends"]},
+    {q:"Last node's next pointer should be?",a:0,o:["NULL","Head","Previous","Garbage"]},
+    {q:"To delete a node (not first), you need pointer to?",a:0,o:["Previous node","The node only","Head only","Next node"]},
+    {q:"Linked list is best when we need?",a:0,o:["Frequent insertions/deletions","Frequent random access","Small fixed size","Sorting"]},
+    {q:"What does 'traversal' mean?",a:0,o:["Visiting each node once","Sorting","Reversing","Merging"]},
+    {q:"Can singly linked list implement Stack?",a:0,o:["Yes","No","Only Queue","Only Deque"]},
+    {q:"Good real-world use of singly linked list?",a:0,o:["Adjacency list in graphs","Binary search","Large sorting","Matrix"]},
+    {q:"If head is NULL, the list is?",a:0,o:["Empty","Full","One node","Invalid"]},
+    {q:"How to reverse a singly linked list?",a:0,o:["Three pointer technique","Swap head","Recursion only","Impossible"]}
+  ];
+
+  window.showQuizOverlay = function () {
+    window.quizModule.initQuiz(quizQuestions, 'Singly Linked List Quiz');
+  };
+  window.hideQuizOverlay = function () {
+    window.quizModule.closeQuiz();
+  };
+
+  // ── Init ──────────────────────────────────────────────────────
   render();
-  log(`Deleted ${val} from Beginning`);
-}
+  addLog('🚀 Simulator ready — select an operation to begin');
+  codeSync.init('// Operations will show corresponding C code here.\n// Try inserting a node to begin!');
 
-async function deleteEnd() {
-  if (!list.length) return;
-  playCrackSound();
-  const val = list.pop();
-  render();
-  log(`Deleted ${val} from End`);
-}
-
-async function deleteAtPos() {
-  let pos = parseInt(document.getElementById('position').value) || 1;
-  if (pos < 1 || pos > list.length) return;
-  playCrackSound();
-  const val = list.splice(pos-1, 1)[0];
-  render();
-  log(`Deleted ${val} at Position ${pos}`);
-}
-
-async function insertAtPos() {
-  const val = parseInt(document.getElementById('value').value) || 77;
-  let pos = parseInt(document.getElementById('position').value) || 1;
-  if (pos < 1) pos = 1; if (pos > list.length+1) pos = list.length+1;
-  list.splice(pos-1, 0, val);
-  playSound(700, 250);
-  render(pos-1);
-  log(`Inserted ${val} at Position ${pos}`);
-}
-
-function search() {
-  const val = parseInt(document.getElementById('value').value);
-  if (isNaN(val)) return;
-  const idx = list.indexOf(val);
-  idx !== -1 ? (playSound(900,400), log(`Found ${val} at pos ${idx+1}`), render(idx)) : 
-               (playSound(300,600,'sawtooth'), log(`${val} not found`));
-}
-
-function resetList() {
-  list = [];
-  document.getElementById('log').innerHTML = '';
-  render();
-  log('List Reset');
-}
-
-// Quiz Engine overlay logic
-const quizQuestions = [
-  {q: "What is the time complexity of inserting at the beginning?", a: 0, o: ["O(1)","O(n)","O(log n)","O(n²)"]},
-  {q: "How is the end of a singly linked list indicated?", a: 0, o: ["Next pointer is NULL","Next points to head","Next is -1","Next points to tail"]},
-  {q: "Which operation usually needs full traversal?", a: 1, o: ["Insert at Beginning","Insert at End (without tail)","Delete from Beginning","Search by index"]},
-  {q: "What should you do when deleting from empty list?", a: 1, o: ["Crash","Do nothing (handle edge case)","Return random","Infinite loop"]},
-  {q: "Memory allocation for new node in C?", a: 0, o: ["malloc()","new","calloc()","alloc()"]},
-  {q: "Function to free memory of a node?", a: 0, o: ["free()","delete","release()","destroy()"]},
-  {q: "Main advantage of linked list over array?", a: 0, o: ["Dynamic size","Faster access","Less memory","Fixed size"]},
-  {q: "Biggest disadvantage of singly linked list?", a: 0, o: ["Cannot go backwards easily","Uses more memory","Slower access","All of above"]},
-  {q: "A node in linked list contains?", a: 0, o: ["Data + Next pointer","Only data","Only pointer","Array of data"]},
-  {q: "Head pointer always points to?", a: 0, o: ["First node","Last node","Middle node","NULL"]},
-  {q: "Time complexity of searching an element?", a: 2, o: ["O(1)","O(log n)","O(n)","O(n²)"]},
-  {q: "Can we insert a node before the current head?", a: 0, o: ["Yes, by returning new head","No","Only at end","Depends"]},
-  {q: "Last node's next pointer should be?", a: 0, o: ["NULL","Head","Previous","Garbage"]},
-  {q: "To delete a node (not first), you need pointer to?", a: 0, o: ["Previous node","The node only","Head only","Next node"]},
-  {q: "Linked list is best when we need?", a: 0, o: ["Frequent insertions/deletions","Frequent random access","Small fixed size","Sorting"]},
-  {q: "What does 'traversal' mean?", a: 0, o: ["Visiting each node once","Sorting","Reversing","Merging"]},
-  {q: "Can singly linked list implement Stack?", a: 0, o: ["Yes","No","Only Queue","Only Deque"]},
-  {q: "Good real-world use of singly linked list?", a: 0, o: ["Adjacency list in graphs","Binary search","Large sorting","Matrix"]},
-  {q: "If head is NULL, the list is?", a: 0, o: ["Empty","Full","One node","Invalid"]},
-  {q: "How to reverse a singly linked list?", a: 0, o: ["Three pointer technique","Swap head","Recursion only","Impossible"]}
-];
-
-window.showQuizOverlay = function() {
-  window.quizModule.initQuiz(quizQuestions, "Singly Linked List Quiz");
-};
-window.hideQuizOverlay = function() {
-  window.quizModule.closeQuiz();
-};
-
-window.addEventListener('themechanged', () => {
-  render();
-});
-
-// Initialize Simulator
-render();
-log("🚀 Simulator Ready!");
+  window.addEventListener('themechanged', render);
+})();
 </script>
-
-<!-- Quiz Overlay -->
-<div class="quiz-overlay" id="quizOverlay" style="display: none">
-  <div class="quiz-backdrop"></div>
-  <div class="quiz-modal">
-    <div class="quiz-header">
-      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Singly Linked List Quiz</h3>
-      <div class="quiz-progress">
-        <span id="quizProgress">Question 1 of 10</span>
-      </div>
-    </div>
-    <div class="quiz-content">
-      <div class="quiz-question" id="quizQuestion"></div>
-      <div class="quiz-options" id="quizOptions"></div>
-      <div class="quiz-feedback" id="quizFeedback"></div>
-    </div>
-    <div class="quiz-actions">
-      <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
-      <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
-    </div>
-    <div class="quiz-results" id="quizResults" style="display: none">
-      <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
-      <div class="quiz-score" id="quizScore"></div>
-      <div class="quiz-summary" id="quizSummary"></div>
-      <div class="quiz-actions">
-        <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
-        <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 </html>

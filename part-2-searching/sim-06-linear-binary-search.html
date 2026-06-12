@@ -21,9 +21,6 @@
         <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
           <i class="fa-solid fa-volume-high"></i>
         </button>
-        <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
-          <i class="fa-solid fa-moon"></i>
-        </button>
         <a href="../index.html" class="back-btn">
           <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
         </a>
@@ -367,21 +364,25 @@
     if (si >= steps.length) {
       running = false; done = true;
       clearInterval(timerInterval);
-      if(simAudio) simAudio.playTone(800, [800,1200], {type:'sine',vol:0.1,duration:0.4});
+      // Victory sweep — same as Part 1 sort completion
+      if(simAudio) simAudio.playSweep(arr);
       updateBtns();
       return;
     }
     const s = steps[si];
     if (s.type === 'compare') {
       cmp++;
-      if(simAudio) simAudio.playTone(400, [400], {type:'triangle',vol:0.05,duration:0.1});
+      // Pitch-mapped to the element being checked — identical to Part 1 compare
+      if(simAudio) simAudio.playTone(arr[s.idx !== undefined ? s.idx : 0], arr);
     } else if (s.type === 'found') {
       foundIndex = s.idx;
       document.getElementById('idxFound').innerText = foundIndex;
-      if(simAudio) simAudio.playTone(800, [800,1000,1200], {type:'sine',vol:0.1,duration:0.3});
+      // High success tone: play the found element pitched high
+      if(simAudio) { simAudio.playSound(1200, 120); setTimeout(() => simAudio.playSound(1500, 180), 100); }
     } else if (s.type === 'notfound') {
       document.getElementById('idxFound').innerText = 'None';
-      if(simAudio) simAudio.playTone(200, [200,150], {type:'sawtooth',vol:0.1,duration:0.4});
+      // Crack/failure sound — same as Part 1 bad swap feel
+      if(simAudio) simAudio.playCrackSound();
     }
 
     document.getElementById('cmpCount').innerText = cmp;

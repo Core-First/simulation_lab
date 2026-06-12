@@ -1,4 +1,4 @@
-// --------------------------------------------------------------
+﻿// --------------------------------------------------------------
 // Production-Grade Self-Guided Backtracking Simulation Core
 // --------------------------------------------------------------
 let state = {
@@ -89,7 +89,7 @@ function generateSteps(n) {
         pathStr: currentPath.join("-") || "root",
         boardCopy: copyBoard(board),
         message:
-          "✅ Complete valid solution identified! All rows successfully contain unconflicted queens.",
+          "âœ… Complete valid solution identified! All rows successfully contain unconflicted queens.",
       });
       return true;
     }
@@ -141,7 +141,7 @@ function generateSteps(n) {
           path: [...currentPath],
           pathStr,
           boardCopy: copyBoard(board),
-          message: `👑 Position safe! Locked queen at Row ${row}, Column ${col}. Proceeding to recursively evaluate Row ${row + 1}.`,
+          message: `ðŸ‘‘ Position safe! Locked queen at Row ${row}, Column ${col}. Proceeding to recursively evaluate Row ${row + 1}.`,
         });
 
         if (placeQueen(board, row + 1, n)) return true;
@@ -155,7 +155,7 @@ function generateSteps(n) {
           path: [...currentPath],
           pathStr,
           boardCopy: copyBoard(board),
-          message: `↩️ Dead end detected under Row ${row}, Column ${col}. Retracting node allocation and resetting constraint variables.`,
+          message: `â†©ï¸ Dead end detected under Row ${row}, Column ${col}. Retracting node allocation and resetting constraint variables.`,
         });
       } else {
         steps.push({
@@ -166,7 +166,7 @@ function generateSteps(n) {
           pathStr,
           boardCopy: copyBoard(board),
           conflicts: conflicts,
-          message: `❌ Constraint Conflict! Square (${row}, ${col}) is targeted by queen at Row ${conflicts[0].row}, Col ${conflicts[0].col} along its shared ${conflicts[0].reason.replace("-", " ")}.`,
+          message: `âŒ Constraint Conflict! Square (${row}, ${col}) is targeted by queen at Row ${conflicts[0].row}, Col ${conflicts[0].col} along its shared ${conflicts[0].reason.replace("-", " ")}.`,
         });
       }
       currentPath.pop();
@@ -648,12 +648,34 @@ function updateVisualization() {
   drawChessOverlaylasers();
   highlightCodeLine(step.type, step);
 
+  // Play backtracking step sound
+  if (window.simAudio) {
+    const totalCells = state.n * state.n;
+    const allCells = Array.from({length: totalCells}, (_, i) => i);
+    const cellIdx = step.row * state.n + step.col;
+
+    if (step.type === "solution") {
+      window.simAudio.playSweep(Array.from({length: state.n}, (_, i) => i));
+    } else if (step.type === "conflict") {
+      window.simAudio.playCrackSound();
+    } else if (step.type === "backtrack") {
+      window.simAudio.playSound(220, 150, "sawtooth", 0.25);
+    } else if (step.type === "place") {
+      window.simAudio.playSound(800, 80);
+      setTimeout(() => {
+        if (window.simAudio) window.simAudio.playSound(1000, 100);
+      }, 80);
+    } else if (step.type === "try") {
+      window.simAudio.playTone(cellIdx, allCells, 0.08);
+    }
+  }
+
   // Voice execution queue monitoring
   if (
     readAloudBtn.classList.contains("text-primary") &&
     !speechSynth.speaking
   ) {
-    let t = execDescDiv.innerText.replace(/✅|❌|↩️|👑/g, "");
+    let t = execDescDiv.innerText.replace(/âœ…|âŒ|â†©ï¸|ðŸ‘‘/g, "");
     let u = new SpeechSynthesisUtterance(t);
     u.rate = 1.2;
     speechSynth.speak(u);
@@ -787,7 +809,7 @@ function initCodeEditor() {
     .map((l, i) => {
       const lineNum = i + 1;
       const expl = explanations[lineNum] || "";
-      return `<div class="code-line" data-line="${lineNum}"><span class="line-explanation" data-line="${lineNum}" title="${expl}">💡</span>${l}</div>`;
+      return `<div class="code-line" data-line="${lineNum}"><span class="line-explanation" data-line="${lineNum}" title="${expl}">ðŸ’¡</span>${l}</div>`;
     })
     .join("");
 }
@@ -893,7 +915,7 @@ const tourSteps = [
     target: "chessboard",
   },
   {
-    title: "♕ Attack Lines & Threats",
+    title: "â™• Attack Lines & Threats",
     text: "As configurations play out, animated tracking lasers and pulse vectors show row conflict reasons instantly. Hover over elements anytime to audit active collision danger paths.",
     target: "boardWrap",
   },
@@ -1024,7 +1046,7 @@ const quizQuestions = [
     question: "What is the primary constraint in the N-Queens problem?",
     options: ["Place N queens so none attack each other", "Place N queens on black squares only", "Place N queens in the first row", "Place N queens diagonally"],
     correct: 0,
-    explanation: "The N-Queens problem requires placing N queens on an N×N chessboard such that no two queens threaten each other."
+    explanation: "The N-Queens problem requires placing N queens on an NÃ—N chessboard such that no two queens threaten each other."
   },
   {
     question: "How many total N-Queens solutions exist for N=8?",
@@ -1034,9 +1056,9 @@ const quizQuestions = [
   },
   {
     question: "What is the optimal time complexity of backtracking for N-Queens?",
-    options: ["O(N!)", "O(N²)", "O(N³)", "O(2ᴺ)"],
+    options: ["O(N!)", "O(NÂ²)", "O(NÂ³)", "O(2á´º)"],
     correct: 0,
-    explanation: "Backtracking achieves O(N!) by pruning entire branches early when conflicts occur, rather than brute-force O(Nᴺ) evaluation."
+    explanation: "Backtracking achieves O(N!) by pruning entire branches early when conflicts occur, rather than brute-force O(Ná´º) evaluation."
   }
 ];
 
@@ -1052,7 +1074,7 @@ function init() {
   setupTourControls();
   setupLineExplanationHandlers();
   rebuildSimulation();
-  
+
   if (!localStorage.getItem("nqueens_tour_complete")) {
     setTimeout(triggerInteractiveTour, 800);
   }
