@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -120,6 +120,16 @@
           </div>
         </div>
 
+        <div class="panel-card">
+          <div class="panel-title">
+            <span>Execution Code Synchronizer</span>
+            <i class="fa-solid fa-terminal" style="color: var(--muted)"></i>
+          </div>
+          <div class="code-editor-wrapper">
+            <div class="code-editor" id="codePlayground" style="min-height: 200px; max-height: 320px; overflow-y: auto;"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -157,6 +167,7 @@
 <script src="../assets/js/theme-toggle.js"></script>
 <script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sim-audio.js"></script>
+<script src="../assets/js/code-sync.js"></script>
 <script>
 (function () {
   'use strict';
@@ -167,6 +178,59 @@
 
   const tableContainer = document.getElementById('hashTableContainer');
   const logDiv = document.getElementById('executionLog');
+
+  // ── Code Playground ──────────────────────────────────────────
+  const codeSync = new CodeSync('codePlayground');
+
+  const codeTemplates = {
+    linear:
+`function insert(val, table, size) {
+  let key = val % size; // Compute hash
+  let idx = key;
+  while (table[idx].length > 0) { // Slot occupied
+    idx = (idx + 1) % size; // Linear probe: try next
+  }
+  table[idx].push(val); // Insert at empty slot
+}
+
+function search(val, table, size) {
+  let idx = val % size; // Compute hash
+  while (table[idx].length > 0) {
+    if (table[idx][0] === val) return idx; // Found
+    idx = (idx + 1) % size; // Keep probing
+  }
+  return -1; // Not found
+}`,
+    chaining:
+`function insert(val, table, size) {
+  let key = val % size; // Compute hash
+  table[key].push(val); // Append to chain
+}
+
+function search(val, table, size) {
+  let key = val % size; // Compute hash
+  let chain = table[key]; // Get chain at slot
+  for (let i = 0; i < chain.length; i++) {
+    if (chain[i] === val) return key; // Found
+  }
+  return -1; // Not found
+}`
+  };
+
+  // line mappings: phase -> line index (0-based)
+  const lineMap = {
+    linear: { hash: 1, probe_check: 3, probe_next: 4, insert_ok: 6, search_hash: 9, search_check: 11, search_hit: 12, search_probe: 13, notfound: 15 },
+    chaining: { hash: 1, chain_push: 2, search_hash: 6, search_chain: 7, search_loop: 8, search_hit: 9, notfound: 11 }
+  };
+
+  function initCodePlayground() {
+    codeSync.init(codeTemplates[algoType]);
+  }
+
+  function codeHighlight(phase) {
+    const map = lineMap[algoType];
+    if (map && map[phase] !== undefined) codeSync.highlight(map[phase]);
+  }
 
   let size = 10;
   let items = 0;
@@ -248,16 +312,18 @@
       }
 
       let key = val % size;
+      codeHighlight('hash');
       addLog(`Inserting ${val}. Hash = ${val} % ${size} = ${key}`);
 
       let currIdx = key;
       while (true) {
+          codeHighlight('probe_check');
           highlightSlot(currIdx, 'highlight');
           if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
           await sleep(600);
 
           if (table[currIdx].length === 0) {
-              // Found empty slot
+              codeHighlight('insert_ok');
               table[currIdx].push(val);
               highlightSlot(currIdx, 'success');
               addLog(`Slot ${currIdx} is empty. Inserted ${val}.`, 'var(--success)');
@@ -265,14 +331,13 @@
               items++;
               break;
           } else {
-              // Collision
+              codeHighlight('probe_next');
               highlightSlot(currIdx, 'collision');
               addLog(`Slot ${currIdx} occupied. Collision!`, 'var(--danger)');
               collisions++;
               document.getElementById('colCount').innerText = collisions;
               if(simAudio) simAudio.playTone(300, [300], {type:'triangle',vol:0.1,duration:0.2});
               await sleep(600);
-
               currIdx = (currIdx + 1) % size;
               addLog(`Linear Probing: checking next index ${currIdx}.`);
           }
@@ -284,6 +349,7 @@
 
   async function insertChaining(val) {
       let key = val % size;
+      codeHighlight('hash');
       addLog(`Inserting ${val}. Hash = ${val} % ${size} = ${key}`);
 
       highlightSlot(key, 'highlight');
@@ -299,6 +365,7 @@
           await sleep(600);
       }
 
+      codeHighlight('chain_push');
       table[key].push(val);
       highlightSlot(key, 'success');
       addLog(`Inserted ${val} into chain at slot ${key}.`, 'var(--success)');
@@ -312,12 +379,14 @@
 
   async function searchLinearProbing(val) {
       let key = val % size;
+      codeHighlight('search_hash');
       addLog(`Searching ${val}. Hash = ${val} % ${size} = ${key}`);
 
       let currIdx = key;
       let checked = 0;
 
       while (checked < size) {
+          codeHighlight('search_check');
           highlightSlot(currIdx, 'highlight');
           if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
           await sleep(600);
@@ -328,11 +397,13 @@
               if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
               break;
           } else if (table[currIdx][0] === val) {
+              codeHighlight('search_hit');
               highlightSlot(currIdx, 'success');
               addLog(`Found ${val} at slot ${currIdx}!`, 'var(--success)');
               if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
               break;
           } else {
+              codeHighlight('search_probe');
               highlightSlot(currIdx, 'collision');
               addLog(`Slot ${currIdx} holds ${table[currIdx][0]}, not ${val}. Probing next.`);
               if(simAudio) simAudio.playTone(300, [300], {type:'triangle',vol:0.1,duration:0.2});
@@ -353,14 +424,17 @@
 
   async function searchChaining(val) {
       let key = val % size;
+      codeHighlight('search_hash');
       addLog(`Searching ${val}. Hash = ${val} % ${size} = ${key}`);
 
       highlightSlot(key, 'highlight');
       if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
       await sleep(600);
 
+      codeHighlight('search_chain');
       let found = false;
       for (let i = 0; i < table[key].length; i++) {
+          codeHighlight('search_loop');
           if (table[key][i] === val) {
               found = true;
               break;
@@ -368,10 +442,12 @@
       }
 
       if (found) {
+          codeHighlight('search_hit');
           highlightSlot(key, 'success');
           addLog(`Found ${val} in chain at slot ${key}!`, 'var(--success)');
           if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
       } else {
+          codeHighlight('notfound');
           highlightSlot(key, 'collision');
           addLog(`${val} not found in chain at slot ${key}.`, 'var(--danger)');
           if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
@@ -392,6 +468,7 @@
       if(isAnimating) return;
       algoType = e.target.value;
       initTable();
+      initCodePlayground();
   };
 
   document.getElementById('resetBtn').onclick = () => {
@@ -460,6 +537,7 @@
   window.hideQuizOverlay = function() { window.quizModule.closeQuiz(); };
 
   initTable();
+  initCodePlayground();
 })();
 </script>
 </body>
