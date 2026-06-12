@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simulation 10: Binary Search Tree Visualiser – ATC SimLab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1f2937;
+    --border:    #30363d;
+    --accent:    #3b82f6;
+    --accent2:   #6366f1;
+    --green:     #22c55e;
+    --yellow:    #f59e0b;
+    --red:       #ef4444;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --node-r:    26;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .breadcrumb span { color: var(--accent); }
+  .sim-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+
+  /* ── 3-col resizable layout ── */
+  .workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Drag handles ── */
+  .resizer {
+    width: 5px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    transition: background .15s;
+    z-index: 10;
+  }
+  .resizer:hover, .resizer.dragging { background: var(--accent); }
+  .resizer::after {
+    content: '⋮';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* ── Shared panel ── */
+  .panel {
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: none;
+  }
+
+  .panel-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .panel-header p {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* ── LEFT: Theory ── */
+  .theory-section { margin-bottom: 20px; }
+  .theory-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section p {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #c9d1d9;
+  }
+  .theory-section ul {
+    list-style: none;
+    margin-top: 6px;
+  }
+  .theory-section ul li {
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #c9d1d9;
+    padding-left: 14px;
+    position: relative;
+  }
+  .theory-section ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .complexity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    margin-top: 6px;
+  }
+  .complexity-table th {
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+  }
+  .complexity-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    color: #c9d1d9;
+  }
+  .complexity-table td.good  { color: var(--green); }
+  .complexity-table td.ok    { color: var(--yellow); }
+  .complexity-table td.bad   { color: var(--red); }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 2px 2px 0 0;
+  }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .tag-green  { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .tag-purple { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+
+  /* ── MIDDLE: Canvas ── */
+  .sim-area {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sim-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .tb-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-right: 4px;
+  }
+  .op-log {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green);
+    min-width: 200px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #bst-canvas {
+    flex: 1;
+    width: 100%;
+    cursor: grab;
+    position: relative;
+  }
+  #bst-canvas:active {
+    cursor: grabbing;
+  }
+
+  /* Node info tooltip */
+  #node-tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+  #node-tooltip.visible {
+    display: block;
+  }
+  #node-tooltip .tval {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  #node-tooltip .tinfo {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  /* Code links */
+  .code-link {
+    display: inline-block;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(59,130,246,0.3);
+    transition: all .15s;
+    font-weight: 500;
+    padding-bottom: 2px;
+  }
+  .code-link:hover {
+    color: #60a5fa;
+    border-bottom-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  /* Clickable theory items */
+  .theory-link {
+    cursor: pointer;
+    transition: all .15s;
+    display: block;
+    padding: 3px 0;
+  }
+  .theory-link:hover {
+    color: #e6edf3;
+  }
+  .theory-link strong {
+    color: #e6edf3;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  .theory-link:hover strong {
+    color: #ffffff;
+  }
+
+  /* traversal path strip */
+  .traversal-strip {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .trav-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(59,130,246,.2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    transition: all .3s;
+  }
+  .trav-arrow { color: var(--border); }
+
+  /* ── RIGHT: Controls ── */
+  .ctrl-section { margin-bottom: 20px; }
+  .ctrl-section h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    
+  }
+
+  .input-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  input[type=number], input[type=text] {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger  { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover  { background: rgba(239,68,68,.25); }
+  .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover   { border-color: var(--accent); color: var(--accent); }
+  .btn-full { width: 100%; margin-bottom: 6px; }
+  .btn-green { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+  .btn-green:hover { background: rgba(34,197,94,.25); }
+  .btn-purple { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+  .btn-purple:hover { background: rgba(99,102,241,.25); }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .speed-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .speed-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    width: 32px;
+    text-align: right;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-card .val {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-card .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  /* search highlight */
+  .found-msg { color: var(--green); }
+  .notfound-msg { color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="breadcrumb">
+    Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 10</span>
+  </div>
+  <a href="../index.html" class="back-btn" style="margin-left:auto;padding:6px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;border-radius:6px;text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+  </a>
+  <div class="sim-badge">BST Visualiser</div>
+</header>
+
+<div class="workspace">
+
+  <!-- ═══════════════ LEFT: THEORY ═══════════════ -->
+  <div class="panel" id="panel-left" style="width:280px;border-right:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Module</h2>
+      <p>Theory & Concepts</p>
+    </div>
+    <div class="panel-body">
+
+      <div class="theory-section">
+        <h3>What is a BST?</h3>
+        <p>A <strong>Binary Search Tree</strong> is a recursive data structure where each node stores a value and has at most two children — a <em>left</em> subtree and a <em>right</em> subtree.</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>The BST Property</h3>
+        <p>For every node <strong>N</strong>:</p>
+        <ul>
+          <li>All values in the <strong>left</strong> subtree are <em>less than</em> N</li>
+          <li>All values in the <strong>right</strong> subtree are <em>greater than</em> N</li>
+          <li>Both subtrees are themselves valid BSTs</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Core Operations</h3>
+        <ul>
+          <li class="theory-link" onclick="window.location.href='sim-10-insertion-code.html'"><strong>Insert</strong> — recursively descend until an empty spot is found</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-search-code.html'"><strong>Search</strong> — compare at each node; go left or right accordingly</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-deletion-code.html'"><strong>Delete</strong> — three cases: leaf, one child, two children</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html'"><strong>Traversal</strong> — In-order gives sorted output</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Traversal Orders</h3>
+        <ul>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#inorder'"><strong>In-order</strong> (L → Root → R) — sorted ascending</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#preorder'"><strong>Pre-order</strong> (Root → L → R) — useful for copying</li>
+          <li class="theory-link" onclick="window.location.href='sim-10-traversal-code.html#postorder'"><strong>Post-order</strong> (L → R → Root) — useful for deletion</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Time Complexity</h3>
+        <table class="complexity-table">
+          <thead>
+            <tr><th>Operation</th><th>Average</th><th>Worst</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+            <tr><td>Insert</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+            <tr><td>Delete</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+            <tr><td>Traversal</td><td class="ok">O(n)</td><td class="ok">O(n)</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px;font-size:11.5px;color:var(--muted)">Worst case occurs when the tree is completely unbalanced (e.g. sorted input).</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>Tags</h3>
+        <span class="tag tag-blue">Recursive</span>
+        <span class="tag tag-green">Divide & Conquer</span>
+        <span class="tag tag-purple">Part 4</span>
+        <span class="tag tag-blue">Trees</span>
+        <span class="tag tag-green">Searching</span>
+      </div>
+
+    </div>
+  </div><!-- /panel-left -->
+
+  <div class="resizer" id="resizer-left"></div>
+
+  <!-- ═══════════════ MIDDLE: SIMULATION ═══════════════ -->
+  <div class="sim-area" id="panel-mid" style="flex:1;min-width:300px">
+    <div class="sim-toolbar">
+      <span class="tb-label">MODE:</span>
+      <button class="btn btn-ghost" id="btn-insert-mode" onclick="setMode('insert')">Insert</button>
+      <button class="btn btn-ghost" id="btn-delete-mode" onclick="setMode('delete')">Delete</button>
+      <button class="btn btn-ghost" id="btn-search-mode" onclick="setMode('search')">Search</button>
+      <div class="op-log" id="op-log">Ready — insert a value to begin</div>
+    </div>
+
+    <canvas id="bst-canvas"></canvas>
+    <div id="node-tooltip"></div>
+
+    <div class="traversal-strip" id="traversal-strip">
+      <span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>
+    </div>
+  </div><!-- /panel-mid -->
+
+  <div class="resizer" id="resizer-right"></div>
+
+  <!-- ═══════════════ RIGHT: CONTROLS ═══════════════ -->
+  <div class="panel" id="panel-right" style="width:260px;border-left:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Controls</h2>
+      <p>Adjust Simulation</p>
+    </div>
+    <div class="panel-body">
+
+      <div class="ctrl-section">
+        <h3>Insert Node</h3>
+        <div class="input-row">
+          <input type="number" id="insert-val" placeholder="Value (1–99)" min="1" max="99"/>
+          <button class="btn btn-primary" onclick="insertVal()">Add</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Delete Node</h3>
+        <div class="input-row">
+          <input type="number" id="delete-val" placeholder="Value to delete" min="1" max="99"/>
+          <button class="btn btn-danger" onclick="deleteVal()">Del</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Search</h3>
+        <div class="input-row">
+          <input type="number" id="search-val" placeholder="Value to find" min="1" max="99"/>
+          <button class="btn btn-ghost" onclick="searchVal()">Find</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Traversal</h3>
+        <button class="btn btn-full btn-green" onclick="runTraversal('inorder')">▶ In-order (L→Root→R)</button>
+        <button class="btn btn-full btn-ghost"  onclick="runTraversal('preorder')">▶ Pre-order (Root→L→R)</button>
+        <button class="btn btn-full btn-purple" onclick="runTraversal('postorder')">▶ Post-order (L→R→Root)</button>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Animation Speed</h3>
+        <div class="speed-row">
+          <label>Slow</label>
+          <input type="range" id="speed-slider" min="100" max="1200" value="600" step="100"
+                 oninput="updateSpeed(this.value)"/>
+          <label>Fast</label>
+          <span class="speed-val" id="speed-label">600ms</span>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Presets</h3>
+        <div class="preset-grid">
+          <button class="btn btn-ghost" onclick="loadPreset('balanced')">Balanced</button>
+          <button class="btn btn-ghost" onclick="loadPreset('skewed')">Skewed</button>
+          <button class="btn btn-ghost" onclick="loadPreset('random')">Random</button>
+          <button class="btn btn-danger" onclick="clearTree()">Clear</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Learn by Code</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">See how each operation works with interactive code:</p>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="sim-10-insertion-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Insertion Code</a>
+          <a href="sim-10-deletion-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Deletion Code</a>
+          <a href="sim-10-traversal-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Traversal Code</a>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Statistics</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="val" id="stat-nodes">0</div><div class="lbl">Nodes</div></div>
+          <div class="stat-card"><div class="val" id="stat-height">0</div><div class="lbl">Height</div></div>
+          <div class="stat-card"><div class="val" id="stat-min">—</div><div class="lbl">Min</div></div>
+          <div class="stat-card"><div class="val" id="stat-max">—</div><div class="lbl">Max</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /workspace -->
+
+<script>
+// ─── BST Data Structure ───────────────────────────────────────────────────────
+class BSTNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+    this.x = 0; this.y = 0;       // canvas position
+    this.highlighted = false;
+    this.found = false;
+    this.traversed = false;
+  }
+}
+
+let root = null;
+let animSpeed = 600;
+let currentMode = 'insert';
+let animating = false;
+
+function insert(node, val) {
+  if (!node) return new BSTNode(val);
+  if (val < node.val) node.left  = insert(node.left,  val);
+  else if (val > node.val) node.right = insert(node.right, val);
+  return node;
+}
+
+function deleteNode(node, val) {
+  if (!node) return null;
+  if (val < node.val) { node.left  = deleteNode(node.left,  val); }
+  else if (val > node.val) { node.right = deleteNode(node.right, val); }
+  else {
+    if (!node.left)  return node.right;
+    if (!node.right) return node.left;
+    // Two children: replace with in-order successor
+    let succ = node.right;
+    while (succ.left) succ = succ.left;
+    node.val = succ.val;
+    node.right = deleteNode(node.right, succ.val);
+  }
+  return node;
+}
+
+function searchPath(node, val, path=[]) {
+  if (!node) return null;
+  path.push(node);
+  if (val === node.val) return path;
+  if (val < node.val)  return searchPath(node.left,  val, path);
+  return searchPath(node.right, val, path);
+}
+
+function getHeight(node) {
+  if (!node) return 0;
+  return 1 + Math.max(getHeight(node.left), getHeight(node.right));
+}
+function countNodes(node) {
+  if (!node) return 0;
+  return 1 + countNodes(node.left) + countNodes(node.right);
+}
+function getMin(node) {
+  if (!node) return null;
+  return node.left ? getMin(node.left) : node.val;
+}
+function getMax(node) {
+  if (!node) return null;
+  return node.right ? getMax(node.right) : node.val;
+}
+
+function inorder(node, arr=[])   { if(node){ inorder(node.left,arr);   arr.push(node); inorder(node.right,arr);   } return arr; }
+function preorder(node, arr=[])  { if(node){ arr.push(node); preorder(node.left,arr);  preorder(node.right,arr);  } return arr; }
+function postorder(node, arr=[]) { if(node){ postorder(node.left,arr); postorder(node.right,arr); arr.push(node); } return arr; }
+
+// ─── Canvas Rendering ─────────────────────────────────────────────────────────
+const canvas = document.getElementById('bst-canvas');
+const ctx    = canvas.getContext('2d');
+const R      = 22;
+const V_GAP  = 70;
+
+// Pan variables (zoom removed)
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let panStartPanX = 0;
+let panStartPanY = 0;
+
+// Interactive node variables
+let hoveredNode = null;
+let selectedNode = null;
+let mouseX = 0;
+let mouseY = 0;
+
+function resizeCanvas() {
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  layoutTree();
+  draw();
+}
+
+function layoutTree() {
+  if (!root) return;
+  // Assign x positions via in-order index
+  let idx = 0;
+  const nodes = inorder(root);
+  const n     = nodes.length;
+  const usableW = canvas.width - 60;
+  const startX  = 30;
+  nodes.forEach((node, i) => {
+    node.x = startX + (usableW / (n + 1)) * (i + 1);
+  });
+  // Assign y by depth
+  function setY(node, depth) {
+    if (!node) return;
+    node.y = 50 + depth * V_GAP;
+    setY(node.left,  depth + 1);
+    setY(node.right, depth + 1);
+  }
+  setY(root, 0);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  if (!root) {
+    ctx.fillStyle = '#30363d';
+    ctx.font = "14px 'Sora', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText('Insert values to build the tree', canvas.width/2, canvas.height/2);
+    return;
+  }
+  drawEdges(root);
+  drawNodes(root);
+}
+
+function drawEdges(node) {
+  if (!node) return;
+  ctx.lineWidth = 1.5;
+  
+  if (node.left) {
+    // Highlight edge if connected to hovered or selected node
+    if (hoveredNode === node || hoveredNode === node.left || selectedNode === node || selectedNode === node.left) {
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.left.x, node.left.y);
+    ctx.stroke();
+    drawEdges(node.left);
+  }
+  if (node.right) {
+    // Highlight edge if connected to hovered or selected node
+    if (hoveredNode === node || hoveredNode === node.right || selectedNode === node || selectedNode === node.right) {
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.beginPath();
+    ctx.moveTo(node.x, node.y);
+    ctx.lineTo(node.right.x, node.right.y);
+    ctx.stroke();
+    drawEdges(node.right);
+  }
+}
+
+function drawNodes(node) {
+  if (!node) return;
+
+  // Base colors
+  let fill = '#1f2937';
+  let stroke = '#3b82f6';
+  let textColor = '#e6edf3';
+  let nodeRadius = R;
+
+  // State-based colors
+  if (node.found) {
+    fill = 'rgba(34,197,94,0.25)'; stroke = '#22c55e'; textColor = '#4ade80';
+  } else if (node.highlighted) {
+    fill = 'rgba(245,158,11,0.25)'; stroke = '#f59e0b'; textColor = '#fbbf24';
+  } else if (node.traversed) {
+    fill = 'rgba(99,102,241,0.25)'; stroke = '#6366f1'; textColor = '#a5b4fc';
+  }
+
+  // Hover effect
+  if (hoveredNode === node) {
+    nodeRadius = R * 1.25;
+    stroke = '#3b82f6';
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  } else if (selectedNode === node) {
+    // Selection effect (glow only, no outer ring)
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  } else {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw main node
+  ctx.beginPath();
+  ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = hoveredNode === node || selectedNode === node ? 3 : 2;
+  ctx.strokeStyle = stroke;
+  ctx.stroke();
+
+  // Draw text
+  ctx.fillStyle = textColor;
+  ctx.font = "bold 13px 'JetBrains Mono', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(node.val, node.x, node.y);
+
+  drawNodes(node.left);
+  drawNodes(node.right);
+}
+
+// ─── UI Actions ──────────────────────────────────────────────────────────────
+function clearHighlights(node) {
+  if (!node) return;
+  node.highlighted = false;
+  node.found       = false;
+  node.traversed   = false;
+  clearHighlights(node.left);
+  clearHighlights(node.right);
+}
+
+function updateStats() {
+  document.getElementById('stat-nodes').textContent  = countNodes(root);
+  document.getElementById('stat-height').textContent = getHeight(root);
+  const mn = getMin(root); document.getElementById('stat-min').textContent = mn !== null ? mn : '—';
+  const mx = getMax(root); document.getElementById('stat-max').textContent = mx !== null ? mx : '—';
+}
+
+function log(msg, cls='') {
+  const el = document.getElementById('op-log');
+  el.textContent = msg;
+  el.className = 'op-log ' + cls;
+}
+
+function setMode(m) {
+  currentMode = m;
+  ['insert','delete','search'].forEach(mode => {
+    document.getElementById('btn-'+mode+'-mode').style.borderColor =
+      mode === m ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('btn-'+mode+'-mode').style.color =
+      mode === m ? 'var(--accent)' : 'var(--text)';
+  });
+}
+
+function insertVal() {
+  const inp = document.getElementById('insert-val');
+  const v   = parseInt(inp.value);
+  if (isNaN(v) || v < 1 || v > 99) { log('Enter a value between 1 and 99'); return; }
+  if (animating) return;
+  clearHighlights(root);
+  root = insert(root, v);
+  layoutTree();
+  draw();
+  updateStats();
+  log(`Inserted ${v} into the BST`, 'found-msg');
+  inp.value = '';
+}
+
+function deleteVal() {
+  const inp = document.getElementById('delete-val');
+  const v   = parseInt(inp.value);
+  if (isNaN(v)) { log('Enter a value to delete'); return; }
+  if (animating) return;
+  clearHighlights(root);
+  const before = countNodes(root);
+  root = deleteNode(root, v);
+  const after  = countNodes(root);
+  layoutTree();
+  draw();
+  updateStats();
+  if (before !== after) log(`Deleted ${v} from the BST`, 'found-msg');
+  else log(`Value ${v} not found`, 'notfound-msg');
+  inp.value = '';
+}
+
+function searchVal() {
+  const inp = document.getElementById('search-val');
+  const v   = parseInt(inp.value);
+  if (isNaN(v)) { log('Enter a value to search'); return; }
+  if (animating) return;
+  clearHighlights(root);
+  draw();
+  const path = searchPath(root, v);
+  if (!path) { log(`${v} not found in the tree`, 'notfound-msg'); return; }
+
+  animating = true;
+  let i = 0;
+  function step() {
+    if (i > 0) path[i-1].highlighted = false;
+    if (i < path.length - 1) {
+      path[i].highlighted = true;
+      log(`Comparing: ${path[i].val} — going ${v < path[i].val ? 'left' : 'right'}...`);
+    } else {
+      path[i].found = true;
+      log(`Found ${v}! Steps taken: ${path.length}`, 'found-msg');
+      animating = false;
+      draw();
+      updateStats();
+      return;
+    }
+    draw();
+    i++;
+    setTimeout(step, animSpeed);
+  }
+  step();
+  inp.value = '';
+}
+
+async function runTraversal(type) {
+  if (!root || animating) return;
+  animating = true;
+  clearHighlights(root);
+  draw();
+
+  let nodes;
+  if      (type === 'inorder')   nodes = inorder(root);
+  else if (type === 'preorder')  nodes = preorder(root);
+  else                           nodes = postorder(root);
+
+  // Build traversal strip
+  const strip = document.getElementById('traversal-strip');
+  strip.innerHTML = `<span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px">${type}:</span>`;
+
+  for (let i = 0; i < nodes.length; i++) {
+    nodes[i].traversed = true;
+    log(`Visiting node: ${nodes[i].val}`);
+
+    const span = document.createElement('span');
+    span.className = 'trav-node';
+    span.textContent = nodes[i].val;
+    if (i < nodes.length - 1) {
+      const arr = document.createElement('span');
+      arr.className = 'trav-arrow';
+      arr.textContent = '→';
+      strip.appendChild(span);
+      strip.appendChild(arr);
+    } else {
+      strip.appendChild(span);
+    }
+
+    draw();
+    await new Promise(r => setTimeout(r, animSpeed * 0.7));
+  }
+
+  log(`${type} traversal complete — ${nodes.length} nodes visited`, 'found-msg');
+  animating = false;
+}
+
+function updateSpeed(v) {
+  animSpeed = parseInt(v);
+  document.getElementById('speed-label').textContent = v + 'ms';
+}
+
+function clearTree() {
+  if (animating) return;
+  root = null;
+  hoveredNode = null;
+  selectedNode = null;
+  clearHighlights(root);
+  document.getElementById('traversal-strip').innerHTML =
+    '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
+  draw();
+  updateStats();
+  log('Tree cleared');
+}
+
+function loadPreset(type) {
+  if (animating) return;
+  clearTree();
+  const presets = {
+    balanced: [50, 25, 75, 12, 37, 62, 87],
+    skewed:   [10, 20, 30, 40, 50, 60, 70],
+    random:   Array.from({length:8}, () => Math.floor(Math.random()*90)+5),
+  };
+  presets[type].forEach(v => { root = insert(root, v); });
+  layoutTree(); draw(); updateStats();
+  log(`Loaded ${type} preset`);
+}
+
+
+
+// Find node at screen coordinates
+function getNodeAtPoint(x, y, node = root) {
+  if (!node) return null;
+  
+  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  if (dist <= R * 1.4) {
+    return node;
+  }
+  
+  const left = getNodeAtPoint(x, y, node.left);
+  if (left) return left;
+  return getNodeAtPoint(x, y, node.right);
+}
+
+function updateNodeInfo(node) {
+  const tooltip = document.getElementById('node-tooltip');
+  if (!node) {
+    tooltip.classList.remove('visible');
+    return;
+  }
+  
+  let info = `Value: <span class="tval">${node.val}</span>`;
+  if (node.left || node.right) {
+    info += ` | Children: `;
+    if (node.left && node.right) info += `L:${node.left.val}, R:${node.right.val}`;
+    else if (node.left) info += `L:${node.left.val}`;
+    else if (node.right) info += `R:${node.right.val}`;
+  }
+  
+  tooltip.innerHTML = info;
+  tooltip.classList.add('visible');
+  tooltip.style.left = (mouseX + 10) + 'px';
+  tooltip.style.top = (mouseY + 10) + 'px';
+}
+
+// ─── Canvas Interactions (Zoom & Pan) ───────────────────────────────────────
+
+canvas.addEventListener('mousedown', (e) => {
+  // Check if clicking on a node
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+  const clickedNode = getNodeAtPoint(clickX, clickY);
+  
+  if (clickedNode) {
+    selectedNode = selectedNode === clickedNode ? null : clickedNode;
+    draw();
+    return;
+  }
+  
+  isPanning = true;
+  panStartX = e.clientX;
+  panStartY = e.clientY;
+  panStartPanX = panX;
+  panStartPanY = panY;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+  
+  if (!isPanning) {
+    const hovered = getNodeAtPoint(mouseX, mouseY);
+    if (hovered !== hoveredNode) {
+      hoveredNode = hovered;
+      updateNodeInfo(hovered);
+      draw();
+      canvas.style.cursor = hovered ? 'pointer' : 'grab';
+    }
+    return;
+  }
+  
+  const deltaX = (e.clientX - panStartX);
+  const deltaY = (e.clientY - panStartY);
+  panX = panStartPanX + deltaX;
+  panY = panStartPanY + deltaY;
+  draw();
+});
+
+canvas.addEventListener('mouseup', () => {
+  isPanning = false;
+});
+
+canvas.addEventListener('mouseleave', () => {
+  isPanning = false;
+  hoveredNode = null;
+  document.getElementById('node-tooltip').classList.remove('visible');
+  draw();
+});
+
+// Init
+setMode('insert');
+window.addEventListener('resize', resizeCanvas);
+
+// Allow Enter key on inputs
+['insert-val','delete-val','search-val'].forEach(id => {
+  document.getElementById(id).addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      if (id === 'insert-val') insertVal();
+      else if (id === 'delete-val') deleteVal();
+      else searchVal();
+    }
+  });
+});
+
+// ─── Resizable panels ────────────────────────────────────────────────────────
+function makeResizer(resizerId, panelId, side) {
+  const resizer = document.getElementById(resizerId);
+  const panel   = document.getElementById(panelId);
+  const MIN_W   = 160;
+  const MAX_W   = 520;
+
+  resizer.addEventListener('mousedown', e => {
+    e.preventDefault();
+    resizer.classList.add('dragging');
+    const startX   = e.clientX;
+    const startW   = panel.offsetWidth;
+
+    function onMove(e) {
+      let newW;
+      if (side === 'left') {
+        newW = startW + (e.clientX - startX);
+      } else {
+        newW = startW - (e.clientX - startX);
+      }
+      newW = Math.max(MIN_W, Math.min(MAX_W, newW));
+      panel.style.width = newW + 'px';
+      panel.style.flex  = 'none';
+      resizeCanvas();
+    }
+    function onUp() {
+      resizer.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
+}
+
+makeResizer('resizer-left',  'panel-left',  'left');
+makeResizer('resizer-right', 'panel-right', 'right');
+// Wait for fonts then resize
+document.fonts.ready.then(() => { resizeCanvas(); loadPreset('balanced'); });
+</script>
+<script src="../assets/js/theme-toggle.js"></script>
+</body>
+</html>

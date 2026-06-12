@@ -859,13 +859,6 @@ function initEventListeners() {
       comparisonStatsDiv.style.display = "none";
     }
   };
-  themeToggle.onclick = () => {
-    document.body.classList.toggle("light-theme");
-    let icon = themeToggle.querySelector("i");
-    icon.className = document.body.classList.contains("light-theme")
-      ? "fa-solid fa-sun"
-      : "fa-solid fa-moon";
-  };
   readAloudBtn.onclick = () => {
     readAloudBtn.classList.toggle("text-primary");
     if (!readAloudBtn.classList.contains("text-primary")) speechSynth.cancel();
@@ -1025,13 +1018,7 @@ function setupLineExplanationHandlers() {
   });
 }
 
-// Quiz State & Questions Data
-let quizState = {
-  currentQuestion: 0,
-  answers: [],
-  completed: false
-};
-
+// Quiz Questions Data
 const quizQuestions = [
   {
     question: "What is the primary constraint in the N-Queens problem?",
@@ -1055,109 +1042,7 @@ const quizQuestions = [
 
 // Quiz Functions
 function showQuiz() {
-  quizState = { currentQuestion: 0, answers: [], completed: false };
-  
-  const overlay = document.getElementById("quizOverlay");
-  overlay.style.display = "flex";
-  
-  renderQuizQuestion();
-}
-
-function renderQuizQuestion() {
-  const q = quizQuestions[quizState.currentQuestion];
-  
-  document.getElementById("quizProgress").innerText = 
-    `Question ${quizState.currentQuestion + 1} of ${quizQuestions.length}`;
-  document.getElementById("quizQuestion").innerText = q.question;
-  document.getElementById("quizOptions").innerHTML = q.options
-    .map((opt, i) => 
-      `<div class="quiz-option" data-index="${i}" onclick="selectQuizOption(this, ${i})">${opt}</div>`
-    ).join("");
-  document.getElementById("quizFeedback").classList.remove("show");
-  document.getElementById("quizSubmit").disabled = true;
-  document.getElementById("quizSubmit").innerText = "Submit Answer";
-}
-
-function selectQuizOption(el, index) {
-  document.querySelectorAll(".quiz-option").forEach(opt => opt.classList.remove("selected"));
-  el.classList.add("selected");
-  document.getElementById("quizSubmit").disabled = false;
-}
-
-function submitQuizAnswer() {
-  const selected = document.querySelector(".quiz-option.selected");
-  
-  if (!selected) return;
-  
-  const selectedIndex = parseInt(selected.dataset.index);
-  const correctIndex = quizQuestions[quizState.currentQuestion].correct;
-  
-  quizState.answers.push({
-    question: quizState.currentQuestion,
-    selected: selectedIndex,
-    correct: correctIndex
-  });
-  
-  document.querySelectorAll(".quiz-option").forEach((opt, i) => {
-    opt.classList.remove("selected");
-    if (i === correctIndex) opt.classList.add("correct");
-    else if (i === selectedIndex && selectedIndex !== correctIndex) opt.classList.add("incorrect");
-  });
-  
-  const feedback = document.getElementById("quizFeedback");
-  feedback.innerText = quizQuestions[quizState.currentQuestion].explanation;
-  feedback.className = `quiz-feedback ${selectedIndex === correctIndex ? "correct" : "incorrect"} show`;
-  
-  document.getElementById("quizSubmit").innerText = "Continue";
-  document.getElementById("quizSubmit").onclick = advanceQuiz;
-}
-
-function advanceQuiz() {
-  if (quizState.currentQuestion < quizQuestions.length - 1) {
-    quizState.currentQuestion++;
-    renderQuizQuestion();
-    document.getElementById("quizSubmit").onclick = submitQuizAnswer;
-  } else {
-    showQuizResults();
-  }
-}
-
-function showQuizResults() {
-  const correct = quizState.answers.filter(a => a.selected === a.correct).length;
-  const total = quizState.answers.length;
-  const score = Math.round((correct / total) * 100);
-  
-  document.querySelector(".quiz-content").style.display = "none";
-  document.querySelector(".quiz-actions").style.display = "none";
-  document.getElementById("quizResults").style.display = "block";
-  
-  document.getElementById("quizScore").innerHTML = 
-    `<i class="fa-solid fa-star"></i> ${score}%`;
-  
-  document.getElementById("quizSummary").innerHTML = quizState.answers
-    .map((a, i) => {
-      const q = quizQuestions[a.question];
-      return `<div class="quiz-summary-item">
-        <span>Q${i + 1}: ${a.selected === a.correct ? '<span style="color:var(--success)">Correct</span>' : '<span style="color:var(--danger)">Incorrect</span>'}</span>
-        <span>${a.selected === a.correct ? '✓' : '✗'}</span>
-      </div>`;
-    }).join("");
-  
-  quizState.completed = true;
-  
-  document.getElementById("quizRestart").onclick = restartQuiz;
-  document.getElementById("quizClose").onclick = () => {
-    document.getElementById("quizOverlay").style.display = "none";
-  };
-}
-
-function restartQuiz() {
-  quizState = { currentQuestion: 0, answers: [], completed: false };
-  document.getElementById("quizResults").style.display = "none";
-  document.querySelector(".quiz-content").style.display = "block";
-  document.querySelector(".quiz-actions").style.display = "flex";
-  renderQuizQuestion();
-  document.getElementById("quizSubmit").onclick = submitQuizAnswer;
+  window.quizModule.initQuiz(quizQuestions, "N-Queens Backtracking Quiz");
 }
 
 function init() {
@@ -1168,11 +1053,6 @@ function init() {
   setupLineExplanationHandlers();
   rebuildSimulation();
   
-  document.getElementById("quizSubmit").onclick = submitQuizAnswer;
-  document.getElementById("quizSkip").onclick = () => {
-    document.getElementById("quizOverlay").style.display = "none";
-  };
-
   if (!localStorage.getItem("nqueens_tour_complete")) {
     setTimeout(triggerInteractiveTour, 800);
   }
