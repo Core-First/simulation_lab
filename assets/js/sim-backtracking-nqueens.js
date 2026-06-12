@@ -858,6 +858,7 @@ function initEventListeners() {
     } else {
       comparisonStatsDiv.style.display = "none";
     }
+  };
   readAloudBtn.onclick = () => {
     readAloudBtn.classList.toggle("text-primary");
     if (!readAloudBtn.classList.contains("text-primary")) speechSynth.cancel();
