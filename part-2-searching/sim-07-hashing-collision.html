@@ -307,19 +307,20 @@ function search(val, table, size) {
   async function insertLinearProbing(val) {
       if (items >= size) {
           addLog(`Table is full! Cannot insert ${val}.`, 'var(--danger)');
-          if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
+          if(simAudio) simAudio.playCrackSound();
           return;
       }
 
       let key = val % size;
       codeHighlight('hash');
       addLog(`Inserting ${val}. Hash = ${val} % ${size} = ${key}`);
+      if(simAudio) simAudio.playSound(150 + (key / size) * 600, 80);
 
       let currIdx = key;
       while (true) {
           codeHighlight('probe_check');
           highlightSlot(currIdx, 'highlight');
-          if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
+          if(simAudio) simAudio.playTone(currIdx, Array.from({length: size}, (_, i) => i));
           await sleep(600);
 
           if (table[currIdx].length === 0) {
@@ -327,7 +328,7 @@ function search(val, table, size) {
               table[currIdx].push(val);
               highlightSlot(currIdx, 'success');
               addLog(`Slot ${currIdx} is empty. Inserted ${val}.`, 'var(--success)');
-              if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
+              if(simAudio) { simAudio.playSound(880, 80); setTimeout(() => simAudio.playSound(1100, 120), 80); }
               items++;
               break;
           } else {
@@ -336,7 +337,7 @@ function search(val, table, size) {
               addLog(`Slot ${currIdx} occupied. Collision!`, 'var(--danger)');
               collisions++;
               document.getElementById('colCount').innerText = collisions;
-              if(simAudio) simAudio.playTone(300, [300], {type:'triangle',vol:0.1,duration:0.2});
+              if(simAudio) simAudio.playCrackSound();
               await sleep(600);
               currIdx = (currIdx + 1) % size;
               addLog(`Linear Probing: checking next index ${currIdx}.`);
@@ -351,9 +352,10 @@ function search(val, table, size) {
       let key = val % size;
       codeHighlight('hash');
       addLog(`Inserting ${val}. Hash = ${val} % ${size} = ${key}`);
+      if(simAudio) simAudio.playSound(150 + (key / size) * 600, 80);
 
       highlightSlot(key, 'highlight');
-      if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
+      if(simAudio) simAudio.playTone(key, Array.from({length: size}, (_, i) => i));
       await sleep(600);
 
       if (table[key].length > 0) {
@@ -361,7 +363,7 @@ function search(val, table, size) {
           addLog(`Slot ${key} has elements. Appending to chain. (Collision)`, 'var(--warning)');
           collisions++;
           document.getElementById('colCount').innerText = collisions;
-          if(simAudio) simAudio.playTone(500, [500], {type:'triangle',vol:0.1,duration:0.2});
+          if(simAudio) simAudio.playCrackSound();
           await sleep(600);
       }
 
@@ -369,7 +371,7 @@ function search(val, table, size) {
       table[key].push(val);
       highlightSlot(key, 'success');
       addLog(`Inserted ${val} into chain at slot ${key}.`, 'var(--success)');
-      if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
+      if(simAudio) { simAudio.playSound(880, 80); setTimeout(() => simAudio.playSound(1100, 120), 80); }
       items++;
 
       renderTable();
@@ -381,6 +383,7 @@ function search(val, table, size) {
       let key = val % size;
       codeHighlight('search_hash');
       addLog(`Searching ${val}. Hash = ${val} % ${size} = ${key}`);
+      if(simAudio) simAudio.playSound(150 + (key / size) * 600, 80);
 
       let currIdx = key;
       let checked = 0;
@@ -388,25 +391,25 @@ function search(val, table, size) {
       while (checked < size) {
           codeHighlight('search_check');
           highlightSlot(currIdx, 'highlight');
-          if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
+          if(simAudio) simAudio.playTone(currIdx, Array.from({length: size}, (_, i) => i));
           await sleep(600);
 
           if (table[currIdx].length === 0) {
               highlightSlot(currIdx, 'collision');
               addLog(`Slot ${currIdx} is empty. ${val} not found!`, 'var(--danger)');
-              if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
+              if(simAudio) simAudio.playCrackSound();
               break;
           } else if (table[currIdx][0] === val) {
               codeHighlight('search_hit');
               highlightSlot(currIdx, 'success');
               addLog(`Found ${val} at slot ${currIdx}!`, 'var(--success)');
-              if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
+              if(simAudio) { simAudio.playSound(1200, 100); setTimeout(() => simAudio.playSound(1500, 150), 100); }
               break;
           } else {
               codeHighlight('search_probe');
               highlightSlot(currIdx, 'collision');
               addLog(`Slot ${currIdx} holds ${table[currIdx][0]}, not ${val}. Probing next.`);
-              if(simAudio) simAudio.playTone(300, [300], {type:'triangle',vol:0.1,duration:0.2});
+              if(simAudio) simAudio.playCrackSound();
               await sleep(600);
               currIdx = (currIdx + 1) % size;
               checked++;
@@ -415,7 +418,7 @@ function search(val, table, size) {
 
       if (checked === size) {
           addLog(`Table fully searched. ${val} not found!`, 'var(--danger)');
-          if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
+          if(simAudio) simAudio.playCrackSound();
       }
 
       await sleep(800);
@@ -426,9 +429,10 @@ function search(val, table, size) {
       let key = val % size;
       codeHighlight('search_hash');
       addLog(`Searching ${val}. Hash = ${val} % ${size} = ${key}`);
+      if(simAudio) simAudio.playSound(150 + (key / size) * 600, 80);
 
       highlightSlot(key, 'highlight');
-      if(simAudio) simAudio.playTone(400, [400], {type:'sine',vol:0.05,duration:0.2});
+      if(simAudio) simAudio.playTone(key, Array.from({length: size}, (_, i) => i));
       await sleep(600);
 
       codeHighlight('search_chain');
@@ -445,12 +449,12 @@ function search(val, table, size) {
           codeHighlight('search_hit');
           highlightSlot(key, 'success');
           addLog(`Found ${val} in chain at slot ${key}!`, 'var(--success)');
-          if(simAudio) simAudio.playTone(800, [800,1000], {type:'sine',vol:0.1,duration:0.3});
+          if(simAudio) { simAudio.playSound(1200, 100); setTimeout(() => simAudio.playSound(1500, 150), 100); }
       } else {
           codeHighlight('notfound');
           highlightSlot(key, 'collision');
           addLog(`${val} not found in chain at slot ${key}.`, 'var(--danger)');
-          if(simAudio) simAudio.playTone(200, [200], {type:'sawtooth',vol:0.1,duration:0.4});
+          if(simAudio) simAudio.playCrackSound();
       }
 
       await sleep(800);
