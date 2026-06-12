@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Stack & Queue Visualizer | Live C Code Execution Style</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
   <style>
     * {
       margin: 0;
@@ -251,7 +252,12 @@
 <div class="container">
   <div class="header">
     <h1>📚 Stack & Queue: C Code + Live Simulation</h1>
-    <span class="badge">⚡ LIFO / FIFO | Real-time C implementations</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="badge">⚡ LIFO / FIFO | Real-time C implementations</span>
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1e293b;border:1px solid #2d3a5e;color:#e2e8f0;border-radius:8px;font-size:12px;text-decoration:none;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='#3b82f6';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='#2d3a5e';this.style.color='#e2e8f0'">
+        <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+      </a>
+    </div>
   </div>
 
   <div class="ds-panel">
@@ -310,6 +316,9 @@
   </div>
 </div>
 
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
+
 <script>
   // ---------- Data Models ----------
   let stack = [];       // array as stack (top is last)
@@ -321,29 +330,12 @@
   const cCodeDisplay = document.getElementById('cCodeDisplay');
   const globalLogDiv = document.getElementById('globalLog');
 
-  // Audio (optional but enhances experience)
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  let audioCtx = null;
+  // Audio — using shared sim-audio module
   function initAudio() {
-    if (!audioCtx) {
-      audioCtx = new AudioCtx();
-    }
-    if (audioCtx.state !== 'running') audioCtx.resume();
+    if (window.simAudio) window.simAudio.initContext();
   }
   function playBeep(freq, duration, type = 'sine', vol = 0.2) {
-    try {
-      if (!audioCtx) { audioCtx = new AudioCtx(); }
-      if (audioCtx.state !== 'running') return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.value = vol;
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      setTimeout(() => osc.stop(), duration);
-    } catch(e) { /* silent */ }
+    if (window.simAudio) window.simAudio.playTone(freq, [freq, freq * 2], { type, vol, duration });
   }
 
   function addLog(msg, isError = false) {
@@ -494,7 +486,7 @@ void resetQueue() {
 
   // ---------- STACK OPERATIONS ----------
   function stackPush() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     const valInput = document.getElementById('stackValue');
     let val = parseInt(valInput.value);
     if (isNaN(val)) val = 42;
@@ -507,7 +499,7 @@ void resetQueue() {
   }
 
   function stackPop() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     if (stack.length === 0) {
       addLog(`❌ Stack POP failed: Underflow`, true);
       playBeep(220, 300, 'sawtooth', 0.25);
@@ -522,7 +514,7 @@ void resetQueue() {
   }
 
   function stackPeek() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     if (stack.length === 0) {
       addLog(`🔎 Stack peek: Stack is empty`, true);
       playBeep(280, 200, 'sawtooth', 0.2);
@@ -545,7 +537,7 @@ void resetQueue() {
 
   // ---------- QUEUE OPERATIONS ----------
   function queueEnqueue() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     const valInput = document.getElementById('queueValue');
     let val = parseInt(valInput.value);
     if (isNaN(val)) val = 100;
@@ -558,7 +550,7 @@ void resetQueue() {
   }
 
   function queueDequeue() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     if (queue.length === 0) {
       addLog(`❌ Queue DEQUEUE failed: underflow`, true);
       playBeep(190, 320, 'sawtooth', 0.3);
@@ -573,7 +565,7 @@ void resetQueue() {
   }
 
   function queueFront() {
-    initAudio();
+    if (window.simAudio) window.simAudio.initContext();
     if (queue.length === 0) {
       addLog(`👀 Queue front: empty queue`, true);
       playBeep(260, 180, 'sawtooth', 0.2);
@@ -706,14 +698,9 @@ void resetQueue() {
   }
 
   document.getElementById('startQuizBtn').onclick = () => {
-    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume();
+    if (window.simAudio) window.simAudio.initContext();
     startQuiz();
   };
-
-  function enableAudioGlobal() {
-    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume();
-  }
-  document.body.addEventListener('click', enableAudioGlobal, { once: false });
   window.addEventListener('load', () => {
     addLog("🔊 Click any stack/queue button — see complete C code and animation");
   });
