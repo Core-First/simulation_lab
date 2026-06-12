@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Stack & Queue Visualizer | Live C Code Execution Style</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
   <style>
     * {
       margin: 0;
@@ -13,15 +15,14 @@
     }
 
     body {
+      margin: 0; padding: 0; display: block; overflow-y: auto;
       font-family: 'Segoe UI', 'Fira Code', 'Consolas', monospace;
-      background: radial-gradient(circle at 10% 20%, #0a0f1e, #030712);
-      color: #e2e8f0;
-      padding: 24px 20px;
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
+      padding: 0 20px;
     }
 
     .header {
@@ -29,12 +30,12 @@
       justify-content: space-between;
       align-items: baseline;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      margin: 20px 0;
     }
 
     h1 {
       font-size: 2rem;
-      background: linear-gradient(135deg, #fbbf24, #38bdf8);
+      background: linear-gradient(135deg, var(--warning), #38bdf8);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -42,30 +43,31 @@
     }
 
     .badge {
-      background: #1e293b;
+      background: var(--surface-2);
       padding: 6px 14px;
       border-radius: 60px;
       font-size: 0.75rem;
       font-weight: 500;
-      color: #9ca3af;
+      color: var(--muted);
+      border: 1px solid var(--border);
     }
 
     .ds-panel {
       display: flex;
       flex-wrap: wrap;
       gap: 28px;
-      margin: 30px 0 20px;
+      margin: 20px 0 20px;
     }
 
     .card {
       flex: 1;
       min-width: 300px;
-      background: #0f172ad9;
+      background: var(--surface);
       backdrop-filter: blur(4px);
-      border: 1px solid #2d3a5e;
+      border: 1px solid var(--border);
       border-radius: 36px;
       padding: 20px 22px;
-      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
     .card h2 {
@@ -73,13 +75,14 @@
       align-items: center;
       gap: 12px;
       font-size: 1.6rem;
-      border-left: 6px solid #f59e0b;
+      border-left: 6px solid var(--warning);
       padding-left: 16px;
       margin-bottom: 20px;
+      color: var(--text);
     }
 
     .viz-stack, .viz-queue {
-      background: #030712;
+      background: var(--bg);
       border-radius: 28px;
       min-height: 260px;
       padding: 20px 12px;
@@ -87,19 +90,20 @@
       flex-direction: column-reverse;
       align-items: center;
       gap: 12px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
       margin: 15px 0;
     }
 
     .stack-item {
-      background: linear-gradient(145deg, #1e2a4a, #0f2b3c);
-      border: 2px solid #f59e0b;
+      background: var(--surface-2);
+      border: 2px solid var(--warning);
       padding: 12px 20px;
       width: 85%;
       text-align: center;
       border-radius: 60px;
       font-weight: bold;
       font-size: 1.2rem;
+      color: var(--text);
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       animation: slideUp 0.3s ease;
     }
@@ -115,19 +119,20 @@
     }
 
     .queue-item {
-      background: linear-gradient(145deg, #1f3a4b, #0f2a36);
-      border: 2px solid #3b82f6;
+      background: var(--surface-2);
+      border: 2px solid var(--primary);
       padding: 12px 20px;
       border-radius: 20px;
       font-weight: bold;
       font-size: 1.2rem;
+      color: var(--text);
       min-width: 70px;
       text-align: center;
       animation: popIn 0.25s ease;
     }
 
     .empty-msg {
-      color: #6b7280;
+      color: var(--muted);
       font-style: italic;
       padding: 20px;
     }
@@ -142,14 +147,15 @@
     }
 
     .controls {
-      background: #0b1120cc;
+      background: var(--bg);
       padding: 15px 20px;
       border-radius: 32px;
       margin-top: 15px;
+      border: 1px solid var(--border);
     }
 
     button {
-      background: #2563eb;
+      background: var(--primary);
       border: none;
       padding: 8px 18px;
       margin: 6px 6px;
@@ -162,34 +168,33 @@
     }
 
     button:hover {
-      background: #3b82f6;
+      filter: brightness(1.1);
       transform: translateY(-2px);
     }
 
     .danger-btn {
-      background: #b91c1c;
+      background: var(--danger);
     }
     .danger-btn:hover {
-      background: #ef4444;
+      filter: brightness(1.1);
     }
 
     input {
-      background: #111827;
-      border: 1px solid #4b5563;
+      background: var(--surface);
+      border: 1px solid var(--border);
       padding: 8px 14px;
       border-radius: 40px;
-      color: white;
+      color: var(--text);
       width: 130px;
       margin: 6px;
     }
 
-    /* C code panel - full, ready to execute style */
     .code-section {
       margin: 20px 0;
-      background: #010409;
+      background: var(--bg);
       border-radius: 24px;
       padding: 6px;
-      border: 1px solid #2d3a5e;
+      border: 1px solid var(--border);
     }
 
     .code-header {
@@ -197,46 +202,63 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 20px;
-      background: #0d1117;
-      border-radius: 20px 20px 0 0;
-      border-bottom: 1px solid #2d3a5e;
-    }
-
-    .code-header span {
-      font-family: monospace;
+      background: var(--surface);
+      border-radius: 18px 18px 0 0;
       font-weight: bold;
-      color: #f97316;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
     }
 
-    .code-block {
-      font-family: 'Fira Code', 'Courier New', monospace;
-      font-size: 0.85rem;
-      background: #010409;
+    .code-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .d-red { background: var(--danger); }
+    .d-yel { background: var(--warning); }
+    .d-grn { background: var(--success); }
+
+    .c-code {
       padding: 20px;
-      overflow-x: auto;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.95rem;
       white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.5;
-      color: #e5e7eb;
+      overflow-x: auto;
+      color: var(--primary);
     }
 
-    .log-area {
-      background: #030712;
-      border-radius: 20px;
-      height: 140px;
+    /* Logs */
+    .logs-wrapper {
+      margin-top: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 120px;
+      max-height: 250px;
       overflow-y: auto;
-      padding: 12px;
-      font-family: monospace;
-      border: 1px solid #2d3a5e;
-      margin: 18px 0;
+    }
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .log-err {
+      color: var(--danger);
+      font-weight: bold;
     }
 
     .quiz-section {
-      background: #0f172a;
+      background: var(--surface);
       border-radius: 32px;
       padding: 20px;
       margin-top: 30px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
     }
 
     .feedback {
@@ -244,19 +266,32 @@
       border-radius: 28px;
       margin: 15px 0;
     }
-    .correct { background: #14532d; color: #bbf7d0; border-left: 6px solid #22c55e; }
-    .wrong { background: #7f1d1d; color: #ffc9c9; border-left: 6px solid #ef4444; }
+    .correct { background: rgba(34,197,94,0.2); color: var(--success); border-left: 6px solid var(--success); }
+    .wrong { background: rgba(239,68,68,0.2); color: var(--danger); border-left: 6px solid var(--danger); }
   </style>
 </head>
 <body>
+
+  <!-- Header Bar -->
+  <header class="topbar">
+    <div class="page-title">
+      <i class="fa-solid fa-layer-group text-primary me-2"></i> Part 3: Linear Data Structures &nbsp;›&nbsp; Stack & Queue
+    </div>
+    <div class="topbar-right d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
+        <i class="fa-solid fa-moon"></i> <span>Dark Mode</span>
+      </button>
+      <a href="../index.html" class="back-btn">
+        <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+      </a>
+    </div>
+  </header>
+
 <div class="container">
   <div class="header">
     <h1>📚 Stack & Queue: C Code + Live Simulation</h1>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="badge">⚡ LIFO / FIFO | Real-time C implementations</span>
-      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1e293b;border:1px solid #2d3a5e;color:#e2e8f0;border-radius:8px;font-size:12px;text-decoration:none;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='#3b82f6';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='#2d3a5e';this.style.color='#e2e8f0'">
-        <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
-      </a>
     </div>
   </div>
 
@@ -300,23 +335,54 @@
       <span>📟 C Implementation (ready to compile)</span>
       <span style="font-size:0.7rem;">// Click any operation → full C function appears</span>
     </div>
-    <div class="code-block" id="cCodeDisplay">
+    <div class="c-code" id="cCodeDisplay">
       /* Welcome to Stack & Queue C Simulator */<br>
       /* Click any push/pop/enqueue/dequeue to see the full C code */
     </div>
   </div>
 
-  <div class="log-area" id="globalLog">[system] Stack & Queue ready — C code snippets shown for each operation. 🧠</div>
+  <div class="logs-wrapper" id="globalLog">[system] Stack & Queue ready — C code snippets shown for each operation. 🧠</div>
 
   <!-- QUIZ SECTION -->
-  <div class="quiz-section" id="quizSection">
+  <div class="quiz-section" id="quizContainer">
     <h3>📖 Stack & Queue Fundamentals Quiz (10 questions)</h3>
-    <button id="startQuizBtn" style="background:#0f3b2c; padding: 12px 28px;">🚀 Start Quiz</button>
-    <div id="quizInnerContainer" style="margin-top: 20px;"></div>
+    <button onclick="showQuizOverlay()" style="background:var(--success); padding: 12px 28px;"><i class="fa-solid fa-graduation-cap"></i> Start Practice Quiz</button>
+  </div>
+</div>
+
+<!-- Quiz Overlay -->
+<div class="quiz-overlay" id="quizOverlay" style="display: none">
+  <div class="quiz-backdrop"></div>
+  <div class="quiz-modal">
+    <div class="quiz-header">
+      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Stack & Queue Quiz</h3>
+      <div class="quiz-progress">
+        <span id="quizProgress">Question 1 of 10</span>
+      </div>
+    </div>
+    <div class="quiz-content">
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+      <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+    </div>
+    <div class="quiz-results" id="quizResults" style="display: none">
+      <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+      <div class="quiz-score" id="quizScore"></div>
+      <div class="quiz-summary" id="quizSummary"></div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+        <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sim-audio.js"></script>
 
 <script>
@@ -603,104 +669,25 @@ void resetQueue() {
 
   // ---------- QUIZ (10 questions about Stack & Queue) ----------
   const quizData = [
-    { q: "What does LIFO stand for?", a: "Last In First Out", o: ["Last In First Out", "First In First Out", "Last In Last Out", "Random Access"] },
-    { q: "Which data structure uses FIFO principle?", a: "Queue", o: ["Stack", "Queue", "Array", "Linked List"] },
-    { q: "Time complexity of push operation in stack (array-based, no resize)?", a: "O(1)", o: ["O(1)", "O(n)", "O(log n)", "O(n²)"] },
-    { q: "In a queue, new elements are added at:", a: "Rear", o: ["Front", "Rear", "Middle", "Anywhere"] },
-    { q: "What happens when you pop from an empty stack?", a: "Underflow", o: ["Overflow", "Underflow", "Segfault", "Garbage value"] },
-    { q: "Which one is a real-world application of stack?", a: "Function Call Stack", o: ["Function Call Stack", "Printer Spooler", "Ticket Counter", "BFS traversal"] },
-    { q: "In a circular queue, the advantage over linear queue is:", a: "Better memory utilization", o: ["Better memory utilization", "Faster access", "Less code", "Dynamic size"] },
-    { q: "Enqueue and Dequeue operations are performed at?", a: "Rear and Front respectively", o: ["Front and Rear", "Rear and Front respectively", "Both at front", "Both at rear"] },
-    { q: "If elements are inserted 10,20,30 into stack and then popped once, which remains?", a: "10,20", o: ["10,20", "20,30", "10,30", "10"] },
-    { q: "Which of the following is an application of Queue?", a: "CPU Scheduling", o: ["CPU Scheduling", "Expression Evaluation", "Undo/Redo", "Recursion"] }
+    { q: "What does LIFO stand for?", a: 0, o: ["Last In First Out", "First In First Out", "Last In Last Out", "Random Access"] },
+    { q: "Which data structure uses FIFO principle?", a: 1, o: ["Stack", "Queue", "Array", "Linked List"] },
+    { q: "Time complexity of push operation in stack (array-based, no resize)?", a: 0, o: ["O(1)", "O(n)", "O(log n)", "O(n²)"] },
+    { q: "In a queue, new elements are added at:", a: 1, o: ["Front", "Rear", "Middle", "Anywhere"] },
+    { q: "What happens when you pop from an empty stack?", a: 1, o: ["Overflow", "Underflow", "Segfault", "Garbage value"] },
+    { q: "Which one is a real-world application of stack?", a: 0, o: ["Function Call Stack", "Printer Spooler", "Ticket Counter", "BFS traversal"] },
+    { q: "In a circular queue, the advantage over linear queue is:", a: 0, o: ["Better memory utilization", "Faster access", "Less code", "Dynamic size"] },
+    { q: "Enqueue and Dequeue operations are performed at?", a: 1, o: ["Front and Rear", "Rear and Front respectively", "Both at front", "Both at rear"] },
+    { q: "If elements are inserted 10,20,30 into stack and then popped once, which remains?", a: 0, o: ["10,20", "20,30", "10,30", "10"] },
+    { q: "Which of the following is an application of Queue?", a: 0, o: ["CPU Scheduling", "Expression Evaluation", "Undo/Redo", "Recursion"] }
   ];
 
-  let quizActive = false;
-  let quizIndex = 0;
-  let quizScore = 0;
-  let answered = false;
-
-  function startQuiz() {
-    quizActive = true;
-    quizIndex = 0;
-    quizScore = 0;
-    answered = false;
-    renderQuizQuestion();
-  }
-
-  function renderQuizQuestion() {
-    if (!quizActive) return;
-    if (quizIndex >= quizData.length) {
-      const percent = ((quizScore / quizData.length)*100).toFixed(0);
-      let message = quizScore >= 8 ? "🎉 Excellent! Stack & Queue master!" : (quizScore >= 5 ? "👍 Good effort! Review the simulator." : "📚 Keep practicing with the interactive panel.");
-      document.getElementById('quizInnerContainer').innerHTML = `
-        <div style="text-align:center; padding:12px;">
-          <h3>🏆 Quiz Finished!</h3>
-          <p style="font-size:1.4rem;">Score: ${quizScore} / ${quizData.length} (${percent}%)</p>
-          <p>${message}</p>
-          <button id="restartQuizBtn" style="background:#2c5e2e; padding:12px 28px;">🔄 Restart Quiz</button>
-        </div>
-      `;
-      const restartBtn = document.getElementById('restartQuizBtn');
-      if (restartBtn) restartBtn.onclick = startQuiz;
-      quizActive = false;
-      return;
-    }
-
-    const qObj = quizData[quizIndex];
-    let optionsHtml = '';
-    qObj.o.forEach(opt => {
-      optionsHtml += `<button class="quiz-opt" data-opt="${opt.replace(/"/g, '&quot;')}" style="display:block; width:100%; margin:8px 0; padding:12px; background:#1e293b; border-radius:40px; text-align:left;">➡️ ${opt}</button>`;
-    });
-    const quizHtml = `
-      <div>
-        <h4>Question ${quizIndex+1} / ${quizData.length}</h4>
-        <p style="font-size:1rem; font-weight:500; margin:10px 0;">${qObj.q}</p>
-        <div id="quizOptionsArea">${optionsHtml}</div>
-        <div id="quizFeedbackArea"></div>
-        <div style="margin-top: 12px;">🎯 Current Score: ${quizScore}</div>
-      </div>
-    `;
-    document.getElementById('quizInnerContainer').innerHTML = quizHtml;
-
-    document.querySelectorAll('.quiz-opt').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        if (answered) return;
-        const selected = btn.getAttribute('data-opt');
-        const isCorrect = (selected === qObj.a);
-        if (isCorrect) {
-          quizScore++;
-          playBeep(800, 150, 'sine', 0.2);
-        } else {
-          playBeep(250, 300, 'sawtooth', 0.2);
-        }
-        answered = true;
-        const feedbackDiv = document.getElementById('quizFeedbackArea');
-        if (isCorrect) {
-          feedbackDiv.innerHTML = `<div class="feedback correct">✅ Correct! ${selected} is right.</div>`;
-        } else {
-          feedbackDiv.innerHTML = `<div class="feedback wrong">❌ Wrong! Correct answer: <strong>${qObj.a}</strong></div>`;
-        }
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = "⏩ Next Question";
-        nextBtn.style.background = "#16a34a";
-        nextBtn.style.padding = "10px 24px";
-        nextBtn.style.marginTop = "20px";
-        nextBtn.onclick = () => {
-          quizIndex++;
-          answered = false;
-          renderQuizQuestion();
-        };
-        document.getElementById('quizInnerContainer').appendChild(nextBtn);
-        document.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
-      });
-    });
-  }
-
-  document.getElementById('startQuizBtn').onclick = () => {
-    if (window.simAudio) window.simAudio.initContext();
-    startQuiz();
+  window.showQuizOverlay = function() {
+    window.quizModule.initQuiz(quizData, "Stack & Queue Quiz");
   };
+  window.hideQuizOverlay = function() {
+    window.quizModule.closeQuiz();
+  };
+
   window.addEventListener('load', () => {
     addLog("🔊 Click any stack/queue button — see complete C code and animation");
   });
