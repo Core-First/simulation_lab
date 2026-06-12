@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Singly Linked List Simulator (C)</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #0f172a; color: #e2e8f0; }
     h1, h2 { color: #60a5fa; }
@@ -34,6 +36,21 @@
   </style>
 </head>
 <body>
+  <!-- Header Bar -->
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #1e2937; border-bottom: 1px solid #475569; margin-bottom: 20px;">
+    <div style="font-size: 1.15rem; font-weight: bold; color: #60a5fa; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; gap: 8px;">
+      <i class="fa-solid fa-code-branch"></i> Part 3: Linear Data Structures &nbsp;›&nbsp; Singly Linked List
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="themeToggle" style="background: transparent; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; margin: 0; color: #e2e8f0; cursor: pointer;">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <a href="../index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+      </a>
+    </div>
+  </header>
+
 <div class="container">
   <h1>🧬 Singly Linked List Simulator (C Programming)</h1>
   <p><strong>Animation + Sound + Improved Quiz with Next Button</strong></p>
@@ -63,27 +80,22 @@
 
   <h2>🧠 Practice Quiz (20 Questions)</h2>
   <div class="quiz" id="quizContainer">
-    <button onclick="startQuiz()" style="padding:15px 30px; font-size:1.1em;">Start 20-Question Quiz</button>
+    <button onclick="showQuizOverlay()" style="padding:15px 30px; font-size:1.1em;"><i class="fa-solid fa-graduation-cap"></i> Start Practice Quiz</button>
   </div>
 </div>
 
-<script>
-// Audio (same as before)
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
 
+<script>
+// Audio wrapper using shared sim-audio.js
 function playSound(freq, duration, type = 'sine', volume = 0.3) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type; osc.frequency.value = freq; gain.gain.value = volume;
-  osc.connect(gain).connect(audioCtx.destination);
-  osc.start();
-  setTimeout(() => osc.stop(), duration);
+  window.simAudio.playSound(freq, duration, type, volume);
 }
 
 function playCrackSound() {
-  playSound(120, 80, 'sawtooth', 0.6);
-  setTimeout(() => playSound(80, 120, 'sawtooth', 0.5), 50);
-  setTimeout(() => playSound(200, 60, 'square', 0.4), 120);
+  window.simAudio.playCrackSound();
 }
 
 let list = [];
@@ -179,92 +191,75 @@ function resetList() {
   log('List Reset');
 }
 
-// ==================== QUIZ WITH NEXT BUTTON ====================
+// Quiz Engine overlay logic
 const quizQuestions = [
-  {q: "What is the time complexity of inserting at the beginning?", a: "O(1)", o: ["O(1)","O(n)","O(log n)","O(n²)"]},
-  {q: "How is the end of a singly linked list indicated?", a: "Next pointer is NULL", o: ["Next pointer is NULL","Next points to head","Next is -1","Next points to tail"]},
-  {q: "Which operation usually needs full traversal?", a: "Insert at End (without tail)", o: ["Insert at Beginning","Insert at End (without tail)","Delete from Beginning","Search by index"]},
-  {q: "What should you do when deleting from empty list?", a: "Do nothing (handle edge case)", o: ["Crash","Do nothing (handle edge case)","Return random","Infinite loop"]},
-  {q: "Memory allocation for new node in C?", a: "malloc()", o: ["malloc()","new","calloc()","alloc()"]},
-  {q: "Function to free memory of a node?", a: "free()", o: ["free()","delete","release()","destroy()"]},
-  {q: "Main advantage of linked list over array?", a: "Dynamic size", o: ["Dynamic size","Faster access","Less memory","Fixed size"]},
-  {q: "Biggest disadvantage of singly linked list?", a: "Cannot go backwards easily", o: ["Cannot go backwards easily","Uses more memory","Slower access","All of above"]},
-  {q: "A node in linked list contains?", a: "Data + Next pointer", o: ["Data + Next pointer","Only data","Only pointer","Array of data"]},
-  {q: "Head pointer always points to?", a: "First node", o: ["First node","Last node","Middle node","NULL"]},
-  {q: "Time complexity of searching an element?", a: "O(n)", o: ["O(1)","O(log n)","O(n)","O(n²)"]},
-  {q: "Can we insert a node before the current head?", a: "Yes, by returning new head", o: ["Yes, by returning new head","No","Only at end","Depends"]},
-  {q: "Last node's next pointer should be?", a: "NULL", o: ["NULL","Head","Previous","Garbage"]},
-  {q: "To delete a node (not first), you need pointer to?", a: "Previous node", o: ["Previous node","The node only","Head only","Next node"]},
-  {q: "Linked list is best when we need?", a: "Frequent insertions/deletions", o: ["Frequent insertions/deletions","Frequent random access","Small fixed size","Sorting"]},
-  {q: "What does 'traversal' mean?", a: "Visiting each node once", o: ["Visiting each node once","Sorting","Reversing","Merging"]},
-  {q: "Can singly linked list implement Stack?", a: "Yes", o: ["Yes","No","Only Queue","Only Deque"]},
-  {q: "Good real-world use of singly linked list?", a: "Adjacency list in graphs", o: ["Adjacency list in graphs","Binary search","Large sorting","Matrix"]},
-  {q: "If head is NULL, the list is?", a: "Empty", o: ["Empty","Full","One node","Invalid"]},
-  {q: "How to reverse a singly linked list?", a: "Three pointer technique", o: ["Three pointer technique","Swap head","Recursion only","Impossible"]}
+  {q: "What is the time complexity of inserting at the beginning?", a: 0, o: ["O(1)","O(n)","O(log n)","O(n²)"]},
+  {q: "How is the end of a singly linked list indicated?", a: 0, o: ["Next pointer is NULL","Next points to head","Next is -1","Next points to tail"]},
+  {q: "Which operation usually needs full traversal?", a: 1, o: ["Insert at Beginning","Insert at End (without tail)","Delete from Beginning","Search by index"]},
+  {q: "What should you do when deleting from empty list?", a: 1, o: ["Crash","Do nothing (handle edge case)","Return random","Infinite loop"]},
+  {q: "Memory allocation for new node in C?", a: 0, o: ["malloc()","new","calloc()","alloc()"]},
+  {q: "Function to free memory of a node?", a: 0, o: ["free()","delete","release()","destroy()"]},
+  {q: "Main advantage of linked list over array?", a: 0, o: ["Dynamic size","Faster access","Less memory","Fixed size"]},
+  {q: "Biggest disadvantage of singly linked list?", a: 0, o: ["Cannot go backwards easily","Uses more memory","Slower access","All of above"]},
+  {q: "A node in linked list contains?", a: 0, o: ["Data + Next pointer","Only data","Only pointer","Array of data"]},
+  {q: "Head pointer always points to?", a: 0, o: ["First node","Last node","Middle node","NULL"]},
+  {q: "Time complexity of searching an element?", a: 2, o: ["O(1)","O(log n)","O(n)","O(n²)"]},
+  {q: "Can we insert a node before the current head?", a: 0, o: ["Yes, by returning new head","No","Only at end","Depends"]},
+  {q: "Last node's next pointer should be?", a: 0, o: ["NULL","Head","Previous","Garbage"]},
+  {q: "To delete a node (not first), you need pointer to?", a: 0, o: ["Previous node","The node only","Head only","Next node"]},
+  {q: "Linked list is best when we need?", a: 0, o: ["Frequent insertions/deletions","Frequent random access","Small fixed size","Sorting"]},
+  {q: "What does 'traversal' mean?", a: 0, o: ["Visiting each node once","Sorting","Reversing","Merging"]},
+  {q: "Can singly linked list implement Stack?", a: 0, o: ["Yes","No","Only Queue","Only Deque"]},
+  {q: "Good real-world use of singly linked list?", a: 0, o: ["Adjacency list in graphs","Binary search","Large sorting","Matrix"]},
+  {q: "If head is NULL, the list is?", a: 0, o: ["Empty","Full","One node","Invalid"]},
+  {q: "How to reverse a singly linked list?", a: 0, o: ["Three pointer technique","Swap head","Recursion only","Impossible"]}
 ];
 
-let currentQuestion = 0;
-let score = 0;
-let answered = false;
+window.showQuizOverlay = function() {
+  window.quizModule.initQuiz(quizQuestions, "Singly Linked List Quiz");
+};
+window.hideQuizOverlay = function() {
+  window.quizModule.closeQuiz();
+};
 
-function startQuiz() {
-  currentQuestion = 0;
-  score = 0;
-  answered = false;
-  showQuestion();
-}
-
-function showQuestion() {
-  answered = false;
-  const q = quizQuestions[currentQuestion];
-  let html = `<h3>Question ${currentQuestion + 1} / 20</h3>
-              <p><strong>${q.q}</strong></p>`;
-
-  q.o.forEach(opt => {
-    html += `<button onclick="selectAnswer('${opt}', '${q.a}')" style="display:block; width:100%; margin:8px 0; padding:12px;">${opt}</button>`;
-  });
-
-  html += `<p style="margin-top:20px;">Score: <strong>${score}</strong> / ${currentQuestion}</p>`;
-  document.getElementById('quizContainer').innerHTML = html;
-}
-
-function selectAnswer(selected, correct) {
-  if (answered) return;
-  answered = true;
-
-  const isCorrect = selected === correct;
-  if (isCorrect) score++;
-
-  const feedbackHTML = isCorrect ?
-    `<div class="feedback correct">✅ Correct! Well done.</div>` :
-    `<div class="feedback wrong">❌ Wrong. The correct answer is: <strong>${correct}</strong></div>`;
-
-  // Add feedback and Next button
-  const container = document.getElementById('quizContainer');
-  container.innerHTML += feedbackHTML + 
-    `<button class="next-btn" onclick="nextQuestion()">Next Question →</button>`;
-}
-
-function nextQuestion() {
-  currentQuestion++;
-  if (currentQuestion < quizQuestions.length) {
-    showQuestion();
-  } else {
-    // Final Result
-    document.getElementById('quizContainer').innerHTML = `
-      <h2>Quiz Completed! 🎉</h2>
-      <h3>Your Final Score: ${score} / 20</h3>
-      <p>${score >= 16 ? "Excellent! You really understand Singly Linked Lists!" : 
-           score >= 12 ? "Good Job! Review the weak areas." : 
-           "Keep practicing. You will improve!"}</p>
-      <button onclick="startQuiz()" style="padding:15px 30px;">Restart Quiz</button>
-    `;
-  }
-}
+window.addEventListener('themechanged', () => {
+  render();
+});
 
 // Initialize Simulator
 render();
-log("🚀 Simulator Ready! Quiz now has Next button.");
+log("🚀 Simulator Ready!");
 </script>
+
+<!-- Quiz Overlay -->
+<div class="quiz-overlay" id="quizOverlay" style="display: none">
+  <div class="quiz-backdrop"></div>
+  <div class="quiz-modal">
+    <div class="quiz-header">
+      <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Singly Linked List Quiz</h3>
+      <div class="quiz-progress">
+        <span id="quizProgress">Question 1 of 10</span>
+      </div>
+    </div>
+    <div class="quiz-content">
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+      <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+    </div>
+    <div class="quiz-results" id="quizResults" style="display: none">
+      <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+      <div class="quiz-score" id="quizScore"></div>
+      <div class="quiz-summary" id="quizSummary"></div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+        <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
