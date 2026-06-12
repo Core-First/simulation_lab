@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -114,6 +114,16 @@
           </div>
         </div>
 
+        <div class="panel-card">
+          <div class="panel-title">
+            <span>Execution Code Synchronizer</span>
+            <i class="fa-solid fa-terminal" style="color: var(--muted)"></i>
+          </div>
+          <div class="code-editor-wrapper">
+            <div class="code-editor" id="codePlayground" style="min-height: 180px; max-height: 280px; overflow-y: auto;"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -151,12 +161,53 @@
 <script src="../assets/js/theme-toggle.js"></script>
 <script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sim-audio.js"></script>
+<script src="../assets/js/code-sync.js"></script>
 <script>
 (function () {
   'use strict';
   let simAudio = null;
   if(window.simAudio) {
       simAudio = window.simAudio;
+  }
+
+  // ── Code Playground ──────────────────────────────────────────
+  const codeSync = new CodeSync('codePlayground');
+
+  const codeTemplates = {
+    linear:
+`function linearSearch(arr, target) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === target) {
+      return i; // Found at index i
+    }
+  }
+  return -1; // Not found
+}`,
+    binary:
+`function binarySearch(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    let mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) {
+      return mid; // Found
+    } else if (arr[mid] < target) {
+      left = mid + 1; // Search right half
+    } else {
+      right = mid - 1; // Search left half
+    }
+  }
+  return -1; // Not found
+}`
+  };
+
+  // line index to highlight for each step type per algorithm
+  const codeLineMap = {
+    linear: { compare: 1, found: 2, miss: 1, notfound: 5 },
+    binary: { bounds: 2, compare: 3, found: 4, miss: 5, notfound: 11 }
+  };
+
+  function initCodePlayground(algo) {
+    codeSync.init(codeTemplates[algo]);
   }
 
   // â”€â”€ Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -213,6 +264,7 @@
     document.getElementById('idxFound').innerText = '-';
     document.getElementById('elapsedTime').innerText = '0.0s';
     updateBtns(); draw();
+    initCodePlayground(algoType);
   }
 
   // â”€â”€ Algorithms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -333,6 +385,11 @@
     }
 
     document.getElementById('cmpCount').innerText = cmp;
+    // Highlight corresponding code line
+    const lineMap = codeLineMap[algoType];
+    if (lineMap && lineMap[s.type] !== undefined) {
+      codeSync.highlight(lineMap[s.type]);
+    }
     si++;
     draw();
   }
@@ -358,11 +415,13 @@
     st.disabled = running || done;
   }
 
+
   function updateAlgoInfo() {
       algoType = document.getElementById('algoSelect').value;
       const desc = document.getElementById('algoDesc');
       const badges = document.getElementById('algoBadges');
       const cx = document.getElementById('algoComplexity');
+      initCodePlayground(algoType);
 
       if (algoType === 'linear') {
           desc.innerText = "Linear Search sequentially checks each element of the list for the target value until a match is found.";
