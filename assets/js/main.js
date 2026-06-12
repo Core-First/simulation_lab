@@ -85,6 +85,8 @@ const simPaths = {
   "Simulation 3: Insertion Sort": "part-1-sorting/sim-03-insertion-sort.html",
   "Simulation 4: Merge Sort": "part-1-sorting/sim-04-merge-sort.html",
   "Simulation 5: Quick Sort": "part-1-sorting/sim-05-quick-sort.html",
+  "Simulation 6: Linear vs Binary Search": "part-2-searching/sim-06-linear-binary-search.html",
+  "Simulation 7: Hashing and Collision Resolution": "part-2-searching/sim-07-hashing-collision.html",
   "Simulation 8: Singly Linked List Visualiser": "part-3-linear-data-structures/sim-08-singly-linked-list.html",
   "Simulation 9: Stack and Queue Visualiser": "part-3-linear-data-structures/sim-09-stack-queue.html",
   "Simulation 10: Binary Search Tree (BST) Visualiser":
