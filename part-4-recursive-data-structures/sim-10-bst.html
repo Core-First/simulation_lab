@@ -463,7 +463,10 @@
   <div class="breadcrumb">
     Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 10</span>
   </div>
-  <a href="../index.html" class="back-btn" style="margin-left:auto;padding:6px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;border-radius:6px;text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+  <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound" style="margin-left:auto; padding:6px 12px; background:var(--surface2); border:1px solid var(--border); color:var(--text); cursor:pointer; border-radius:6px; display:flex; align-items:center; gap:6px;">
+    <i class="fa-solid fa-volume-high"></i>
+  </button>
+  <a href="../index.html" class="back-btn" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;border-radius:6px;text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
     <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
   </a>
   <div class="sim-badge">BST Visualiser</div>
@@ -648,6 +651,7 @@
 
 </div><!-- /workspace -->
 
+<script src="../assets/js/sim-audio.js"></script>
 <script>
 // ─── BST Data Structure ───────────────────────────────────────────────────────
 class BSTNode {
@@ -912,7 +916,11 @@ function setMode(m) {
 function insertVal() {
   const inp = document.getElementById('insert-val');
   const v   = parseInt(inp.value);
-  if (isNaN(v) || v < 1 || v > 99) { log('Enter a value between 1 and 99'); return; }
+  if (isNaN(v) || v < 1 || v > 99) {
+    log('Enter a value between 1 and 99');
+    if (window.simAudio) window.simAudio.playCrackSound();
+    return;
+  }
   if (animating) return;
   clearHighlights(root);
   root = insert(root, v);
@@ -920,13 +928,18 @@ function insertVal() {
   draw();
   updateStats();
   log(`Inserted ${v} into the BST`, 'found-msg');
+  if (window.simAudio) window.simAudio.playSound(600, 150);
   inp.value = '';
 }
 
 function deleteVal() {
   const inp = document.getElementById('delete-val');
   const v   = parseInt(inp.value);
-  if (isNaN(v)) { log('Enter a value to delete'); return; }
+  if (isNaN(v)) {
+    log('Enter a value to delete');
+    if (window.simAudio) window.simAudio.playCrackSound();
+    return;
+  }
   if (animating) return;
   clearHighlights(root);
   const before = countNodes(root);
@@ -935,31 +948,50 @@ function deleteVal() {
   layoutTree();
   draw();
   updateStats();
-  if (before !== after) log(`Deleted ${v} from the BST`, 'found-msg');
-  else log(`Value ${v} not found`, 'notfound-msg');
+  if (before !== after) {
+    log(`Deleted ${v} from the BST`, 'found-msg');
+    if (window.simAudio) window.simAudio.playSound(450, 200, 'triangle');
+  } else {
+    log(`Value ${v} not found`, 'notfound-msg');
+    if (window.simAudio) window.simAudio.playCrackSound();
+  }
   inp.value = '';
 }
 
 function searchVal() {
   const inp = document.getElementById('search-val');
   const v   = parseInt(inp.value);
-  if (isNaN(v)) { log('Enter a value to search'); return; }
+  if (isNaN(v)) {
+    log('Enter a value to search');
+    if (window.simAudio) window.simAudio.playCrackSound();
+    return;
+  }
   if (animating) return;
   clearHighlights(root);
   draw();
   const path = searchPath(root, v);
-  if (!path) { log(`${v} not found in the tree`, 'notfound-msg'); return; }
+  if (!path) {
+    log(`${v} not found in the tree`, 'notfound-msg');
+    if (window.simAudio) window.simAudio.playCrackSound();
+    return;
+  }
 
   animating = true;
   let i = 0;
+  const allVals = inorder(root).map(n => n.val);
   function step() {
     if (i > 0) path[i-1].highlighted = false;
     if (i < path.length - 1) {
       path[i].highlighted = true;
       log(`Comparing: ${path[i].val} — going ${v < path[i].val ? 'left' : 'right'}...`);
+      if (window.simAudio) window.simAudio.playTone(path[i].val, allVals);
     } else {
       path[i].found = true;
       log(`Found ${v}! Steps taken: ${path.length}`, 'found-msg');
+      if (window.simAudio) {
+        window.simAudio.playSound(880, 100);
+        setTimeout(() => window.simAudio.playSound(1100, 150), 100);
+      }
       animating = false;
       draw();
       updateStats();
@@ -988,9 +1020,11 @@ async function runTraversal(type) {
   const strip = document.getElementById('traversal-strip');
   strip.innerHTML = `<span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px">${type}:</span>`;
 
+  const allVals = nodes.map(n => n.val);
   for (let i = 0; i < nodes.length; i++) {
     nodes[i].traversed = true;
     log(`Visiting node: ${nodes[i].val}`);
+    if (window.simAudio) window.simAudio.playTone(nodes[i].val, allVals);
 
     const span = document.createElement('span');
     span.className = 'trav-node';
@@ -1010,6 +1044,7 @@ async function runTraversal(type) {
   }
 
   log(`${type} traversal complete — ${nodes.length} nodes visited`, 'found-msg');
+  if (window.simAudio) window.simAudio.playSweep(allVals);
   animating = false;
 }
 
@@ -1029,6 +1064,7 @@ function clearTree() {
   draw();
   updateStats();
   log('Tree cleared');
+  if (window.simAudio) window.simAudio.playCrackSound();
 }
 
 function loadPreset(type) {
