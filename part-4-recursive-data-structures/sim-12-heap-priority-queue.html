@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simulation 12: Heap / Priority Queue – ATC SimLab</title>
+<meta name="description" content="Learn Min-Heaps, Max-Heaps and Priority Queues: complete binary trees with heap property, O(log n) insert/extract and heapify operations."/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #0d1117;
+    --surface: #161b22;
+    --surface2:#1f2937;
+    --border:  #30363d;
+    --accent:  #3b82f6;
+    --accent2: #6366f1;
+    --green:   #22c55e;
+    --yellow:  #f59e0b;
+    --red:     #ef4444;
+    --orange:  #f97316;
+    --text:    #e6edf3;
+    --muted:   #8b949e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .breadcrumb { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .breadcrumb span { color: var(--accent); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    text-decoration: none;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sim-badge {
+    background: linear-gradient(135deg, var(--orange), var(--yellow));
+    color: #000;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, rgba(249,115,22,.1) 0%, rgba(245,158,11,.07) 50%, rgba(59,130,246,.08) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 40px 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(249,115,22,.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .coming-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,.15);
+    border: 1px solid rgba(245,158,11,.4);
+    color: var(--yellow);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #e6edf3 30%, var(--yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* Page Layout */
+  .page-content { display: flex; flex: 1; overflow: hidden; }
+
+  /* Theory Panel */
+  .theory-panel {
+    width: 300px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .theory-panel-header {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+  }
+  .theory-panel-header h2 {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .theory-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--orange);
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section p { font-size: 12.5px; line-height: 1.7; color: #c9d1d9; margin-bottom: 8px; }
+  .theory-section ul { list-style: none; margin-top: 4px; }
+  .theory-section ul li {
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #c9d1d9;
+    padding-left: 14px;
+    position: relative;
+  }
+  .theory-section ul li::before { content: '›'; position: absolute; left: 0; color: var(--orange); font-weight: 700; }
+
+  .complexity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    margin-top: 8px;
+  }
+  .complexity-table th {
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 5px 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9.5px;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+  }
+  .complexity-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: #c9d1d9; }
+  .good { color: var(--green) !important; }
+  .ok   { color: var(--yellow) !important; }
+  .bad  { color: var(--red) !important; }
+
+  /* Main Content */
+  .main-content { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 28px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover {
+    border-color: var(--orange);
+    box-shadow: 0 0 20px rgba(249,115,22,.10);
+  }
+  .card-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .card-icon.max  { background: rgba(249,115,22,.15); color: var(--orange); }
+  .card-icon.min  { background: rgba(59,130,246,.15);  color: var(--accent); }
+  .card-icon.pq   { background: rgba(34,197,94,.12);   color: var(--green); }
+  .card-icon.arr  { background: rgba(99,102,241,.15);  color: #a5b4fc; }
+  .card-header h3 { font-size: 14px; font-weight: 600; }
+  .card-header small { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+  .card-body { padding: 18px 20px; }
+  .card-body p { font-size: 12.5px; line-height: 1.7; color: #c9d1d9; margin-bottom: 10px; }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 2px 2px 0 0;
+  }
+  .tag-orange { background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.3); }
+  .tag-blue   { background: rgba(59,130,246,.15);  color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .tag-green  { background: rgba(34,197,94,.12);   color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .tag-purple { background: rgba(99,102,241,.15);  color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+
+  .code-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .code-block pre { white-space: pre-wrap; line-height: 1.8; }
+  .kw  { color: var(--orange); }
+  .fn  { color: var(--accent); }
+  .hl  { color: var(--yellow); }
+
+  /* Heap visual */
+  .heap-array {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+  }
+  .heap-cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border: 2px solid var(--orange);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--orange);
+    position: relative;
+  }
+  .heap-cell .idx {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .coming-soon-banner {
+    margin: 0 28px 28px;
+    background: linear-gradient(135deg, rgba(249,115,22,.08), rgba(245,158,11,.06));
+    border: 1px solid rgba(249,115,22,.25);
+    border-radius: 10px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .coming-soon-banner .icon { font-size: 32px; opacity: .7; }
+  .coming-soon-banner h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--orange); }
+  .coming-soon-banner p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="breadcrumb">
+    Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 12</span>
+  </div>
+  <div class="header-actions">
+    <a href="sim-10-bst.html" class="back-btn">
+      <i class="fa-solid fa-arrow-left"></i> BST Sim
+    </a>
+    <a href="../index.html" class="back-btn">
+      <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+    </a>
+    <div class="sim-badge">Module 4</div>
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="coming-badge">
+    <i class="fa-solid fa-hourglass-half"></i> Interactive Simulation Coming Soon
+  </div>
+  <h1>Heap &amp; Priority Queue</h1>
+  <p>A complete binary tree satisfying the <strong>heap property</strong> — enabling O(log n) insertion and O(log n) extraction of the minimum/maximum element, powering schedulers, Dijkstra's algorithm, and more.</p>
+</div>
+
+<div class="page-content">
+
+  <!-- Theory Panel -->
+  <div class="theory-panel">
+    <div class="theory-panel-header">
+      <h2>Theory &amp; Concepts</h2>
+    </div>
+
+    <div class="theory-section">
+      <h3>Heap Property</h3>
+      <p>A <strong>Max-Heap</strong>: parent ≥ children at every node. A <strong>Min-Heap</strong>: parent ≤ children. The root is always the extreme value.</p>
+    </div>
+
+    <div class="theory-section">
+      <h3>Structure Property</h3>
+      <ul>
+        <li>A <strong>complete binary tree</strong> — all levels filled left to right</li>
+        <li>Stored efficiently as a <strong>flat array</strong></li>
+        <li>Parent of node i: ⌊(i–1)/2⌋</li>
+        <li>Left child of i: 2i + 1</li>
+        <li>Right child of i: 2i + 2</li>
+      </ul>
+    </div>
+
+    <div class="theory-section">
+      <h3>Core Operations</h3>
+      <ul>
+        <li><strong>Insert</strong> — append + bubble-up (sift-up)</li>
+        <li><strong>Extract-Max/Min</strong> — swap root &amp; last, pop, bubble-down</li>
+        <li><strong>Peek</strong> — O(1) access to root</li>
+        <li><strong>Heapify</strong> — build from unsorted array in O(n)</li>
+      </ul>
+    </div>
+
+    <div class="theory-section">
+      <h3>Time Complexity</h3>
+      <table class="complexity-table">
+        <thead><tr><th>Operation</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td>Peek (min/max)</td><td class="good">O(1)</td></tr>
+          <tr><td>Insert</td><td class="good">O(log n)</td></tr>
+          <tr><td>Extract min/max</td><td class="good">O(log n)</td></tr>
+          <tr><td>Build heap</td><td class="good">O(n)</td></tr>
+          <tr><td>Heap sort</td><td class="ok">O(n log n)</td></tr>
+          <tr><td>Search</td><td class="bad">O(n)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="theory-section">
+      <h3>Applications</h3>
+      <ul>
+        <li>Dijkstra's shortest path</li>
+        <li>A* pathfinding</li>
+        <li>CPU / task schedulers</li>
+        <li>Huffman encoding</li>
+        <li>k-th largest element</li>
+        <li>Heap Sort algorithm</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <div style="padding:28px 28px 0">
+      <div class="coming-soon-banner">
+        <div class="icon">🛠️</div>
+        <div>
+          <h3>Interactive Heap Visualiser In Development</h3>
+          <p>The live heap simulator with animated insert, extract, and heapify operations — rendered as both a tree view and array view — is actively being built. Explore the theory and array mapping below.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+
+      <!-- Max-Heap Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon max"><i class="fa-solid fa-arrow-up"></i></div>
+          <div>
+            <h3>Max-Heap</h3>
+            <small>Parent ≥ children — largest at root</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>In a Max-Heap, the <strong>maximum element is always at index 0</strong>. Useful for extracting the largest element repeatedly or implementing a descending priority queue.</p>
+          <div style="margin-bottom:24px">
+            <div class="heap-array">
+              <div class="heap-cell" style="border-color:#22c55e;color:#22c55e">90<div class="idx">[0]</div></div>
+              <div class="heap-cell">75<div class="idx">[1]</div></div>
+              <div class="heap-cell">80<div class="idx">[2]</div></div>
+              <div class="heap-cell">50<div class="idx">[3]</div></div>
+              <div class="heap-cell">60<div class="idx">[4]</div></div>
+              <div class="heap-cell">20<div class="idx">[5]</div></div>
+              <div class="heap-cell">30<div class="idx">[6]</div></div>
+            </div>
+          </div>
+          <div style="margin-top:24px">
+            <span class="tag tag-orange">Max at root</span>
+            <span class="tag tag-green">O(1) peek max</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Min-Heap Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon min"><i class="fa-solid fa-arrow-down"></i></div>
+          <div>
+            <h3>Min-Heap</h3>
+            <small>Parent ≤ children — smallest at root</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>A Min-Heap places the <strong>minimum element at index 0</strong>. Fundamental in Dijkstra's algorithm, A* search, and any greedy algorithm needing the smallest item next.</p>
+          <div class="code-block">
+            <pre><span class="kw">Insert</span> 5 into Min-Heap [2, 4, 8, 6]:
+
+Step 1: Append    →  [2, 4, 8, 6, <span class="hl">5</span>]
+Step 2: Compare 5 &lt; parent(4)?  No
+Step 3: Compare 5 &lt; parent(2)?  No → Done
+
+Result: [2, 4, 8, 6, 5] ✓</pre>
+          </div>
+          <div style="margin-top:12px">
+            <span class="tag tag-blue">Min at root</span>
+            <span class="tag tag-green">O(log n) insert</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Priority Queue Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon pq"><i class="fa-solid fa-list-ol"></i></div>
+          <div>
+            <h3>Priority Queue</h3>
+            <small>Abstract data type built on heaps</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>A Priority Queue is an <strong>abstract data type</strong> that dequeues elements in priority order rather than insertion order. Heaps are its most efficient implementation.</p>
+          <table class="complexity-table" style="margin-top:0">
+            <thead><tr><th>Operation</th><th>Array</th><th>Heap</th></tr></thead>
+            <tbody>
+              <tr><td>Enqueue</td><td class="ok">O(1)</td><td class="good">O(log n)</td></tr>
+              <tr><td>Dequeue min</td><td class="bad">O(n)</td><td class="good">O(log n)</td></tr>
+              <tr><td>Peek min</td><td class="bad">O(n)</td><td class="good">O(1)</td></tr>
+              <tr><td>Build</td><td class="ok">O(n)</td><td class="good">O(n)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Heapify Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon arr"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div>
+            <h3>Heapify in O(n)</h3>
+            <small>Build a heap from any array</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>Naively inserting n elements takes O(n log n). But <strong>Build-Heap</strong> starts from the last non-leaf and calls sift-down on every node — achieving O(n) total time.</p>
+          <div class="code-block">
+            <pre><span class="fn">def</span> <span class="kw">build_max_heap</span>(arr):
+    n = len(arr)
+    <span class="hl"># Start from last non-leaf: n//2 - 1</span>
+    <span class="fn">for</span> i <span class="fn">in</span> range(n // 2 - 1, -1, -1):
+        sift_down(arr, n, i)</pre>
+          </div>
+          <div style="margin-top:12px">
+            <span class="tag tag-green">O(n) build time</span>
+            <span class="tag tag-purple">In-place algorithm</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards-grid -->
+  </div><!-- /main-content -->
+
+</div><!-- /page-content -->
+
+<script src="../assets/js/theme-toggle.js"></script>
+</body>
+</html>
