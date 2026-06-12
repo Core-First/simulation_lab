@@ -85,6 +85,8 @@ const simPaths = {
   "Simulation 3: Insertion Sort": "part-1-sorting/sim-03-insertion-sort.html",
   "Simulation 4: Merge Sort": "part-1-sorting/sim-04-merge-sort.html",
   "Simulation 5: Quick Sort": "part-1-sorting/sim-05-quick-sort.html",
+  "Simulation 8: Singly Linked List Visualiser": "part-3-linear-data-structures/sim-08-singly-linked-list.html",
+  "Simulation 9: Stack and Queue Visualiser": "part-3-linear-data-structures/sim-09-stack-queue.html",
   "Simulation 10: Binary Search Tree (BST) Visualiser":
     "part-4-recursive-data-structures/sim-10-bst.html",
   "Simulation 11: AVL Tree / Red-Black Tree":
@@ -100,7 +102,7 @@ const simPaths = {
 const dsaRoot = document.querySelector("#dsaMenu .submenu");
 dsaData.forEach((p, i) => {
   const partId = `dsaPart${i}`;
-  const isReady = i === 0 || i === 1 || i === 3 || i === 5;
+  const isReady = i === 0 || i === 1 || i === 2 || i === 3 || i === 5;
   const li = document.createElement("li");
   li.innerHTML = `
     <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
