@@ -1,4 +1,4 @@
-// Global UI state handling
+﻿// Global UI state handling
 function togglePlatformTheme() {
   // Theme changes are handled by the shared theme-toggle.js module
 }
@@ -124,7 +124,7 @@ function initSimulationProblem() {
   codeEditor.innerHTML = lines
     .map(
       (l, i) =>
-        `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ""}">ⓘ</span></span>`,
+        `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ""}">â“˜</span></span>`,
     )
     .join("");
 
@@ -162,8 +162,8 @@ function initSimulationProblem() {
   document.getElementById("statTimeComp").innerText = isMemo
     ? "O(N)"
     : problem === "fibonacci"
-      ? "O(2ᴺ)"
-      : "O(Cᴺ)";
+      ? "O(2á´º)"
+      : "O(Cá´º)";
   document.getElementById("statusDot").className = "status-dot valid";
   document.getElementById("statusText").innerText = "Ready";
 
@@ -401,8 +401,8 @@ function renderTreeSnapshot() {
       displayVal += `:${node.res}`;
 
     nodesGrp.innerHTML += `
-                    <g transform="translate(${node.x}, ${node.y})" 
-                       onmouseover="showNodeTooltip(event, '${node.id}', ${node.val}, '${node.state}')" 
+                    <g transform="translate(${node.x}, ${node.y})"
+                       onmouseover="showNodeTooltip(event, '${node.id}', ${node.val}, '${node.state}')"
                        onmouseout="hideNodeTooltip()">
                         <circle class="${stateClass}" r="16" />
                         <text class="node-text">${displayVal}</text>
@@ -436,7 +436,7 @@ function renderTreeSnapshot() {
       const cell = document.getElementById(`cache-cell-${k}`);
       if (cell) {
         cell.className = "computed";
-        cell.innerHTML = `${curStep.cache[k]}<span class="cache-hit-badge">✓</span>`;
+        cell.innerHTML = `${curStep.cache[k]}<span class="cache-hit-badge">âœ“</span>`;
       }
     });
 
@@ -455,10 +455,10 @@ const quizQuestions = {
     {
       question:
         "What is the time complexity of the naive recursive Fibonacci algorithm?",
-      options: ["O(N)", "O(2ᴺ)", "O(N²)", "O(log N)"],
+      options: ["O(N)", "O(2á´º)", "O(NÂ²)", "O(log N)"],
       correct: 1,
       explanation:
-        "The naive Fibonacci makes two recursive calls per step, creating a binary tree of height N, resulting in exponential O(2ᴺ) time complexity.",
+        "The naive Fibonacci makes two recursive calls per step, creating a binary tree of height N, resulting in exponential O(2á´º) time complexity.",
     },
     {
       question: "How does memoization improve the Fibonacci calculation?",
@@ -474,7 +474,7 @@ const quizQuestions = {
     },
     {
       question: "What is the space complexity of memoized Fibonacci?",
-      options: ["O(1)", "O(N)", "O(2ᴺ)", "O(N²)"],
+      options: ["O(1)", "O(N)", "O(2á´º)", "O(NÂ²)"],
       correct: 1,
       explanation:
         "The memo table stores N values, giving O(N) space complexity, plus the recursion stack depth O(N).",
@@ -532,12 +532,35 @@ function stepForwardSimulation() {
     document.getElementById("statusText").innerText =
       `Computing state frame ${currentStepIdx + 1}`;
     renderTreeSnapshot();
+
+    // Play step sound based on type
+    if (window.simAudio) {
+      const step = simSteps[currentStepIdx];
+      const maxVal = parseInt(document.getElementById("inputSize").value) || 5;
+      const allVals = Array.from({length: maxVal + 1}, (_, i) => i);
+
+      if (step.type === "cache-hit") {
+        window.simAudio.playSound(1100, 100); // cache hit: bright high ping
+      } else if (step.type === "base-case") {
+        window.simAudio.playSound(700, 120); // base case: neutral mid beep
+      } else if (step.type === "enter") {
+        window.simAudio.playTone(step.val, allVals, 0.08); // proportional value pitch
+      } else if (step.type === "computed") {
+        window.simAudio.playSound(550, 100, "triangle"); // computation stored
+      }
+    }
   } else {
     pauseSimulation();
     document.getElementById("statusDot").className = "status-dot valid";
     document.getElementById("statusText").innerText = "Computation Complete!";
     const btnQuiz = document.getElementById("btnQuiz");
     if (btnQuiz) btnQuiz.classList.add("visible");
+
+    // Success sweep on completion
+    if (window.simAudio) {
+      const maxVal = parseInt(document.getElementById("inputSize").value) || 5;
+      window.simAudio.playSweep(Array.from({length: maxVal + 1}, (_, i) => i));
+    }
   }
 }
 
