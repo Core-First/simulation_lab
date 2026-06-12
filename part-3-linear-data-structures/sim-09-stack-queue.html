@@ -278,6 +278,9 @@
       <i class="fa-solid fa-layer-group text-primary me-2"></i> Part 3: Linear Data Structures &nbsp;›&nbsp; Stack & Queue
     </div>
     <div class="topbar-right d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
       <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
         <i class="fa-solid fa-moon"></i> <span>Dark Mode</span>
       </button>
@@ -401,7 +404,7 @@
     if (window.simAudio) window.simAudio.initContext();
   }
   function playBeep(freq, duration, type = 'sine', vol = 0.2) {
-    if (window.simAudio) window.simAudio.playTone(freq, [freq, freq * 2], { type, vol, duration });
+    if (window.simAudio) window.simAudio.playSound(freq, duration, type, vol);
   }
 
   function addLog(msg, isError = false) {
@@ -568,7 +571,7 @@ void resetQueue() {
     if (window.simAudio) window.simAudio.initContext();
     if (stack.length === 0) {
       addLog(`❌ Stack POP failed: Underflow`, true);
-      playBeep(220, 300, 'sawtooth', 0.25);
+      if (window.simAudio) window.simAudio.playCrackSound();
       cCodeDisplay.innerHTML = `// Stack Underflow!\nint pop() {\n    if(top == -1) {\n        printf("Underflow!\\n");\n        return INT_MIN;\n    }\n    return stack[top--];\n}\n\n// ERROR: Stack empty, cannot pop.`;
       return;
     }
@@ -619,7 +622,7 @@ void resetQueue() {
     if (window.simAudio) window.simAudio.initContext();
     if (queue.length === 0) {
       addLog(`❌ Queue DEQUEUE failed: underflow`, true);
-      playBeep(190, 320, 'sawtooth', 0.3);
+      if (window.simAudio) window.simAudio.playCrackSound();
       cCodeDisplay.innerHTML = `// Dequeue operation (C)\nint dequeue() {\n    if(front == -1 || front > rear) {\n        printf("Queue Underflow\\n");\n        return -1;\n    }\n    return queue[front++];\n}\n\n// ERROR: Queue empty, cannot dequeue.`;
       return;
     }
