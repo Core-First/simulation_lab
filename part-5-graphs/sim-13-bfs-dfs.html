@@ -1,11 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graphs – BFS / DFS</title>
+    <link href="/assets/css/main.css" rel="stylesheet">
+    <style>
+        body { font-family: system-ui, Arial, sans-serif; padding: 16px; }
+        #controls { margin-bottom: 12px; }
+        canvas { border: 1px solid #ccc; background: #0f172a; display:block; margin:0 auto }
+        .btn { margin-right:8px }
+    </style>
 </head>
 <body>
-    
+    <h2>Graph Traversals — BFS & DFS</h2>
+    <div id="controls">
+        <button id="genBtn" class="btn">Generate Graph</button>
+        <button id="bfsBtn" class="btn">Run BFS</button>
+        <button id="dfsBtn" class="btn">Run DFS</button>
+        <button id="resetBtn" class="btn">Reset</button>
+        <label style="margin-left:12px">Nodes: <input id="nodesCount" type="number" min="3" max="20" value="8" style="width:60px"></label>
+    </div>
+
+    <canvas id="graphCanvas" width="900" height="500"></canvas>
+
+    <script src="/assets/js/utils.js"></script>
+
+    <script>
+        // Simple graph visualizer with BFS/DFS animations
+        class GraphVisualizer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.nodes = []; // {x,y,label}
+                this.adj = new Map(); // label -> [{to,weight}]
+                this.nodeRadius = 18;
+                this.colors = { default: '#0ea5a4', visited: '#f97316', frontier: '#eab308', path: '#34d399' };
+                this.running = false;
+            }
+
+            clear() {
+                this.nodes = [];
+                this.adj.clear();
+                this.draw();
+            }
+
+            generate(n = 8) {
+                this.clear();
+                const w = this.canvas.width, h = this.canvas.height;
+                for (let i = 0; i < n; i++) {
+                    const angle = (i / n) * Math.PI * 2;
+                    const cx = w/2 + Math.cos(angle) * Math.min(w,h)/3.2;
+                    const cy = h/2 + Math.sin(angle) * Math.min(w,h)/3.2;
+                    this.nodes.push({x: cx, y: cy, label: i});
+                    this.adj.set(i, []);
+                }
+
+                // random edges (undirected)
+                for (let i=0;i<n;i++){
+                    for (let j=i+1;j<n;j++){
+                        if (Math.random() < 0.28) {
+                            this.adj.get(i).push({to:j});
+                            this.adj.get(j).push({to:i});
+                        }
+                    }
+                }
+
+                // Ensure connectedness: simple spanning chain
+                for (let i=1;i<n;i++){
+                    if (!this.adj.get(i).some(e=>e.to===i-1)){
+                        this.adj.get(i).push({to:i-1});
+                        this.adj.get(i-1).push({to:i});
+                    }
+                }
+
+                this.draw();
+            }
+
+            draw(highlight = new Map()){
+                const ctx = this.ctx;
+                ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                // edges
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#94a3b8';
+                for (const [u, list] of this.adj.entries()){
+                    const nu = this.nodes[u];
+                    for (const e of list){
+                        const v = e.to;
+                        if (v <= u) continue; // draw once
+                        const nv = this.nodes[v];
+                        ctx.beginPath();
+                        ctx.moveTo(nu.x, nu.y);
+                        ctx.lineTo(nv.x, nv.y);
+                        ctx.stroke();
+                    }
+                }
+
+                // nodes
+                for (const node of this.nodes){
+                    const col = highlight.has(node.label) ? highlight.get(node.label) : this.colors.default;
+                    ctx.fillStyle = col;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, this.nodeRadius, 0, Math.PI*2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#04293a';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(node.label, node.x, node.y);
+                }
+            }
+
+            async bfs(start = 0){
+                if (this.running) return;
+                this.running = true;
+                const q = [start];
+                const visited = new Set([start]);
+                const highlight = new Map();
+                highlight.set(start, this.colors.frontier);
+                this.draw(highlight);
+                while(q.length && this.running){
+                    const u = q.shift();
+                    highlight.set(u, this.colors.visited);
+                    this.draw(highlight);
+                    await sleep(450);
+                    for (const e of this.adj.get(u)){
+                        const v = e.to;
+                        if (!visited.has(v)){
+                            visited.add(v);
+                            q.push(v);
+                            highlight.set(v, this.colors.frontier);
+                            this.draw(highlight);
+                            await sleep(250);
+                        }
+                    }
+                }
+                this.running = false;
+            }
+
+            async dfs(start = 0){
+                if (this.running) return;
+                this.running = true;
+                const visited = new Set();
+                const highlight = new Map();
+                const self = this;
+
+                async function visit(u){
+                    if (!self.running) return;
+                    visited.add(u);
+                    highlight.set(u, self.colors.visited);
+                    self.draw(highlight);
+                    await sleep(450);
+                    for (const e of self.adj.get(u)){
+                        const v = e.to;
+                        if (!visited.has(v)){
+                            highlight.set(v, self.colors.frontier);
+                            self.draw(highlight);
+                            await sleep(220);
+                            await visit(v);
+                        }
+                    }
+                }
+
+                await visit(start);
+                this.running = false;
+            }
+        }
+
+        // Helpers
+        function $(id){return document.getElementById(id)}
+
+        const gv = new GraphVisualizer('graphCanvas');
+        gv.generate(parseInt($('#nodesCount').value,10));
+
+        $('#genBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
+        $('#bfsBtn').addEventListener('click', ()=> gv.bfs(0));
+        $('#dfsBtn').addEventListener('click', ()=> gv.dfs(0));
+        $('#resetBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
+
+        // small sleep wrapper uses utils.sleep if available
+        async function sleep(ms){ if (window.utils && window.utils.sleep) return window.utils.sleep(ms); return new Promise(r=>setTimeout(r,ms)); }
+    </script>
 </body>
 </html>

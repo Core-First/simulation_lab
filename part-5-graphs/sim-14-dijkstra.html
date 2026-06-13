@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Graphs – Dijkstra</title>
+	<link href="/assets/css/main.css" rel="stylesheet">
+	<style>
+		body{font-family:system-ui, Arial, sans-serif; padding:16px}
+		canvas{background:#021124; display:block; margin:8px auto; border:1px solid #233240}
+		#controls{margin-bottom:12px}
+		.btn{margin-right:8px}
+	</style>
+</head>
+<body>
+	<h2>Dijkstra — Shortest Paths (Animated)</h2>
+	<div id="controls">
+		<button id="genBtn" class="btn">Generate Weighted Graph</button>
+		<button id="runBtn" class="btn">Run Dijkstra</button>
+		<button id="resetBtn" class="btn">Reset</button>
+		<label style="margin-left:12px">Nodes: <input id="nodesCount" type="number" min="4" max="20" value="9" style="width:60px"></label>
+	</div>
+
+	<canvas id="graphCanvas" width="900" height="520"></canvas>
+
+	<script src="/assets/js/utils.js"></script>
+
+	<script>
+		class WeightedGraphViz{
+			constructor(canvasId){
+				this.canvas = document.getElementById(canvasId);
+				this.ctx = this.canvas.getContext('2d');
+				this.nodes = [];
+				this.adj = new Map(); // u -> [{to,w}]
+				this.nodeR = 18;
+				this.running = false;
+			}
+
+			clear(){ this.nodes=[]; this.adj.clear(); this.draw(); }
+
+			generate(n=9){
+				this.clear();
+				const w=this.canvas.width,h=this.canvas.height;
+				for(let i=0;i<n;i++){ const angle=(i/n)*Math.PI*2; const x=w/2+Math.cos(angle)*Math.min(w,h)/3.4; const y=h/2+Math.sin(angle)*Math.min(w,h)/3.4; this.nodes.push({x,y,label:i}); this.adj.set(i,[]); }
+
+				for(let i=0;i<n;i++){
+					for(let j=i+1;j<n;j++){
+						if(Math.random()<0.35){ const weight= Math.floor(Math.random()*15)+1; this.adj.get(i).push({to:j,w:weight}); this.adj.get(j).push({to:i,w:weight}); }
+					}
+				}
+
+				// ensure connected
+				for(let i=1;i<n;i++){ if(!this.adj.get(i).some(e=>e.to===i-1)){ const wgt=Math.floor(Math.random()*10)+1; this.adj.get(i).push({to:i-1,w:wgt}); this.adj.get(i-1).push({to:i,w:wgt}); } }
+
+				this.draw();
+			}
+
+			draw(state={dist:new Map(), settled:new Set(), frontier:new Set(), path:new Set()}){
+				const ctx=this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+				ctx.lineWidth=2; ctx.strokeStyle='#7c93a7';
+				// edges
+				for(const [u,list] of this.adj.entries()){
+					const nu=this.nodes[u];
+					for(const e of list){ const v=e.to; if(v<=u) continue; const nv=this.nodes[v]; ctx.beginPath(); ctx.moveTo(nu.x,nu.y); ctx.lineTo(nv.x,nv.y); ctx.stroke();
+						// draw weight midpoint
+						const mx=(nu.x+nv.x)/2, my=(nu.y+nv.y)/2; ctx.fillStyle='#cbd5e1'; ctx.font='12px Arial'; ctx.textAlign='center'; ctx.fillText(e.w,mx,my-6);
+					}
+				}
+
+				// nodes
+				for(const node of this.nodes){
+					let fill='#06b6d4';
+					if(state.path && state.path.has(node.label)) fill='#10b981';
+					else if(state.settled && state.settled.has(node.label)) fill='#f97316';
+					else if(state.frontier && state.frontier.has(node.label)) fill='#facc15';
+					this.ctx.fillStyle=fill; this.ctx.beginPath(); this.ctx.arc(node.x,node.y,this.nodeR,0,Math.PI*2); this.ctx.fill();
+					this.ctx.fillStyle='#021124'; this.ctx.font='13px Arial'; this.ctx.textAlign='center'; this.ctx.textBaseline='middle'; this.ctx.fillText(node.label,node.x,node.y);
+					// distance
+					if(state.dist && state.dist.has(node.label)){
+						this.ctx.fillStyle='#e6eef6'; this.ctx.font='11px Arial'; this.ctx.fillText(state.dist.get(node.label), node.x, node.y + this.nodeR + 12);
+					}
+				}
+			}
+
+			async dijkstra(source=0){
+				if(this.running) return; this.running=true;
+				const n=this.nodes.length; const dist=new Map(); const prev=new Map(); const settled=new Set(); const frontier=new Set();
+				for(let i=0;i<n;i++){ dist.set(i, Infinity); prev.set(i, null); }
+				dist.set(source,0);
+
+				const cmp = ()=>{ let min=Infinity, u=-1; for(const [k,v] of dist.entries()){ if(!settled.has(k) && v<min){ min=v; u=k; } } return u; };
+
+				while(true){
+					const u = cmp(); if(u===-1 || u===undefined) break;
+					settled.add(u);
+					this.draw({dist,settled,frontier}); await sleep(600);
+					for(const e of this.adj.get(u)){
+						const v=e.to; if(settled.has(v)) continue; frontier.add(v); this.draw({dist,settled,frontier}); await sleep(220);
+						const alt = dist.get(u) + e.w;
+						if(alt < dist.get(v)){ dist.set(v, alt); prev.set(v, u); }
+						this.draw({dist,settled,frontier}); await sleep(180);
+					}
+				}
+
+				// reconstruct shortest-path forest and highlight one example path (to farthest node)
+				let far=-1, maxd=-1; for(const [k,v] of dist.entries()){ if(v!==Infinity && v>maxd){ maxd=v; far=k; } }
+				const path=new Set(); let cur=far; while(cur!==null){ path.add(cur); cur=prev.get(cur); }
+				this.draw({dist,settled,frontier,path}); this.running=false;
+			}
+		}
+
+		function $(id){return document.getElementById(id)}
+		const gv = new WeightedGraphViz('graphCanvas');
+		gv.generate(parseInt($('#nodesCount').value,10));
+
+		$('#genBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
+		$('#runBtn').addEventListener('click', ()=> gv.dijkstra(0));
+		$('#resetBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
+
+		async function sleep(ms){ if(window.utils && window.utils.sleep) return window.utils.sleep(ms); return new Promise(r=>setTimeout(r,ms)); }
+	</script>
+</body>
+</html>
