@@ -491,6 +491,19 @@
   /* search highlight */
   .found-msg { color: var(--green); }
   .notfound-msg { color: var(--red); }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+
+  @media (max-width:900px) {
+    .workspace { flex-direction: column; }
+    #panel-left, #panel-right { width: 100% !important; height: 36vh; }
+    #panel-mid { min-width: 100% !important; }
+    .resizer { display: none; }
+  }
+  /* touch friendly */
+  @media (max-width:600px) {
+    .btn { padding: 10px 14px; font-size: 14px; }
+    input[type=number], input[type=text] { padding: 10px 12px; font-size: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -670,6 +683,16 @@
           <div class="stat-card"><div class="val" id="stat-height">0</div><div class="lbl">Height</div></div>
           <div class="stat-card"><div class="val" id="stat-min">—</div><div class="lbl">Min</div></div>
           <div class="stat-card"><div class="val" id="stat-max">—</div><div class="lbl">Max</div></div>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Code Trace</h3>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size:12px; background:var(--surface2); padding:10px; border-radius:6px;">
+          <div class="code-line" data-segment="bst-insert-start"><span class="line-num">1</span> function insert(node, val) { /* base case */ }</div>
+          <div class="code-line" data-segment="bst-insert-compare"><span class="line-num">2</span> compare value and recurse left/right</div>
+          <div class="code-line" data-segment="bst-insert-return"><span class="line-num">3</span> return node</div>
+          <div style="margin-top:8px;display:flex;gap:6px;"><button class="btn btn-ghost" onclick="playCodeTrace(['bst-insert-start','bst-insert-compare','bst-insert-return'],500)">Run Insert Trace</button></div>
         </div>
       </div>
 
@@ -1003,6 +1026,8 @@ function insertVal() {
   if (isNaN(v) || v < 1 || v > 99) { log('Enter a value between 1 and 99'); return; }
   if (animating) return;
   clearHighlights(root);
+  // show code trace for insert then perform insertion
+  playCodeTrace(['bst-insert-start','bst-insert-compare','bst-insert-return'], 420);
   root = insert(root, v);
   layoutTree();
   draw();
@@ -1018,6 +1043,8 @@ function deleteVal() {
   if (isNaN(v)) { log('Enter a value to delete'); return; }
   if (animating) return;
   clearHighlights(root);
+  // trace deletion logic then perform
+  playCodeTrace(['delete-start','delete-search','delete-return'], 500);
   const before = countNodes(root);
   root = deleteNode(root, v);
   const after  = countNodes(root);
@@ -1040,6 +1067,8 @@ function searchVal() {
   if (animating) return;
   clearHighlights(root);
   draw();
+  // trace search routine
+  playCodeTrace(['search-start','search-compare','search-base'], 320);
   const path = searchPath(root, v);
   if (!path) { log(`${v} not found in the tree`, 'notfound-msg'); return; }
 
@@ -1125,6 +1154,23 @@ function clearTree() {
   updateStats();
   saveCurrentSimulation();
   log('Tree cleared');
+}
+
+// Code trace player (embedded in simulation page)
+async function playCodeTrace(segments, delay=500) {
+  const all = document.querySelectorAll('[data-segment]');
+  function clearActive() { all.forEach(l => l.classList.remove('active-line')); }
+  for (const s of segments) {
+    clearActive();
+    const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
+    if (nodes.length) {
+      nodes.forEach(n => n.classList.add('active-line'));
+      log(`Executing: ${s}`);
+    }
+    await new Promise(r => setTimeout(r, delay));
+  }
+  clearActive();
+  log('Trace complete');
 }
 
 function playTraversalTone(step, total) {
@@ -1224,6 +1270,38 @@ canvas.addEventListener('mousedown', (e) => {
   panStartPanX = panX;
   panStartPanY = panY;
 });
+
+// Touch equivalents for panning (mobile)
+canvas.addEventListener('touchstart', (e) => {
+  if (!e.touches || e.touches.length === 0) return;
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const clickX = t.clientX - rect.left;
+  const clickY = t.clientY - rect.top;
+  const clickedNode = getNodeAtPoint(clickX, clickY);
+  if (clickedNode) {
+    selectedNode = selectedNode === clickedNode ? null : clickedNode;
+    draw();
+    return;
+  }
+  isPanning = true;
+  panStartX = t.clientX;
+  panStartY = t.clientY;
+  panStartPanX = panX;
+  panStartPanY = panY;
+}, {passive:true});
+
+canvas.addEventListener('touchmove', (e) => {
+  if (!isPanning || !e.touches || e.touches.length === 0) return;
+  const t = e.touches[0];
+  const deltaX = (t.clientX - panStartX);
+  const deltaY = (t.clientY - panStartY);
+  panX = panStartPanX + deltaX;
+  panY = panStartPanY + deltaY;
+  draw();
+}, {passive:true});
+
+canvas.addEventListener('touchend', () => { isPanning = false; });
 
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();

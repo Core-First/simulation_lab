@@ -260,6 +260,17 @@
 
   .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+
+  /* Responsive: stack panels for narrow screens */
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .code-panel, .sim-panel { width: 100%; height: 50vh; }
+    .sim-controls { flex-wrap: wrap; gap: 6px; }
+    .input-group { width: 100%; }
+    .input-group input { width: 100%; }
+    .back-btn { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -371,6 +382,7 @@
           <input type="number" id="insert-value" placeholder="Value" min="1" max="99" />
           <button onclick="insertAndVisualize()">Insert</button>
         </div>
+        <button onclick="runCodeTrace()" style="padding:4px 10px;background:#6366f1;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Run Trace</button>
         <button onclick="loadCurrentSimulation()" style="padding:4px 10px;background:#6366f1;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Load Current Tree</button>
         <button onclick="clearSimulation()" style="padding:4px 10px;background:var(--red);border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Clear</button>
       </div>
@@ -673,6 +685,27 @@ function highlightSegment(segment) {
   }
   
   draw();
+}
+
+// Play a sequence of code segments to simulate execution tracing
+async function playCodeTrace(segments, delay=600) {
+  const allLines = document.querySelectorAll('[data-segment]');
+  function clearActive() { allLines.forEach(l=>l.classList.remove('active-line')); }
+  for (let s of segments) {
+    clearActive();
+    const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
+    if (nodes.length) {
+      nodes.forEach(n=>n.classList.add('active-line'));
+      log(`Executing: ${s}`);
+    }
+    await new Promise(r => setTimeout(r, delay));
+  }
+  clearActive();
+  log('Trace complete');
+}
+
+function runCodeTrace() {
+  playCodeTrace(['insert-start','insert-logic','insert-compare','insert-return'], 550);
 }
 
 function clearHighlights(node) {

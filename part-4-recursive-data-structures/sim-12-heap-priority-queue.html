@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Heap / Priority Queue - Simulation (Scaffold)</title>
+<style>
+	:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+	body{font-family:Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column}
+	header{height:54px;padding:0 16px;display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border)}
+	.breadcrumb{color:var(--muted);font-family:monospace}
+	.container{flex:1;display:flex;flex-direction:column}
+	.panel{flex:1;padding:12px}
+	.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:6px}
+	@media(max-width:900px){ .container{padding:8px} }
+	</style>
+</head>
+<body>
+<header><div class="breadcrumb">Part 4: Recursive Data Structures › <span>Heap / Priority Queue (scaffold)</span></div></header>
+<div class="container">
+	<div class="panel">
+		<h3>Heap (Min-Heap) Visualiser</h3>
+		<p style="color:var(--muted)">Array-backed min-heap with insert and extract-min operations. Visualized as a tree.</p>
+		<div style="margin:8px 0;display:flex;gap:8px;align-items:center">
+			<input id="heap-insert" type="number" placeholder="Value" min="1" max="999" style="padding:6px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--text)"/>
+			<button onclick="heapInsertUI()" style="padding:6px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff">Insert</button>
+			<button onclick="heapExtractUI()" style="padding:6px 10px;background:#6366f1;border:none;border-radius:4px;color:#fff">Extract Min</button>
+			<button onclick="runCodeTrace()" style="padding:6px 10px;background:#10b981;border:none;border-radius:4px;color:#fff">Run Trace</button>
+			<button onclick="heapClear()" style="padding:6px 10px;background:var(--red);border:none;border-radius:4px;color:#fff">Clear</button>
+		</div>
+		<div id="heap-canvas-wrap" style="height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px">
+			<canvas id="heap-canvas" style="width:100%;height:100%"></canvas>
+		</div>
+		<div style="margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px">
+			<div class="code-line" data-segment="heap-insert">insert() — push and siftUp</div>
+			<div class="code-line" data-segment="heap-siftup">siftUp() — swap with parent while smaller</div>
+			<div class="code-line" data-segment="heap-extract">extractMin() — replace root and siftDown</div>
+		</div>
+	</div>
+</div>
+<script>
+// Heap implementation + visualization
+let heap = [];
+const heapCanvas = document.getElementById('heap-canvas');
+const heapCtx = heapCanvas.getContext('2d');
+function resizeHeap(){ heapCanvas.width = heapCanvas.offsetWidth; heapCanvas.height = heapCanvas.offsetHeight; drawHeap(); }
+
+function heapInsert(val){ heap.push(val); siftUp(heap.length-1); }
+function siftUp(i){ while(i>0){ const p = Math.floor((i-1)/2); if(heap[i] < heap[p]){ [heap[i],heap[p]]=[heap[p],heap[i]]; i=p; } else break; } }
+function extractMin(){ if(heap.length===0) return null; const root = heap[0]; if(heap.length===1){ heap.pop(); return root; } heap[0]=heap.pop(); siftDown(0); return root; }
+function siftDown(i){ const n=heap.length; while(true){ let l=2*i+1, r=2*i+2, smallest=i; if(l<n && heap[l]<heap[smallest]) smallest=l; if(r<n && heap[r]<heap[smallest]) smallest=r; if(smallest!==i){ [heap[i],heap[smallest]]=[heap[smallest],heap[i]]; i=smallest; } else break; } }
+
+function heapInsertUI(){ const v=parseInt(document.getElementById('heap-insert').value); if(isNaN(v)) return; heapInsert(v); document.getElementById('heap-insert').value=''; drawHeap(); }
+function heapExtractUI(){ const v = extractMin(); drawHeap(); if(v!==null) alert('Extracted: '+v); }
+function heapClear(){ heap=[]; drawHeap(); }
+
+function drawHeap(){ heapCtx.clearRect(0,0,heapCanvas.width,heapCanvas.height); if(heap.length===0){ heapCtx.fillStyle='#30363d'; heapCtx.font='14px monospace'; heapCtx.textAlign='center'; heapCtx.fillText('Insert values to build heap', heapCanvas.width/2, heapCanvas.height/2); return; }
+	const levelHeight = 70; const R=20; for(let i=0;i<heap.length;i++){ const level = Math.floor(Math.log2(i+1)); const indexInLevel = i - (2**level -1); const nodesInLevel = 2**level; const usableW = heapCanvas.width - 40; const x = 20 + (usableW / (nodesInLevel+1)) * (indexInLevel+1); const y = 30 + level*levelHeight; heapCtx.beginPath(); heapCtx.arc(x,y,R,0,Math.PI*2); heapCtx.fillStyle='#1f2937'; heapCtx.fill(); heapCtx.lineWidth=2; heapCtx.strokeStyle='#3b82f6'; heapCtx.stroke(); heapCtx.fillStyle='#e6edf3'; heapCtx.font='bold 13px monospace'; heapCtx.textAlign='center'; heapCtx.textBaseline='middle'; heapCtx.fillText(heap[i], x, y);
+		// draw edge to parent
+		if(i>0){ const p = Math.floor((i-1)/2); const pLevel = Math.floor(Math.log2(p+1)); const pIndex = p - (2**pLevel -1); const pNodes = 2**pLevel; const px = 20 + (usableW / (pNodes+1)) * (pIndex+1); const py = 30 + pLevel*levelHeight; heapCtx.beginPath(); heapCtx.moveTo(px,py); heapCtx.lineTo(x,y); heapCtx.strokeStyle='#30363d'; heapCtx.stroke(); }
+	}
+}
+
+// Code trace
+async function playCodeTrace(segments, delay=600){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const s of segments){ clear(); document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line')); await new Promise(r=>setTimeout(r,delay)); } clear(); }
+function runCodeTrace(){ playCodeTrace(['heap-insert','heap-siftup','heap-extract'], 600); }
+
+window.addEventListener('resize', resizeHeap);
+document.fonts?.ready.then(()=>{ resizeHeap(); });
+</script>
+</body>
+</html>

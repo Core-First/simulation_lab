@@ -258,6 +258,17 @@
 
   .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+
+  /* Responsive: stack panels for narrow screens */
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .code-panel, .sim-panel { width: 100%; height: 50vh; }
+    .sim-controls { flex-wrap: wrap; gap: 6px; }
+    .input-group { width: 100%; }
+    .input-group input { width: 100%; }
+    .back-btn { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -399,6 +410,7 @@
       <div class="sim-controls">
         <button class="load-preset" onclick="loadCurrentSimulation()">Load Current Tree</button>
         <button class="load-preset" onclick="loadPreset()">Load Balanced Tree</button>
+        <button class="load-preset" onclick="runCodeTrace()" style="background:#6366f1">Run Trace</button>
         <div class="input-group">
           <input type="number" id="delete-value" placeholder="Value" min="1" max="99" />
           <button onclick="deleteAndVisualize()">Delete</button>
@@ -680,6 +692,24 @@ function clearHighlights(node) {
   node.highlighted = false;
   clearHighlights(node.left);
   clearHighlights(node.right);
+}
+
+// Code trace player
+async function playCodeTrace(segments, delay=600) {
+  const allLines = document.querySelectorAll('[data-segment]');
+  function clearActive() { allLines.forEach(l=>l.classList.remove('active-line')); }
+  for (let s of segments) {
+    clearActive();
+    const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
+    if (nodes.length) { nodes.forEach(n=>n.classList.add('active-line')); log(`Executing: ${s}`); }
+    await new Promise(r=>setTimeout(r, delay));
+  }
+  clearActive();
+  log('Trace complete');
+}
+
+function runCodeTrace() {
+  playCodeTrace(['delete-start','delete-search','delete-twochild','delete-return'], 600);
 }
 
 canvas.addEventListener('mousemove', (e) => {

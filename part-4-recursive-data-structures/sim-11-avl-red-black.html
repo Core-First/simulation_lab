@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AVL / Red-Black - Simulation (Scaffold)</title>
+<style>
+	:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+	body{font-family:Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column}
+	header{height:54px;padding:0 16px;display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border)}
+	.breadcrumb{color:var(--muted);font-family:monospace}
+	.container{flex:1;display:flex;flex-direction:column}
+	.panel{flex:1;padding:12px}
+	.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:6px}
+	@media(max-width:900px){ .container{padding:8px} }
+	</style>
+</head>
+<body>
+<header><div class="breadcrumb">Part 4: Recursive Data Structures › <span>AVL / Red-Black (scaffold)</span></div></header>
+<div class="container">
+	<div class="panel">
+		<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+			<h3>AVL / Red-Black</h3>
+			<div>
+				<button id="show-avl" onclick="showPanel('avl')" style="padding:6px 10px;margin-right:6px;background:var(--accent);border:none;border-radius:4px;color:#fff">AVL</button>
+				<button id="show-rb" onclick="showPanel('rb')" style="padding:6px 10px;background:#ef4444;border:none;border-radius:4px;color:#fff">Red-Black</button>
+			</div>
+		</div>
+		<p style="color:var(--muted)">Choose AVL or Red-Black to view each insertion behaviour. Use the controls to insert values and run a code trace demo.</p>
+		<div style="margin:8px 0;display:flex;gap:8px;align-items:center">
+			<input id="avl-insert" type="number" placeholder="Value" min="1" max="99" style="padding:6px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--text)"/>
+			<button onclick="avlInsertUI()" style="padding:6px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff">Insert</button>
+			<button onclick="runCodeTrace()" style="padding:6px 10px;background:#6366f1;border:none;border-radius:4px;color:#fff">Run Trace</button>
+			<button onclick="clearTree()" style="padding:6px 10px;background:var(--red);border:none;border-radius:4px;color:#fff">Clear</button>
+		</div>
+		<div id="avl-canvas-wrap" style="height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px">
+			<canvas id="avl-canvas" style="width:100%;height:100%"></canvas>
+		</div>
+		<div style="margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px">
+			<div class="code-line" data-segment="avl-insert-start"><strong>insert()</strong> — base case</div>
+			<div class="code-line" data-segment="avl-balance">rotate if balance &lt; -1 or &gt; 1</div>
+			<div class="code-line" data-segment="avl-rotate">perform rotations (LL/LR/RR/RL)</div>
+		</div>
+		
+		<!-- Red-Black panel (hidden by default) -->
+		<div id="rb-panel" style="display:none;margin-top:12px">
+			<div style="margin:8px 0;display:flex;gap:8px;align-items:center">
+				<input id="rb-insert" type="number" placeholder="Value" min="1" max="99" style="padding:6px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--text)"/>
+				<button onclick="rbInsertUI()" style="padding:6px 10px;background:#ef4444;border:none;border-radius:4px;color:#fff">Insert RB</button>
+				<button onclick="runRBTrace()" style="padding:6px 10px;background:#6366f1;border:none;border-radius:4px;color:#fff">Run Trace</button>
+			</div>
+			<div id="rb-canvas-wrap" style="height:260px;margin-top:8px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px">
+				<canvas id="rb-canvas" style="width:100%;height:100%"></canvas>
+			</div>
+			<div style="margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px">
+				<div class="code-line" data-segment="rb-insert">RB insert: new node red, then fix violations</div>
+				<div class="code-line" data-segment="rb-rotate">Rotations and recolor rules applied</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+// AVL implementation + visualization
+class AVLNode{ constructor(v){ this.val=v; this.left=null; this.right=null; this.height=1; this.x=0; this.y=0; this.highlight=false; } }
+let avlRoot=null;
+const avlCanvas=document.getElementById('avl-canvas');
+const avlCtx=avlCanvas.getContext('2d');
+function resizeAVL(){ avlCanvas.width = avlCanvas.offsetWidth; avlCanvas.height = avlCanvas.offsetHeight; layoutAVL(); drawAVL(); }
+function height(n){ return n? n.height:0 }
+function updateHeight(n){ n.height = 1 + Math.max(height(n.left), height(n.right)); }
+function balanceFactor(n){ return n? height(n.left)-height(n.right):0 }
+function rotateRight(y){ const x=y.left; const T2=x.right; x.right=y; y.left=T2; updateHeight(y); updateHeight(x); return x; }
+function rotateLeft(x){ const y=x.right; const T2=y.left; y.left=x; x.right=T2; updateHeight(x); updateHeight(y); return y; }
+function avlInsert(node, val){ if(!node) return new AVLNode(val); if(val < node.val) node.left = avlInsert(node.left, val); else if(val > node.val) node.right = avlInsert(node.right, val); else return node; updateHeight(node); const bf = balanceFactor(node); if(bf > 1 && val < node.left.val) return rotateRight(node); if(bf < -1 && val > node.right.val) return rotateLeft(node); if(bf > 1 && val > node.left.val){ node.left = rotateLeft(node.left); return rotateRight(node);} if(bf < -1 && val < node.right.val){ node.right = rotateRight(node.right); return rotateLeft(node);} return node; }
+
+function layoutAVL(){ if(!avlRoot) return; const nodes=[]; function inorder(n){ if(!n) return; inorder(n.left); nodes.push(n); inorder(n.right); } inorder(avlRoot); const n=nodes.length; const usableW=avlCanvas.width - 60; const startX=30; nodes.forEach((nd,i)=>{ nd.x = startX + (usableW/(n+1))*(i+1); }); function setY(n, depth){ if(!n) return; n.y = 40 + depth*80; setY(n.left, depth+1); setY(n.right, depth+1);} setY(avlRoot,0); }
+
+function drawAVL(){ avlCtx.clearRect(0,0,avlCanvas.width,avlCanvas.height); if(!avlRoot){ avlCtx.fillStyle='#30363d'; avlCtx.font='14px monospace'; avlCtx.textAlign='center'; avlCtx.fillText('Insert values to build AVL tree', avlCanvas.width/2, avlCanvas.height/2); return; } drawEdges(avlRoot); drawNodes(avlRoot); }
+function drawEdges(n){ if(!n) return; avlCtx.lineWidth=1.5; avlCtx.strokeStyle='#30363d'; if(n.left){ avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.left.x,n.left.y); avlCtx.stroke(); drawEdges(n.left);} if(n.right){ avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.right.x,n.right.y); avlCtx.stroke(); drawEdges(n.right);} }
+function drawNodes(n){ if(!n) return; let fill='#1f2937', stroke='#3b82f6', txt='#e6edf3'; if(n.highlight){ fill='rgba(59,130,246,0.18)'; stroke='#60a5fa'; } avlCtx.beginPath(); avlCtx.arc(n.x,n.y,20,0,Math.PI*2); avlCtx.fillStyle=fill; avlCtx.fill(); avlCtx.lineWidth=2; avlCtx.strokeStyle=stroke; avlCtx.stroke(); avlCtx.fillStyle=txt; avlCtx.font='bold 13px monospace'; avlCtx.textAlign='center'; avlCtx.textBaseline='middle'; avlCtx.fillText(n.val,n.x,n.y); drawNodes(n.left); drawNodes(n.right); }
+
+function clearHighlightsAVL(n){ if(!n) return; n.highlight=false; clearHighlightsAVL(n.left); clearHighlightsAVL(n.right); }
+
+function avlInsertUI(){ const v = parseInt(document.getElementById('avl-insert').value); if(isNaN(v)) return; avlRoot = avlInsert(avlRoot, v); layoutAVL(); drawAVL(); document.getElementById('avl-insert').value=''; }
+function clearTree(){ avlRoot=null; drawAVL(); }
+
+// Code trace player
+async function playCodeTrace(segments, delay=600){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const s of segments){ clear(); document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line')); await new Promise(r=>setTimeout(r,delay)); } clear(); }
+function runCodeTrace(){ playCodeTrace(['avl-insert-start','avl-balance','avl-rotate'], 650); }
+
+window.addEventListener('resize', resizeAVL);
+document.fonts?.ready.then(()=>{ resizeAVL(); });
+
+// --- Red-Black basic demo ---
+const rbCanvas = document.getElementById('rb-canvas');
+const rbCtx = rbCanvas ? rbCanvas.getContext('2d') : null;
+class RBNode{ constructor(v){ this.val=v; this.left=null; this.right=null; this.parent=null; this.color='red'; this.x=0; this.y=0; } }
+let rbRoot = null;
+function resizeRB(){ if(!rbCanvas) return; rbCanvas.width = rbCanvas.offsetWidth; rbCanvas.height = rbCanvas.offsetHeight; layoutRB(); drawRB(); }
+function layoutRB(){ if(!rbRoot) return; const nodes=[]; function inorder(n){ if(!n) return; inorder(n.left); nodes.push(n); inorder(n.right);} inorder(rbRoot); const n=nodes.length; const usableW=rbCanvas.width-60; const startX=30; nodes.forEach((nd,i)=>{ nd.x = startX + (usableW/(n+1))*(i+1); }); function setY(n,depth){ if(!n) return; n.y = 30 + depth*70; setY(n.left,depth+1); setY(n.right,depth+1);} setY(rbRoot,0); }
+function drawRB(){ if(!rbCtx) return; rbCtx.clearRect(0,0,rbCanvas.width,rbCanvas.height); if(!rbRoot){ rbCtx.fillStyle='#30363d'; rbCtx.font='13px monospace'; rbCtx.textAlign='center'; rbCtx.fillText('Insert values to build RB demo', rbCanvas.width/2, rbCanvas.height/2); return;} drawRBEdges(rbRoot); drawRBNodes(rbRoot); }
+function drawRBEdges(n){ if(!n) return; rbCtx.lineWidth=1.5; rbCtx.strokeStyle='#30363d'; if(n.left){ rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.left.x,n.left.y); rbCtx.stroke(); drawRBEdges(n.left);} if(n.right){ rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.right.x,n.right.y); rbCtx.stroke(); drawRBEdges(n.right);} }
+function drawRBNodes(n){ if(!n) return; const R=18; rbCtx.beginPath(); rbCtx.arc(n.x,n.y,R,0,Math.PI*2); rbCtx.fillStyle = n.color==='red' ? '#ef4444' : '#111827'; rbCtx.fill(); rbCtx.lineWidth=2; rbCtx.strokeStyle='#fff'; rbCtx.stroke(); rbCtx.fillStyle = n.color==='red' ? '#fff' : '#e6edf3'; rbCtx.font='12px monospace'; rbCtx.textAlign='center'; rbCtx.textBaseline='middle'; rbCtx.fillText(n.val,n.x,n.y); drawRBNodes(n.left); drawRBNodes(n.right); }
+
+function rbInsertUI(){ const v=parseInt(document.getElementById('rb-insert').value); if(isNaN(v)) return; rbRoot = rbInsert(rbRoot, v); rbRoot.color='black'; layoutRB(); drawRB(); document.getElementById('rb-insert').value=''; }
+function rbInsert(rootNode, val){ // simplified demo insert: BST insert then simple recolor for demo
+	if(!rootNode) return new RBNode(val);
+	if(val < rootNode.val){ rootNode.left = rbInsert(rootNode.left, val); rootNode.left.parent = rootNode; }
+	else if(val > rootNode.val){ rootNode.right = rbInsert(rootNode.right, val); rootNode.right.parent = rootNode; }
+	// simple fix: if parent and uncle are red, recolor (very simplified)
+	if(rootNode.left && rootNode.left.color==='red' && rootNode.right && rootNode.right.color==='red'){
+		rootNode.left.color='black'; rootNode.right.color='black'; rootNode.color = (rootNode.parent ? 'red' : 'black');
+	}
+	return rootNode;
+}
+
+function runRBTrace(){ playCodeTrace(['rb-insert','rb-rotate'], 600); }
+function showPanel(name){ document.getElementById('rb-panel').style.display = name==='rb' ? 'block' : 'none'; }
+window.addEventListener('resize', resizeRB);
+document.fonts?.ready.then(()=>{ resizeRB(); });
+</script>
+</body>
+</html>

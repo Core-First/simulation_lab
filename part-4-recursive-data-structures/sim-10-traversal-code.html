@@ -217,6 +217,15 @@
 
   .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+
+  /* Responsive: stack panels for narrow screens */
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .code-panel, .sim-panel { width: 100%; height: 50vh; }
+    .sim-controls { flex-wrap: wrap; gap: 6px; }
+    .back-btn { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -341,6 +350,7 @@
         <button class="trav-btn" onclick="runTraversal('inorder')">▶ In-order</button>
         <button class="trav-btn" onclick="runTraversal('preorder')">▶ Pre-order</button>
         <button class="trav-btn" onclick="runTraversal('postorder')">▶ Post-order</button>
+        <button class="trav-btn" onclick="runCodeTrace()">Run Trace</button>
       </div>
     </div>
     <canvas id="bst-canvas"></canvas>
@@ -648,6 +658,25 @@ document.querySelectorAll('[data-segment]').forEach(line => {
     draw();
   });
 });
+
+// Play code trace for a traversal type by animating relevant segments
+async function playCodeTrace(segments, delay=400) {
+  const allLines = document.querySelectorAll('[data-segment]');
+  function clearActive() { allLines.forEach(l=>l.classList.remove('active-line')); }
+  for (let s of segments) {
+    clearActive();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
+    if (s.includes('def')) log(`Executing: ${s}`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  clearActive();
+  log('Trace complete');
+}
+
+function runCodeTrace() {
+  // Demo sequence: show inorder, then preorder, then postorder function bodies
+  playCodeTrace(['inorder-def','inorder-step','preorder-def','preorder-step','postorder-def','postorder-step'], 450);
+}
 
 window.addEventListener('resize', resizeCanvas);
 document.fonts.ready.then(() => { resizeCanvas(); if (!loadCurrentSimulation()) log('No saved simulation found. Load current tree or create one.'); });
