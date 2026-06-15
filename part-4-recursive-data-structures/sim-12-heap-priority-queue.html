@@ -1,213 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Heap / Priority Queue - Simulation (Scaffold)</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simulation 12: Heap / Priority Queue – ATC SimLab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 <style>
-	:root{--bg:#0d1117;--surface:#161b22;--surface2:#1f2937;--border:#30363d;--accent:#3b82f6;--accent2:#6366f1;--muted:#8b949e;--text:#e6edf3;--green:#10b981;--red:#ef4444}
-	body{font-family:Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column}
-	header{height:54px;padding:0 16px;display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border)}
-	.breadcrumb{color:var(--muted);font-family:monospace}
-	.container{flex:1;display:flex;overflow:hidden}
-	.sidebar{width:320px;min-width:280px;background:var(--surface2);border-right:1px solid var(--border);padding:18px;overflow-y:auto}
-	.main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
-	.panel{flex:1;padding:18px;overflow:auto}
-	.sidebar h2{font-size:14px;margin-bottom:10px;color:var(--text)}
-	.sidebar p{color:var(--muted);font-size:13px;line-height:1.6}
-	.sidebar .section{margin-top:18px}
-	.sidebar .section h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
-	.sidebar ul{list-style:none;padding-left:0}
-	.sidebar li{color:var(--text);font-size:13px;line-height:1.7;margin-bottom:8px;padding-left:12px;position:relative}
-	.sidebar li::before{content:'›';position:absolute;left:0;color:var(--accent)}
-	.op-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:6px;border:1px solid transparent;background:rgba(59,130,246,0.08);color:var(--text);cursor:pointer;transition:all .2s;text-decoration:none;font-size:13px;min-width:120px}
-	.op-link:hover{background:rgba(59,130,246,0.16);border-color:rgba(59,130,246,0.3)}
-	.op-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px}
-	.control-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
-	.canvas-wrapper{height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px}
-	.code-box{margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px}
-	.trace-status{margin-top:8px;color:var(--muted);font-family:monospace;font-size:12px}
-	.code-line{margin:4px 0;padding:6px 8px;border-radius:4px;transition:background .2s,transform .2s}
-	.code-line:hover{background:rgba(59,130,246,0.08)}
-	.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:6px}
-	@media(max-width:900px){ .container{flex-direction:column} .sidebar{width:auto;min-width:auto;border-right:none;border-bottom:1px solid var(--border)} }
-	@media(max-width:720px){ .control-row{flex-direction:column;align-items:stretch} }
-	</style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --surface2: #1f2937;
+    --border:   #30363d;
+    --accent:   #3b82f6;
+    --accent2:  #6366f1;
+    --green:    #22c55e;
+    --yellow:   #f59e0b;
+    --red:      #ef4444;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 24px; height: 54px;
+    background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .breadcrumb { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .breadcrumb span { color: var(--accent); }
+  .sim-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: .5px;
+  }
+
+  /* ── 3-col layout ── */
+  .workspace { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Drag handles ── */
+  .resizer {
+    width: 5px; background: var(--border); cursor: col-resize;
+    flex-shrink: 0; position: relative; transition: background .15s; z-index: 10;
+  }
+  .resizer:hover, .resizer.dragging { background: var(--accent); }
+  .resizer::after {
+    content: '⋮'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%); color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+
+  /* ── Shared panel ── */
+  .panel {
+    background: var(--surface); display: flex; flex-direction: column;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .panel-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .panel-header h2 { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .panel-header p  { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+  /* ── LEFT: Theory ── */
+  .theory-section { margin-bottom: 20px; }
+  .theory-section h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section p { font-size: 12.5px; line-height: 1.7; color: #c9d1d9; }
+  .theory-section ul { list-style: none; margin-top: 6px; }
+  .theory-section ul li { font-size: 12.5px; line-height: 1.8; color: #c9d1d9; padding-left: 14px; position: relative; }
+  .theory-section ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .theory-link { cursor: pointer; transition: all .15s; display: block; padding: 3px 0; }
+  .theory-link:hover { color: #e6edf3; }
+  .theory-link strong { color: #e6edf3; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  .complexity-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; margin-top: 6px; }
+  .complexity-table th { background: var(--surface2); color: var(--muted); padding: 6px 10px; text-align: left; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
+  .complexity-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: #c9d1d9; }
+  .complexity-table td.good { color: var(--green); }
+  .complexity-table td.ok   { color: var(--yellow); }
+
+  .tag { display: inline-block; font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 4px; margin: 2px 2px 0 0; }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .tag-green  { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .tag-purple { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+
+  /* ── MIDDLE: Canvas ── */
+  .sim-area { background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .op-log {
+    margin-left: auto; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    color: var(--green); min-width: 160px; text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Array strip below toolbar */
+  .array-strip {
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface); font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted); min-height: 36px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .arr-cell {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 4px;
+    background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.3);
+    color: var(--accent); font-size: 12px; font-weight: 700;
+  }
+  .arr-idx { color: var(--border); font-size: 9px; }
+
+  /* Canvas fills the flex column */
+  .canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+  .canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  /* ── RIGHT: Controls ── */
+  .ctrl-section { margin-bottom: 20px; }
+  .ctrl-section h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-family: 'JetBrains Mono', monospace; }
+  .input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  input[type=number] {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 6px;
+    font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color .2s;
+  }
+  input[type=number]:focus { border-color: var(--accent); }
+  input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border-radius: 6px; border: none;
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger  { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover  { background: rgba(239,68,68,.25); }
+  .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover   { border-color: var(--accent); color: var(--accent); }
+  .btn-purple  { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+  .btn-purple:hover  { background: rgba(99,102,241,.25); }
+  .btn-full { width: 100%; margin-bottom: 6px; }
+
+  .speed-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .speed-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .speed-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); width: 40px; text-align: right; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+  .stat-card .val { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent); line-height: 1; }
+  .stat-card .lbl { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .6px; }
+
+  .code-line { margin: 4px 0; padding: 4px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; transition: all .2s; }
+  .code-line:hover { background: rgba(59,130,246,0.08); }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+  .code-box { background: var(--surface2); padding: 10px; border-radius: 6px; }
+  .trace-status { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-top: 6px; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    body { height: auto; overflow: auto; }
+    .workspace { flex-direction: column; overflow: visible; }
+    #panel-left, #panel-right { width: 100% !important; height: auto; max-height: none; }
+    #panel-mid { min-width: 100% !important; height: 55vw; min-height: 280px; max-height: 420px; }
+    .resizer { display: none; }
+    .canvas-wrap { flex: none; height: 100%; }
+  }
+  @media (max-width: 600px) {
+    .btn { padding: 10px 14px; font-size: 13px; }
+    input[type=number] { padding: 10px 12px; font-size: 13px; }
+    .panel-body { padding: 12px 14px; }
+    header { padding: 0 14px; }
+  }
+</style>
 </head>
 <body>
-<header><div class="breadcrumb">Part 4: Recursive Data Structures › <span>Heap / Priority Queue (scaffold)</span></div></header>
-	<div class="container">
-		<div class="sidebar">
-			<div class="panel">
-				<h2>Heap / Priority Queue</h2>
-				<p>Visualize a min-heap represented as an array and tree structure. Insert values, extract the minimum, and inspect the heap rebalancing process.</p>
-				<div class="section">
-					<h3>What you can do</h3>
-					<ul>
-						<li>Insert values into the heap</li>
-						<li>Extract the minimum value</li>
-						<li>Run code tracing through heap operations</li>
-						<li>Reset the heap quickly</li>
-					</ul>
-				</div>
-				<div class="section">
-					<h3>Quick operations</h3>
-					<div class="op-grid">
-						<button class="op-link" onclick="heapInsertPreset()">Load Preset</button>
-						<button class="op-link" onclick="heapInsertUI()">Insert Value</button>
-						<button class="op-link" onclick="heapExtractUI()">Extract Min</button>
-						<a class="op-link" href="sim-12-heap-code.html">Insertion</a>
-						<a class="op-link" href="sim-12-heap-extraction-code.html">Extraction</a>
-						<button class="op-link" onclick="heapClear()">Clear</button>
-					</div>
-				</div>
 
-				<div class="section">
-					<h3>Min-Heap Properties</h3>
-					<p>A <strong>min-heap</strong> is a complete binary tree where each parent is smaller than or equal to its children. The minimum element is always at the root.</p>
-					<p style="margin-top:8px"><strong>Key Features:</strong></p>
-					<ul>
-						<li>Parent at index i: left child at 2i+1, right at 2i+2</li>
-						<li>Efficient minimum extraction: O(log n)</li>
-						<li>Used in priority queues and heap sort</li>
-					</ul>
-					<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;font-family:monospace">
-						<thead><tr style="background:rgba(255,255,255,.05)"><th style="padding:6px;text-align:left;color:var(--accent)">Operation</th><th style="padding:6px;text-align:left;color:var(--accent)">Time</th></tr></thead>
-						<tbody>
-						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Insert</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
-						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Extract Min</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
-						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Peek Min</td><td style="padding:6px;color:#22c55e">O(1)</td></tr>
-						<tr><td style="padding:6px">Heapify</td><td style="padding:6px;color:#22c55e">O(n)</td></tr>
-						</tbody>
-					</table>
-				</div>
+<header>
+  <div class="breadcrumb">Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 12</span></div>
+  <div class="sim-badge">Heap / Priority Queue</div>
+</header>
 
-				<div class="section">
-					<h3>Priority Queues</h3>
-					<p>Heaps are ideal for implementing priority queues where elements with higher priority are accessed first. Used in algorithms like Dijkstra's shortest path and A* search.</p>
-				</div>
-			</div>
-		</div>
-		<div class="main-panel">
-			<div class="panel layout-grid" style="display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start">
-				<div class="sim-column">
-					<h3>Heap (Min-Heap) Visualiser</h3>
-					<p style="color:var(--muted);margin-bottom:8px">The middle panel shows the tree view derived from the internal array. Nodes are placed by level; edges show parent-child relationships.</p>
-					<div class="canvas-wrapper">
-						<canvas id="heap-canvas" style="width:100%;height:100%"></canvas>
-					</div>
-				</div>
-				<div class="controls-column">
-					<div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-						<h3 style="margin:0 0 8px 0">How to use this simulation</h3>
-						<p style="color:var(--muted);font-size:13px;line-height:1.6">Use the controls below to interact with the heap. Typical workflow:
-						<ol style="color:var(--muted);margin-top:8px">
-							<li>Enter a value and press <strong>Insert</strong>.</li>
-							<li>Press <strong>Extract Min</strong> to remove the smallest value.</li>
-							<li>Run the Heap Trace to step through the algorithm.</li>
-						</ol>
-						</p>
-						<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-							<input id="heap-insert" type="number" placeholder="Value" min="1" max="999" style="padding:8px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);width:120px"/>
-							<button onclick="heapInsertUI()" style="padding:8px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff">Insert</button>
-							<button onclick="heapExtractUI()" style="padding:8px 12px;background:#6366f1;border:none;border-radius:6px;color:#fff">Extract Min</button>
-							<button onclick="runHeapTrace()" style="padding:8px 12px;background:var(--green);border:none;border-radius:6px;color:#fff">Run Trace</button>
-							<button onclick="heapClear()" style="padding:8px 12px;background:var(--red);border:none;border-radius:6px;color:#fff">Clear</button>
-						</div>
-					</div>
+<div class="workspace">
 
-					<!-- Speed Control -->
-					<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-						<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Animation Speed: <strong id="speed-display">600ms</strong></div>
-						<input id="speed-slider" type="range" min="100" max="1200" step="50" value="600" style="width:100%;cursor:pointer" oninput="updateSpeed(this.value)"/>
-						<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">Slow ← → Fast</div>
-					</div>
+  <!-- ═══════════ LEFT: THEORY ═══════════ -->
+  <div class="panel" id="panel-left" style="width:280px;border-right:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Module</h2>
+      <p>Theory & Concepts</p>
+    </div>
+    <div class="panel-body">
 
-					<!-- Statistics Panel -->
-					<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-						<div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px">Statistics</div>
-						<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-							<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
-								<div style="color:var(--muted);font-size:11px">Elements</div>
-								<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-elements">0</div>
-							</div>
-							<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
-								<div style="color:var(--muted);font-size:11px">Height</div>
-								<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-height">0</div>
-							</div>
-						</div>
-					</div>
-					
-					<div class="code-box" style="margin-top:12px">
-						<div class="code-line" data-segment="heap-insert">insert() — push and siftUp</div>
-						<div class="code-line" data-segment="heap-siftup">siftUp() — swap with parent while smaller</div>
-						<div class="code-line" data-segment="heap-extract">extractMin() — replace root and siftDown</div>
-					</div>
-					<div id="heap-trace-status" class="trace-status">Trace ready.</div>
-				</div>
-			</div>
-		</div>
-</div>
+      <div class="theory-section">
+        <h3>What is a Heap?</h3>
+        <p>A <strong>heap</strong> is a complete binary tree stored as an array where every parent is smaller (min-heap) or larger (max-heap) than its children. The root is always the extreme value.</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>Array Representation</h3>
+        <p>For a node at index <strong>i</strong>:</p>
+        <ul>
+          <li>Parent: <code style="color:var(--accent)">(i−1) / 2</code></li>
+          <li>Left child: <code style="color:var(--accent)">2i + 1</code></li>
+          <li>Right child: <code style="color:var(--accent)">2i + 2</code></li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Core Operations</h3>
+        <ul>
+          <li class="theory-link" onclick="window.location.href='sim-12-heap-code.html'"><strong>Insert</strong> — append then sift up to restore heap property</li>
+          <li class="theory-link" onclick="window.location.href='sim-12-heap-extraction-code.html'"><strong>Extract Min</strong> — remove root, move last to root, sift down</li>
+          <li><strong>Peek</strong> — read heap[0] without removing</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Priority Queues</h3>
+        <p>Heaps are the ideal backing structure for a <strong>priority queue</strong> — elements are dequeued in priority order. Used in Dijkstra's shortest path, A* search, and OS scheduling.</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>Time Complexity</h3>
+        <table class="complexity-table">
+          <thead><tr><th>Operation</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr><td>Insert</td><td class="good">O(log n)</td></tr>
+            <tr><td>Extract Min</td><td class="good">O(log n)</td></tr>
+            <tr><td>Peek Min</td><td class="good">O(1)</td></tr>
+            <tr><td>Build Heap</td><td class="ok">O(n)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="theory-section">
+        <h3>Tags</h3>
+        <span class="tag tag-blue">Heap</span>
+        <span class="tag tag-green">Priority Queue</span>
+        <span class="tag tag-purple">Part 4</span>
+        <span class="tag tag-blue">Complete Tree</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="resizer" id="resizer-left"></div>
+
+  <!-- ═══════════ MIDDLE: SIMULATION ═══════════ -->
+  <div class="sim-area" id="panel-mid" style="flex:1;min-width:300px">
+    <div class="sim-toolbar">
+      <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">MIN-HEAP</span>
+      <div class="op-log" id="op-log">Ready — insert values or load a preset</div>
+    </div>
+    <div class="array-strip" id="array-strip">
+      <span style="color:var(--muted);font-size:11px">Heap array will appear here</span>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="heap-canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="resizer" id="resizer-right"></div>
+
+  <!-- ═══════════ RIGHT: CONTROLS ═══════════ -->
+  <div class="panel" id="panel-right" style="width:270px;border-left:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Controls</h2>
+      <p>Adjust Simulation</p>
+    </div>
+    <div class="panel-body">
+
+      <div class="ctrl-section">
+        <h3>Insert Value</h3>
+        <div class="input-row">
+          <input type="number" id="heap-insert-val" placeholder="Value (1–999)" min="1" max="999"/>
+          <button class="btn btn-primary" onclick="heapInsertUI()">Add</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Extract</h3>
+        <button class="btn btn-full btn-purple" onclick="heapExtractUI()">⬆ Extract Min</button>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Presets</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="btn btn-ghost" onclick="heapInsertPreset()">Load Preset</button>
+          <button class="btn btn-ghost" onclick="heapInsertRandom()">Random</button>
+          <button class="btn btn-danger" onclick="heapClear()">Clear</button>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Animation Speed</h3>
+        <div class="speed-row">
+          <label>Slow</label>
+          <input type="range" id="speed-slider" min="100" max="1200" value="600" step="50" oninput="updateSpeed(this.value)"/>
+          <label>Fast</label>
+          <span class="speed-val" id="speed-label">600ms</span>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Statistics</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="val" id="stat-nodes">0</div><div class="lbl">Elements</div></div>
+          <div class="stat-card"><div class="val" id="stat-height">0</div><div class="lbl">Height</div></div>
+          <div class="stat-card"><div class="val" id="stat-min">—</div><div class="lbl">Min</div></div>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Code Trace</h3>
+        <div class="code-box">
+          <div class="code-line" data-segment="heap-insert">insert() — push &amp; siftUp</div>
+          <div class="code-line" data-segment="heap-siftup">siftUp() — swap with parent while smaller</div>
+          <div class="code-line" data-segment="heap-extract">extractMin() — move last to root</div>
+          <div class="code-line" data-segment="heap-siftdown">siftDown() — swap with smallest child</div>
+        </div>
+        <div id="trace-status" class="trace-status">Trace ready.</div>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="runHeapTrace()">▶ Run Trace</button>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Learn by Code</h3>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="sim-12-heap-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Insertion Code</a>
+          <a href="sim-12-heap-extraction-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Extraction Code</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /workspace -->
+
 <script>
-// Heap implementation + visualization
+// ─── Heap data structure ───────────────────────────────────────────────────────
 let heap = [];
-const heapCanvas = document.getElementById('heap-canvas');
-const heapCtx = heapCanvas.getContext('2d');
-function resizeHeap(){ heapCanvas.width = heapCanvas.offsetWidth; heapCanvas.height = heapCanvas.offsetHeight; drawHeap(); }
+let animSpeed = 600;
 
-function heapInsert(val){ heap.push(val); siftUp(heap.length-1); }
-function siftUp(i){ while(i>0){ const p = Math.floor((i-1)/2); if(heap[i] < heap[p]){ [heap[i],heap[p]]=[heap[p],heap[i]]; i=p; } else break; } }
-function extractMin(){ if(heap.length===0) return null; const root = heap[0]; if(heap.length===1){ heap.pop(); return root; } heap[0]=heap.pop(); siftDown(0); return root; }
-function siftDown(i){ const n=heap.length; while(true){ let l=2*i+1, r=2*i+2, smallest=i; if(l<n && heap[l]<heap[smallest]) smallest=l; if(r<n && heap[r]<heap[smallest]) smallest=r; if(smallest!==i){ [heap[i],heap[smallest]]=[heap[smallest],heap[i]]; i=smallest; } else break; } }
-
-function heapInsertUI(){ const v=parseInt(document.getElementById('heap-insert').value); if(isNaN(v)) return; heapInsert(v); document.getElementById('heap-insert').value=''; drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); }
-function heapExtractUI(){ const v = extractMin(); drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); if(v!==null) alert('Extracted: '+v); }
-function heapClear(){ heap=[]; drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); }
-function heapInsertPreset(){ [15,7,20,3,13].forEach(v=>{ heapInsert(v); }); drawHeap(); setTraceStatus('heap-trace-status','Ready preset loaded.'); updateStats(); }
-
-function updateStats(){
-	const n = heap.length;
-	const height = n === 0 ? 0 : Math.floor(Math.log2(n)) + 1;
-	document.getElementById('stat-elements').textContent = n;
-	document.getElementById('stat-height').textContent = height;
+function heapInsert(val) { heap.push(val); siftUp(heap.length - 1); }
+function siftUp(i) {
+  while (i > 0) {
+    const p = Math.floor((i - 1) / 2);
+    if (heap[i] < heap[p]) { [heap[i], heap[p]] = [heap[p], heap[i]]; i = p; } else break;
+  }
+}
+function extractMin() {
+  if (!heap.length) return null;
+  const root = heap[0];
+  if (heap.length === 1) { heap.pop(); return root; }
+  heap[0] = heap.pop(); siftDown(0); return root;
+}
+function siftDown(i) {
+  const n = heap.length;
+  while (true) {
+    let l = 2*i+1, r = 2*i+2, smallest = i;
+    if (l < n && heap[l] < heap[smallest]) smallest = l;
+    if (r < n && heap[r] < heap[smallest]) smallest = r;
+    if (smallest !== i) { [heap[i], heap[smallest]] = [heap[smallest], heap[i]]; i = smallest; } else break;
+  }
 }
 
-let animationDelay = 600;
-function updateSpeed(val){
-	animationDelay = parseInt(val);
-	document.getElementById('speed-display').textContent = val + 'ms';
+// ─── Canvas drawing ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('heap-canvas');
+const ctx    = canvas.getContext('2d');
+
+function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; draw(); }
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!heap.length) {
+    ctx.fillStyle = '#30363d'; ctx.font = "14px 'Sora',sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText('Insert values to build the heap', canvas.width/2, canvas.height/2);
+    return;
+  }
+  const R = Math.max(16, Math.min(24, canvas.width / (heap.length * 2.5)));
+  const levelH = R * 3.5;
+
+  // Compute positions
+  const pos = [];
+  for (let i = 0; i < heap.length; i++) {
+    const level = Math.floor(Math.log2(i + 1));
+    const idxInLevel = i - (Math.pow(2, level) - 1);
+    const nodesInLevel = Math.pow(2, level);
+    const usableW = canvas.width - 40;
+    pos[i] = { x: 20 + (usableW / (nodesInLevel + 1)) * (idxInLevel + 1), y: 30 + level * levelH };
+  }
+
+  // Edges
+  for (let i = 1; i < heap.length; i++) {
+    const p = Math.floor((i - 1) / 2);
+    ctx.beginPath(); ctx.moveTo(pos[p].x, pos[p].y); ctx.lineTo(pos[i].x, pos[i].y);
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // Nodes
+  for (let i = 0; i < heap.length; i++) {
+    const { x, y } = pos[i];
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2);
+    ctx.fillStyle = i === 0 ? 'rgba(34,197,94,0.2)' : '#1f2937'; ctx.fill();
+    ctx.strokeStyle = i === 0 ? '#22c55e' : '#3b82f6'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = i === 0 ? '#4ade80' : '#e6edf3';
+    ctx.font = `bold ${Math.max(10, R * 0.65)}px 'JetBrains Mono',monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(heap[i], x, y);
+    // index label
+    ctx.fillStyle = '#30363d'; ctx.font = `9px 'JetBrains Mono',monospace`;
+    ctx.textBaseline = 'top'; ctx.fillText('[' + i + ']', x, y + R + 2);
+  }
 }
 
-function drawHeap(){ heapCtx.clearRect(0,0,heapCanvas.width,heapCanvas.height); if(heap.length===0){ heapCtx.fillStyle='#30363d'; heapCtx.font='14px monospace'; heapCtx.textAlign='center'; heapCtx.fillText('Insert values to build heap', heapCanvas.width/2, heapCanvas.height/2); return; }
-	const levelHeight = 70; const R=20; for(let i=0;i<heap.length;i++){ const level = Math.floor(Math.log2(i+1)); const indexInLevel = i - (2**level -1); const nodesInLevel = 2**level; const usableW = heapCanvas.width - 40; const x = 20 + (usableW / (nodesInLevel+1)) * (indexInLevel+1); const y = 30 + level*levelHeight; heapCtx.beginPath(); heapCtx.arc(x,y,R,0,Math.PI*2); heapCtx.fillStyle='#1f2937'; heapCtx.fill(); heapCtx.lineWidth=2; heapCtx.strokeStyle='#3b82f6'; heapCtx.stroke(); heapCtx.fillStyle='#e6edf3'; heapCtx.font='bold 13px monospace'; heapCtx.textAlign='center'; heapCtx.textBaseline='middle'; heapCtx.fillText(heap[i], x, y);
-		// draw edge to parent
-		if(i>0){ const p = Math.floor((i-1)/2); const pLevel = Math.floor(Math.log2(p+1)); const pIndex = p - (2**pLevel -1); const pNodes = 2**pLevel; const px = 20 + (usableW / (pNodes+1)) * (pIndex+1); const py = 30 + pLevel*levelHeight; heapCtx.beginPath(); heapCtx.moveTo(px,py); heapCtx.lineTo(x,y); heapCtx.strokeStyle='#30363d'; heapCtx.stroke(); }
-	}
+function updateArrayStrip() {
+  const strip = document.getElementById('array-strip');
+  if (!heap.length) { strip.innerHTML = '<span style="color:var(--muted);font-size:11px">Heap array will appear here</span>'; return; }
+  strip.innerHTML = heap.map((v, i) =>
+    `<span class="arr-idx">[${i}]</span><span class="arr-cell">${v}</span>`
+  ).join('');
 }
 
-function setTraceStatus(statusId, text){ const status = document.getElementById(statusId); if(status) status.textContent = text; }
-
-// Code trace
-async function playCodeTrace(segments, delay, statusId){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const s of segments){ clear(); const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
- if(nodes.length){ nodes.forEach(n=>n.classList.add('active-line')); nodes[0].scrollIntoView({block:'center',inline:'nearest'}); }
- setTraceStatus(statusId, `Executing: ${s.replace(/-/g,' ')}`);
- await new Promise(r=>setTimeout(r,delay || animationDelay)); }
- clear(); setTraceStatus(statusId, 'Trace complete.'); }
-function runHeapTrace(){ playCodeTrace(['heap-insert','heap-siftup','heap-extract'], null, 'heap-trace-status'); }
-
-// Check for preset flag set by heap trace page
-function checkAndLoadHeapPreset(){
-	try{
-		if(localStorage.getItem('sim12.loadHeap')){
-			localStorage.removeItem('sim12.loadHeap');
-			heapInsertPreset();
-			setTraceStatus('heap-trace-status','Ready preset loaded.');
-		}
-	}catch(e){ console.warn('Heap preset load failed', e); }
+function updateStats() {
+  document.getElementById('stat-nodes').textContent  = heap.length;
+  document.getElementById('stat-height').textContent = heap.length ? Math.floor(Math.log2(heap.length)) + 1 : 0;
+  document.getElementById('stat-min').textContent    = heap.length ? heap[0] : '—';
 }
 
-window.addEventListener('resize', resizeHeap);
-document.fonts?.ready.then(()=>{ resizeHeap(); checkAndLoadHeapPreset(); });
+function log(msg) { const el = document.getElementById('op-log'); if (el) el.textContent = msg; }
+
+// ─── UI actions ────────────────────────────────────────────────────────────────
+function heapInsertUI() {
+  const v = parseInt(document.getElementById('heap-insert-val').value);
+  if (isNaN(v)) { log('Enter a number to insert'); return; }
+  heapInsert(v);
+  document.getElementById('heap-insert-val').value = '';
+  draw(); updateArrayStrip(); updateStats();
+  log('Inserted ' + v + ' → siftUp applied');
+}
+function heapExtractUI() {
+  const v = extractMin();
+  if (v === null) { log('Heap is empty'); return; }
+  draw(); updateArrayStrip(); updateStats();
+  log('Extracted min: ' + v + ' → siftDown applied');
+}
+function heapClear() {
+  heap = []; draw(); updateArrayStrip(); updateStats(); log('Heap cleared');
+}
+function heapInsertPreset() {
+  heapClear();
+  [3, 7, 15, 13, 20, 25, 30].forEach(v => heapInsert(v));
+  draw(); updateArrayStrip(); updateStats(); log('Preset min-heap loaded');
+}
+function heapInsertRandom() {
+  heapClear();
+  Array.from({length:7}, () => Math.floor(Math.random()*90)+5).forEach(v => heapInsert(v));
+  draw(); updateArrayStrip(); updateStats(); log('Random heap loaded');
+}
+function updateSpeed(v) {
+  animSpeed = parseInt(v);
+  document.getElementById('speed-label').textContent = animSpeed + 'ms';
+}
+
+// Enter key
+document.getElementById('heap-insert-val').addEventListener('keypress', e => { if (e.key === 'Enter') heapInsertUI(); });
+
+// ─── Code trace ────────────────────────────────────────────────────────────────
+async function playCodeTrace(segments) {
+  const all = document.querySelectorAll('[data-segment]');
+  function clearActive() { all.forEach(l => l.classList.remove('active-line')); }
+  for (const s of segments) {
+    clearActive();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n => n.classList.add('active-line'));
+    document.getElementById('trace-status').textContent = 'Executing: ' + s.replace(/-/g,' ');
+    await new Promise(r => setTimeout(r, animSpeed));
+  }
+  clearActive();
+  document.getElementById('trace-status').textContent = 'Trace complete.';
+}
+function runHeapTrace() { playCodeTrace(['heap-insert','heap-siftup','heap-extract','heap-siftdown']); }
+
+// ─── Resizable panels ─────────────────────────────────────────────────────────
+function makeResizer(resizerId, panelId, side) {
+  const resizer = document.getElementById(resizerId);
+  const panel   = document.getElementById(panelId);
+  if (!resizer || !panel) return;
+  resizer.addEventListener('mousedown', e => {
+    e.preventDefault(); resizer.classList.add('dragging');
+    const startX = e.clientX, startW = panel.offsetWidth;
+    function onMove(e) {
+      let newW = side === 'left' ? startW + (e.clientX - startX) : startW - (e.clientX - startX);
+      newW = Math.max(180, Math.min(480, newW));
+      panel.style.width = newW + 'px'; panel.style.flex = 'none'; resizeCanvas();
+    }
+    function onUp() { resizer.classList.remove('dragging'); document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+  });
+}
+makeResizer('resizer-left',  'panel-left',  'left');
+makeResizer('resizer-right', 'panel-right', 'right');
+
+// ─── Preset flag from code pages ──────────────────────────────────────────────
+function checkAndLoadPreset() {
+  try {
+    if (localStorage.getItem('sim12.loadHeap')) { localStorage.removeItem('sim12.loadHeap'); heapInsertPreset(); }
+  } catch(e) {}
+}
+
+window.addEventListener('resize', resizeCanvas);
+document.fonts.ready.then(() => { resizeCanvas(); checkAndLoadPreset(); });
 </script>
 </body>
 </html>

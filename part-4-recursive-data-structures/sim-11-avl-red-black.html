@@ -1,299 +1,687 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AVL / Red-Black - Simulation (Scaffold)</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simulation 11: AVL / Red-Black Tree – ATC SimLab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 <style>
-	:root{--bg:#0d1117;--surface:#161b22;--surface2:#1f2937;--border:#30363d;--accent:#3b82f6;--accent2:#6366f1;--muted:#8b949e;--text:#e6edf3;--red:#ef4444}
-	body{font-family:Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column}
-	header{height:54px;padding:0 16px;display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border)}
-	.breadcrumb{color:var(--muted);font-family:monospace}
-	.container{flex:1;display:flex;overflow:hidden}
-	.sidebar{width:320px;min-width:280px;background:var(--surface2);border-right:1px solid var(--border);padding:18px;overflow-y:auto}
-	.main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
-	.panel{flex:1;padding:18px;overflow:auto}
-	.sidebar h2{font-size:14px;margin-bottom:10px;color:var(--text)}
-	.sidebar p{color:var(--muted);font-size:13px;line-height:1.6}
-	.sidebar .section{margin-top:18px}
-	.sidebar .section h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
-	.sidebar ul{list-style:none;padding-left:0}
-	.sidebar li{color:var(--text);font-size:13px;line-height:1.7;margin-bottom:8px;padding-left:12px;position:relative}
-	.sidebar li::before{content:'›';position:absolute;left:0;color:var(--accent)}
-	.op-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:6px;border:1px solid transparent;background:rgba(59,130,246,0.08);color:var(--text);cursor:pointer;transition:all .2s;text-decoration:none;font-size:13px;min-width:120px}
-	.op-link:hover{background:rgba(59,130,246,0.16);border-color:rgba(59,130,246,0.3)}
-	.op-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px}
-	.switch-row, .control-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-	.switch-row button{opacity:.85;transition:opacity .2s, transform .2s}
-	.switch-row button.active{opacity:1;transform:scale(1.02)}
-	.control-row{margin:8px 0}
-	.canvas-wrapper{height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px}
-	.sim-column .canvas-wrapper{display:flex;align-items:center;justify-content:center}
-	.sim-column canvas{width:100%;max-width:900px;height:360px}
-	.code-box{margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px}
-	.trace-status{margin-top:8px;color:var(--muted);font-family:monospace;font-size:12px}
-	.code-line{margin:4px 0;padding:6px 8px;border-radius:4px;transition:background .2s,transform .2s}
-	.code-line:hover{background:rgba(59,130,246,0.08)}
-	.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:6px}
-	@media(max-width:900px){ .container{flex-direction:column} .sidebar{width:auto;min-width:auto;border-right:none;border-bottom:1px solid var(--border)} }
-	@media(max-width:720px){ .switch-row, .control-row{flex-direction:column;align-items:stretch} }
-	</style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --surface2: #1f2937;
+    --border:   #30363d;
+    --accent:   #3b82f6;
+    --accent2:  #6366f1;
+    --green:    #22c55e;
+    --yellow:   #f59e0b;
+    --red:      #ef4444;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .breadcrumb { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .breadcrumb span { color: var(--accent); }
+  .sim-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: .5px;
+  }
+
+  /* ── 3-col layout ── */
+  .workspace { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Drag handles ── */
+  .resizer {
+    width: 5px; background: var(--border); cursor: col-resize;
+    flex-shrink: 0; position: relative; transition: background .15s; z-index: 10;
+  }
+  .resizer:hover, .resizer.dragging { background: var(--accent); }
+  .resizer::after {
+    content: '⋮'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%); color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+
+  /* ── Shared panel ── */
+  .panel {
+    background: var(--surface); display: flex; flex-direction: column;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .panel-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .panel-header h2 {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .panel-header p { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+  /* ── LEFT: Theory ── */
+  .theory-section { margin-bottom: 20px; }
+  .theory-section h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section p { font-size: 12.5px; line-height: 1.7; color: #c9d1d9; }
+  .theory-section ul { list-style: none; margin-top: 6px; }
+  .theory-section ul li {
+    font-size: 12.5px; line-height: 1.8; color: #c9d1d9;
+    padding-left: 14px; position: relative;
+  }
+  .theory-section ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .theory-link { cursor: pointer; transition: all .15s; display: block; padding: 3px 0; }
+  .theory-link:hover { color: #e6edf3; }
+  .theory-link strong { color: #e6edf3; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  .complexity-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; margin-top: 6px; }
+  .complexity-table th { background: var(--surface2); color: var(--muted); padding: 6px 10px; text-align: left; font-weight: 600; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
+  .complexity-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: #c9d1d9; }
+  .complexity-table td.good { color: var(--green); }
+  .complexity-table td.ok   { color: var(--yellow); }
+  .complexity-table td.bad  { color: var(--red); }
+
+  .tag { display: inline-block; font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 4px; margin: 2px 2px 0 0; }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .tag-green  { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .tag-purple { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+  .tag-red    { background: rgba(239,68,68,.12);  color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+  /* ── MIDDLE: Canvas ── */
+  .sim-area { background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .tree-toggle-btn {
+    padding: 5px 14px; border-radius: 5px; border: 1px solid var(--border);
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; color: var(--muted); background: transparent;
+  }
+  .tree-toggle-btn.active-avl { background: rgba(59,130,246,.2); border-color: var(--accent); color: var(--accent); }
+  .tree-toggle-btn.active-rb  { background: rgba(239,68,68,.2);  border-color: var(--red);    color: var(--red); }
+  .op-log {
+    margin-left: auto; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    color: var(--green); min-width: 160px; text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Canvas fills the flex column */
+  .canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+  .canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  /* ── RIGHT: Controls ── */
+  .ctrl-section { margin-bottom: 20px; }
+  .ctrl-section h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-family: 'JetBrains Mono', monospace; }
+  .input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  input[type=number] {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 6px;
+    font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color .2s;
+  }
+  input[type=number]:focus { border-color: var(--accent); }
+  input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border-radius: 6px; border: none;
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger  { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover  { background: rgba(239,68,68,.25); }
+  .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover   { border-color: var(--accent); color: var(--accent); }
+  .btn-full { width: 100%; margin-bottom: 6px; }
+  .btn-rb   { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+  .btn-rb:hover { background: rgba(239,68,68,.25); }
+
+  .speed-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .speed-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .speed-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); width: 40px; text-align: right; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+  .stat-card .val { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent); line-height: 1; }
+  .stat-card .lbl { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .6px; }
+
+  .code-line { margin: 4px 0; padding: 4px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; transition: all .2s; }
+  .code-line:hover { background: rgba(59,130,246,0.08); }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+  .code-box { background: var(--surface2); padding: 10px; border-radius: 6px; }
+  .trace-status { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-top: 6px; }
+
+  /* Mobile / responsive */
+  @media (max-width: 900px) {
+    body { height: auto; overflow: auto; }
+    .workspace { flex-direction: column; overflow: visible; }
+    #panel-left, #panel-right { width: 100% !important; height: auto; max-height: none; }
+    #panel-mid { min-width: 100% !important; height: 55vw; min-height: 260px; max-height: 420px; }
+    .resizer { display: none; }
+    .canvas-wrap { flex: none; height: 100%; }
+  }
+  @media (max-width: 600px) {
+    .btn { padding: 10px 14px; font-size: 13px; }
+    input[type=number] { padding: 10px 12px; font-size: 13px; }
+    .panel-body { padding: 12px 14px; }
+    header { padding: 0 14px; }
+  }
+</style>
 </head>
 <body>
-<header><div class="breadcrumb">Part 4: Recursive Data Structures › <span>AVL / Red-Black (scaffold)</span></div></header>
-<div class="container">
-	<div class="sidebar">
-		<div class="panel">
-			<h2>AVL / Red-Black Overview</h2>
-			<p>Explore balanced binary search tree insertion with AVL rotations, or switch to a simplified red-black insertion demo to learn color-fixing after insertions.</p>
-			<div class="section">
-				<h3>What you can do</h3>
-				<ul>
-					<li>Insert values and watch the tree rebalance</li>
-					<li>Run a code trace highlighting key algorithm steps</li>
-					<li>Clear the tree and restart with new values</li>
-					<li>Switch display mode between AVL and RB</li>
-				</ul>
-			</div>
-			<div class="section">
-				<h3>Quick operations</h3>
-				<div class="op-grid">
-					<button class="op-link" onclick="showPanel('avl')">Show AVL</button>
-					<button class="op-link" onclick="showPanel('rb')">Show RB</button>
-					<a class="op-link" href="sim-11-avl-code.html">AVL Insert</a>
-					<a class="op-link" href="sim-11-avl-deletion-code.html">AVL Delete</a>
-					<a class="op-link" href="sim-11-rb-code.html">RB Trace</a>
-					<button class="op-link" onclick="avlInsertPreset()">AVL Preset</button>
-					<button class="op-link" onclick="rbInsertPreset()">RB Preset</button>
-					<button class="op-link" onclick="clearAVL()">Clear AVL</button>
-				</div>
-			</div>
 
-			<div class="section">
-				<h3>AVL Trees</h3>
-				<p>An <strong>AVL tree</strong> is a self-balancing BST where the height difference between left and right subtrees is at most 1 (the <em>balance factor</em>).</p>
-				<p style="margin-top:8px"><strong>Key Properties:</strong></p>
-				<ul>
-					<li>Balance factor: height(left) − height(right) must be in {−1, 0, +1}</li>
-					<li>Rotations restore balance after insertions/deletions</li>
-					<li>Four rotation types: LL, LR, RR, RL</li>
-				</ul>
-				<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;font-family:monospace">
-					<thead><tr style="background:rgba(255,255,255,.05)"><th style="padding:6px;text-align:left;color:var(--accent)">Operation</th><th style="padding:6px;text-align:left;color:var(--accent)">Average</th><th style="padding:6px;text-align:left;color:var(--accent)">Worst</th></tr></thead>
-					<tbody>
-					<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Insert</td><td style="padding:6px;color:#22c55e">O(log n)</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
-					<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Delete</td><td style="padding:6px;color:#22c55e">O(log n)</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
-					<tr><td style="padding:6px">Search</td><td style="padding:6px;color:#22c55e">O(log n)</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
-					</tbody>
-				</table>
-			</div>
+<header>
+  <div class="breadcrumb">Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 11</span></div>
+  <div class="sim-badge">AVL / Red-Black</div>
+</header>
 
-			<div class="section">
-				<h3>Red-Black Trees</h3>
-				<p>A <strong>Red-Black tree</strong> is a BST with color attributes (red/black) that maintain near-balance through relaxed constraints.</p>
-				<p style="margin-top:8px"><strong>Rules:</strong></p>
-				<ul>
-					<li>Every node is colored red or black</li>
-					<li>Root is always black</li>
-					<li>Leaves (nil) are black</li>
-					<li>Red nodes cannot have red children</li>
-					<li>All paths from node to leaves have equal black-node count</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-	<div class="main-panel">
-		<div class="panel layout-grid" style="display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start">
-			<!-- Middle: Simulation canvas -->
-			<div class="sim-column">
-				<div class="switch-row" style="justify-content:flex-start;gap:12px;margin-bottom:8px">
-					<button id="show-avl-main" class="active" onclick="showPanel('avl')" style="padding:6px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff">AVL</button>
-					<button id="show-rb-main" onclick="showPanel('rb')" style="padding:6px 10px;background:#ef4444;border:none;border-radius:4px;color:#fff">Red-Black</button>
-				</div>
-				<p style="color:var(--muted);margin-bottom:8px">Simulation area: visual representation of the selected tree. Click and drag (or touch) to pan; use insert controls on the right to add values and experiment.</p>
-				<div class="canvas-wrapper">
-					<canvas id="avl-canvas" style="width:100%;max-width:900px;height:360px"></canvas>
-					<canvas id="rb-canvas" style="width:100%;max-width:900px;height:360px;display:none"></canvas>
-				</div>
-			</div>
-			<!-- Right: Controls and code trace -->
-			<div class="controls-column">
-				<div id="avl-panel">
-					<div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-						<h3 style="margin:0 0 8px 0">How to use this simulation</h3>
-					<p style="color:var(--muted);font-size:13px;line-height:1.6">This interactive sim demonstrates how AVL and Red-Black trees keep binary search trees balanced after insertions. Steps:
-					<ol style="color:var(--muted);margin-top:8px">
-						<li>Pick AVL or Red-Black using buttons above the canvas.</li>
-						<li>Enter a value on the right and press <strong>Insert</strong> to add it.</li>
-						<li>Press <strong>Run Trace</strong> to highlight code steps in sequence.</li>
-						<li>Use presets from the left sidebar to load example trees.</li>
-					</ol>
-					</p>
-					<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-						<input id="avl-insert" type="number" placeholder="Value" min="1" max="99" style="padding:8px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);width:120px"/>
-						<button onclick="avlInsertUI()" style="padding:8px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff">Insert</button>
-						<button onclick="runAVLTrace()" style="padding:8px 12px;background:#6366f1;border:none;border-radius:6px;color:#fff">Run Trace</button>
-						<button onclick="clearAVL()" style="padding:8px 12px;background:var(--red);border:none;border-radius:6px;color:#fff">Clear</button>
-					</div>
-				</div>
-				<!-- RB controls (toggled) -->
-				<div id="rb-panel" style="display:none;margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-					<h4 style="margin:0 0 8px 0">Red-Black Controls</h4>
-					<div style="display:flex;gap:8px;flex-wrap:wrap">
-						<input id="rb-insert" type="number" placeholder="Value" min="1" max="99" style="padding:8px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);width:120px"/>
-						<button onclick="rbInsertUI()" style="padding:8px 12px;background:#ef4444;border:none;border-radius:6px;color:#fff">Insert RB</button>
-						<button onclick="runRBTrace()" style="padding:8px 12px;background:#6366f1;border:none;border-radius:6px;color:#fff">Run Trace</button>
-						<button onclick="clearRB()" style="padding:8px 12px;background:var(--red);border:none;border-radius:6px;color:#fff">Clear RB</button>
-					</div>
-				</div>
+<div class="workspace">
 
-				<!-- Speed Control -->
-				<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-					<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Animation Speed: <strong id="speed-display">650ms</strong></div>
-					<input id="speed-slider" type="range" min="100" max="1200" step="50" value="650" style="width:100%;cursor:pointer" oninput="updateSpeed(this.value)"/>
-					<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">Slow ← → Fast</div>
-				</div>
+  <!-- ═══════════ LEFT: THEORY ═══════════ -->
+  <div class="panel" id="panel-left" style="width:280px;border-right:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Module</h2>
+      <p>Theory & Concepts</p>
+    </div>
+    <div class="panel-body">
 
-				<!-- Statistics Panel -->
-				<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
-					<div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px">Statistics</div>
-					<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-						<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
-							<div style="color:var(--muted);font-size:11px">Nodes</div>
-							<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-nodes">0</div>
-						</div>
-						<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
-							<div style="color:var(--muted);font-size:11px">Height</div>
-							<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-height">0</div>
-						</div>
-					</div>
-				</div>
-				
-				<div class="code-box" style="margin-top:12px">
-					<div class="code-line" data-segment="avl-insert-start"><strong>insert()</strong> — base case</div>
-					<div class="code-line" data-segment="avl-balance">rotate if balance &lt; -1 or &gt; 1</div>
-					<div class="code-line" data-segment="avl-rotate">perform rotations (LL/LR/RR/RL)</div>
-				</div>
-				<div id="avl-trace-status" class="trace-status">Trace ready.</div>
-			</div>
-		</div>
-	</div>
+      <div class="theory-section">
+        <h3>Why Balanced Trees?</h3>
+        <p>A plain BST degrades to O(n) when values are inserted in sorted order. <strong>Self-balancing trees</strong> enforce structural constraints so height stays O(log n) at all times.</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>AVL Trees</h3>
+        <p>An <strong>AVL tree</strong> keeps the <em>balance factor</em> of every node in {−1, 0, +1}:</p>
+        <ul>
+          <li>BF = height(left) − height(right)</li>
+          <li>|BF| &gt; 1 triggers a rotation to restore balance</li>
+          <li>Four rotation types: LL, LR, RR, RL</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>AVL Operations</h3>
+        <ul>
+          <li class="theory-link" onclick="window.location.href='sim-11-avl-code.html'"><strong>Insert</strong> — BST insert then rebalance on unwind</li>
+          <li class="theory-link" onclick="window.location.href='sim-11-avl-deletion-code.html'"><strong>Delete</strong> — remove node, rebalance ancestors</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>Red-Black Trees</h3>
+        <p>A <strong>Red-Black tree</strong> uses color attributes to maintain near-balance with fewer rotations than AVL:</p>
+        <ul>
+          <li>Every node is RED or BLACK</li>
+          <li>Root is always BLACK</li>
+          <li>No two RED nodes can be adjacent</li>
+          <li>All paths to leaves have equal black-node count</li>
+          <li class="theory-link" onclick="window.location.href='sim-11-rb-code.html'"><strong>Insertion trace</strong> — see recoloring & rotations</li>
+        </ul>
+      </div>
+
+      <div class="theory-section">
+        <h3>AVL Time Complexity</h3>
+        <table class="complexity-table">
+          <thead><tr><th>Operation</th><th>Average</th><th>Worst</th></tr></thead>
+          <tbody>
+            <tr><td>Search</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+            <tr><td>Insert</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+            <tr><td>Delete</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px;font-size:11.5px;color:var(--muted)">Guaranteed O(log n) unlike plain BST.</p>
+      </div>
+
+      <div class="theory-section">
+        <h3>Tags</h3>
+        <span class="tag tag-blue">Balanced BST</span>
+        <span class="tag tag-green">Self-Balancing</span>
+        <span class="tag tag-purple">Part 4</span>
+        <span class="tag tag-red">Red-Black</span>
+        <span class="tag tag-blue">Rotations</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="resizer" id="resizer-left"></div>
+
+  <!-- ═══════════ MIDDLE: SIMULATION ═══════════ -->
+  <div class="sim-area" id="panel-mid" style="flex:1;min-width:300px">
+    <div class="sim-toolbar">
+      <button class="tree-toggle-btn active-avl" id="btn-avl" onclick="showPanel('avl')">AVL Tree</button>
+      <button class="tree-toggle-btn" id="btn-rb" onclick="showPanel('rb')">Red-Black</button>
+      <div class="op-log" id="op-log">Ready — insert values or load a preset</div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="avl-canvas"></canvas>
+      <canvas id="rb-canvas" style="display:none"></canvas>
+    </div>
+  </div>
+
+  <div class="resizer" id="resizer-right"></div>
+
+  <!-- ═══════════ RIGHT: CONTROLS ═══════════ -->
+  <div class="panel" id="panel-right" style="width:270px;border-left:1px solid var(--border)">
+    <div class="panel-header">
+      <h2>Controls</h2>
+      <p>Adjust Simulation</p>
+    </div>
+    <div class="panel-body">
+
+      <!-- AVL Controls -->
+      <div id="ctrl-avl">
+        <div class="ctrl-section">
+          <h3>Insert Node (AVL)</h3>
+          <div class="input-row">
+            <input type="number" id="avl-insert" placeholder="Value (1–99)" min="1" max="99"/>
+            <button class="btn btn-primary" onclick="avlInsertUI()">Add</button>
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3>Presets</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button class="btn btn-ghost" onclick="avlInsertPreset()">Balanced</button>
+            <button class="btn btn-ghost" onclick="avlInsertRandom()">Random</button>
+            <button class="btn btn-danger" onclick="clearAVL()">Clear</button>
+            <button class="btn btn-ghost" onclick="runAVLTrace()">Run Trace</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RB Controls -->
+      <div id="ctrl-rb" style="display:none">
+        <div class="ctrl-section">
+          <h3>Insert Node (Red-Black)</h3>
+          <div class="input-row">
+            <input type="number" id="rb-insert" placeholder="Value (1–99)" min="1" max="99"/>
+            <button class="btn btn-rb" onclick="rbInsertUI()">Add</button>
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3>Presets</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button class="btn btn-ghost" onclick="rbInsertPreset()">Preset</button>
+            <button class="btn btn-ghost" onclick="runRBTrace()">Run Trace</button>
+            <button class="btn btn-danger" onclick="clearRB()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Animation Speed</h3>
+        <div class="speed-row">
+          <label>Slow</label>
+          <input type="range" id="speed-slider" min="100" max="1200" value="650" step="50" oninput="updateSpeed(this.value)"/>
+          <label>Fast</label>
+          <span class="speed-val" id="speed-label">650ms</span>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Statistics</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="val" id="stat-nodes">0</div><div class="lbl">Nodes</div></div>
+          <div class="stat-card"><div class="val" id="stat-height">0</div><div class="lbl">Height</div></div>
+        </div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Code Trace</h3>
+        <div class="code-box">
+          <div class="code-line" data-segment="avl-insert-start">insert() — base case &amp; BST recurse</div>
+          <div class="code-line" data-segment="avl-balance">updateHeight · calculate BF</div>
+          <div class="code-line" data-segment="avl-rotate">rotate: LL / LR / RR / RL</div>
+          <div class="code-line" data-segment="rb-insert">RB: insert as RED node</div>
+          <div class="code-line" data-segment="rb-fix">RB: recolor if uncle is RED</div>
+          <div class="code-line" data-segment="rb-rotate">RB: rotate to fix violations</div>
+        </div>
+        <div id="avl-trace-status" class="trace-status">Trace ready.</div>
+      </div>
+
+      <div class="ctrl-section">
+        <h3>Learn by Code</h3>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="sim-11-avl-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 AVL Insertion Code</a>
+          <a href="sim-11-avl-deletion-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 AVL Deletion Code</a>
+          <a href="sim-11-rb-code.html" class="btn btn-ghost" style="text-align:center;text-decoration:none">📝 Red-Black Trace</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /workspace -->
+
 <script>
-// AVL implementation + visualization
-class AVLNode{ constructor(v){ this.val=v; this.left=null; this.right=null; this.height=1; this.x=0; this.y=0; this.highlight=false; } }
-let avlRoot=null;
-const avlCanvas=document.getElementById('avl-canvas');
-const avlCtx=avlCanvas.getContext('2d');
-function resizeAVL(){ avlCanvas.width = avlCanvas.offsetWidth; avlCanvas.height = avlCanvas.offsetHeight; layoutAVL(); drawAVL(); }
-function height(n){ return n? n.height:0 }
-function updateHeight(n){ n.height = 1 + Math.max(height(n.left), height(n.right)); }
-function balanceFactor(n){ return n? height(n.left)-height(n.right):0 }
-function rotateRight(y){ const x=y.left; const T2=x.right; x.right=y; y.left=T2; updateHeight(y); updateHeight(x); return x; }
-function rotateLeft(x){ const y=x.right; const T2=y.left; y.left=x; x.right=T2; updateHeight(x); updateHeight(y); return y; }
-function avlInsert(node, val){ if(!node) return new AVLNode(val); if(val < node.val) node.left = avlInsert(node.left, val); else if(val > node.val) node.right = avlInsert(node.right, val); else return node; updateHeight(node); const bf = balanceFactor(node); if(bf > 1 && val < node.left.val) return rotateRight(node); if(bf < -1 && val > node.right.val) return rotateLeft(node); if(bf > 1 && val > node.left.val){ node.left = rotateLeft(node.left); return rotateRight(node);} if(bf < -1 && val < node.right.val){ node.right = rotateRight(node.right); return rotateLeft(node);} return node; }
+// ─── Shared state ──────────────────────────────────────────────────────────────
+let currentPanel = 'avl';
+let animSpeed    = 650;
 
-function layoutAVL(){ if(!avlRoot) return; const nodes=[]; function inorder(n){ if(!n) return; inorder(n.left); nodes.push(n); inorder(n.right); } inorder(avlRoot); const n=nodes.length; const usableW=avlCanvas.width - 60; const startX=30; nodes.forEach((nd,i)=>{ nd.x = startX + (usableW/(n+1))*(i+1); }); function setY(n, depth){ if(!n) return; n.y = 40 + depth*80; setY(n.left, depth+1); setY(n.right, depth+1);} setY(avlRoot,0); }
-
-function drawAVL(){ avlCtx.clearRect(0,0,avlCanvas.width,avlCanvas.height); if(!avlRoot){ avlCtx.fillStyle='#30363d'; avlCtx.font='14px monospace'; avlCtx.textAlign='center'; avlCtx.fillText('Insert values to build AVL tree', avlCanvas.width/2, avlCanvas.height/2); return; } drawEdges(avlRoot); drawNodes(avlRoot); }
-function drawEdges(n){ if(!n) return; avlCtx.lineWidth=1.5; avlCtx.strokeStyle='#30363d'; if(n.left){ avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.left.x,n.left.y); avlCtx.stroke(); drawEdges(n.left);} if(n.right){ avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.right.x,n.right.y); avlCtx.stroke(); drawEdges(n.right);} }
-function drawNodes(n){ if(!n) return; let fill='#1f2937', stroke='#3b82f6', txt='#e6edf3'; if(n.highlight){ fill='rgba(59,130,246,0.18)'; stroke='#60a5fa'; } avlCtx.beginPath(); avlCtx.arc(n.x,n.y,20,0,Math.PI*2); avlCtx.fillStyle=fill; avlCtx.fill(); avlCtx.lineWidth=2; avlCtx.strokeStyle=stroke; avlCtx.stroke(); avlCtx.fillStyle=txt; avlCtx.font='bold 13px monospace'; avlCtx.textAlign='center'; avlCtx.textBaseline='middle'; avlCtx.fillText(n.val,n.x,n.y); drawNodes(n.left); drawNodes(n.right); }
-
-function clearHighlightsAVL(n){ if(!n) return; n.highlight=false; clearHighlightsAVL(n.left); clearHighlightsAVL(n.right); }
-
-function avlInsertUI(){ const v = parseInt(document.getElementById('avl-insert').value); if(isNaN(v)) return; avlRoot = avlInsert(avlRoot, v); layoutAVL(); drawAVL(); document.getElementById('avl-insert').value=''; setTraceStatus('avl-trace-status','Ready.'); updateStats(); }
-function clearAVL(){ avlRoot=null; drawAVL(); setTraceStatus('avl-trace-status','Ready.'); updateStats(); }
-
-function updateStats(){
-	let count = 0;
-	let maxHeight = 0;
-	function traverse(n, depth){
-		if(!n) return;
-		count++;
-		maxHeight = Math.max(maxHeight, depth);
-		traverse(n.left, depth+1);
-		traverse(n.right, depth+1);
-	}
-	traverse(avlRoot, 0);
-	document.getElementById('stat-nodes').textContent = count;
-	document.getElementById('stat-height').textContent = avlRoot ? height(avlRoot) : 0;
+function log(msg) {
+  const el = document.getElementById('op-log');
+  if (el) el.textContent = msg;
+}
+function setTraceStatus(msg) {
+  const el = document.getElementById('avl-trace-status');
+  if (el) el.textContent = msg;
+}
+function updateSpeed(v) {
+  animSpeed = parseInt(v);
+  document.getElementById('speed-label').textContent = animSpeed + 'ms';
 }
 
-let animationDelay = 650;
-function updateSpeed(val){
-	animationDelay = parseInt(val);
-	document.getElementById('speed-display').textContent = val + 'ms';
+// ─── Panel switching ───────────────────────────────────────────────────────────
+function showPanel(name) {
+  currentPanel = name;
+  const avlCanvas = document.getElementById('avl-canvas');
+  const rbCanvas  = document.getElementById('rb-canvas');
+  const ctrlAVL   = document.getElementById('ctrl-avl');
+  const ctrlRB    = document.getElementById('ctrl-rb');
+  const btnAVL    = document.getElementById('btn-avl');
+  const btnRB     = document.getElementById('btn-rb');
+
+  avlCanvas.style.display = name === 'avl' ? 'block' : 'none';
+  rbCanvas.style.display  = name === 'rb'  ? 'block' : 'none';
+  ctrlAVL.style.display   = name === 'avl' ? 'block' : 'none';
+  ctrlRB.style.display    = name === 'rb'  ? 'block' : 'none';
+
+  btnAVL.className = 'tree-toggle-btn' + (name === 'avl' ? ' active-avl' : '');
+  btnRB.className  = 'tree-toggle-btn' + (name === 'rb'  ? ' active-rb'  : '');
+
+  if (name === 'avl') { resizeAVL(); drawAVL(); }
+  else                { resizeRB();  drawRB();  }
 }
 
-function setTraceStatus(statusId, text){ const status = document.getElementById(statusId); if(status) status.textContent = text; }
+// ─── Code trace player ─────────────────────────────────────────────────────────
+async function playCodeTrace(segments, delay) {
+  const all = document.querySelectorAll('[data-segment]');
+  function clearActive() { all.forEach(l => l.classList.remove('active-line')); }
+  for (const s of segments) {
+    clearActive();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n => n.classList.add('active-line'));
+    setTraceStatus('Executing: ' + s.replace(/-/g,' '));
+    await new Promise(r => setTimeout(r, delay || animSpeed));
+  }
+  clearActive();
+  setTraceStatus('Trace complete.');
+}
+function runAVLTrace() { playCodeTrace(['avl-insert-start','avl-balance','avl-rotate']); }
+function runRBTrace()  { playCodeTrace(['rb-insert','rb-fix','rb-rotate']); }
 
-// Code trace player
-async function playCodeTrace(segments, delay, statusId){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const [index,s] of segments.entries()){ clear(); const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
- if(nodes.length){ nodes.forEach(n=>n.classList.add('active-line')); nodes[0].scrollIntoView({block:'center',inline:'nearest'}); }
- setTraceStatus(statusId, `Executing: ${s.replace(/-/g,' ')}`);
- await new Promise(r=>setTimeout(r,delay || animationDelay)); }
- clear(); setTraceStatus(statusId, 'Trace complete.'); }
-function runAVLTrace(){ playCodeTrace(['avl-insert-start','avl-balance','avl-rotate'], null, 'avl-trace-status'); }
-
-// Check localStorage flags set by trace pages and load presets when returning to the main sim
-function checkAndLoadPresets(){
-	try{
-		if(localStorage.getItem('sim11.loadAVL')){
-			localStorage.removeItem('sim11.loadAVL');
-			avlInsertPreset();
-			showPanel('avl');
-		}
-		if(localStorage.getItem('sim11.loadRB')){
-			localStorage.removeItem('sim11.loadRB');
-			rbInsertPreset();
-			showPanel('rb');
-		}
-	}catch(e){ console.warn('Preset load failed', e); }
+// ─── Stats ────────────────────────────────────────────────────────────────────
+function updateStats(root, heightFn) {
+  let count = 0;
+  function traverse(n) { if (!n) return; count++; traverse(n.left); traverse(n.right); }
+  traverse(root);
+  document.getElementById('stat-nodes').textContent  = count;
+  document.getElementById('stat-height').textContent = root ? heightFn(root) : 0;
 }
 
-window.addEventListener('resize', resizeAVL);
-document.fonts?.ready.then(()=>{ resizeAVL(); resizeRB(); checkAndLoadPresets(); });
+// ═══════════════════════════════════════════════════════════════════════════════
+//  AVL TREE
+// ═══════════════════════════════════════════════════════════════════════════════
+class AVLNode {
+  constructor(v) { this.val = v; this.left = null; this.right = null; this.height = 1; this.x = 0; this.y = 0; this.highlight = false; }
+}
+let avlRoot = null;
+const avlCanvas = document.getElementById('avl-canvas');
+const avlCtx    = avlCanvas.getContext('2d');
 
-// --- Red-Black basic demo ---
-const rbCanvas = document.getElementById('rb-canvas');
-const rbCtx = rbCanvas ? rbCanvas.getContext('2d') : null;
-class RBNode{ constructor(v){ this.val=v; this.left=null; this.right=null; this.parent=null; this.color='red'; this.x=0; this.y=0; } }
+function resizeAVL() { avlCanvas.width = avlCanvas.offsetWidth; avlCanvas.height = avlCanvas.offsetHeight; layoutAVL(); drawAVL(); }
+
+function avlHeight(n) { return n ? n.height : 0; }
+function avlUpdateHeight(n) { n.height = 1 + Math.max(avlHeight(n.left), avlHeight(n.right)); }
+function avlBF(n) { return n ? avlHeight(n.left) - avlHeight(n.right) : 0; }
+function avlRotateRight(y) { const x = y.left, T2 = x.right; x.right = y; y.left = T2; avlUpdateHeight(y); avlUpdateHeight(x); return x; }
+function avlRotateLeft(x)  { const y = x.right, T2 = y.left; y.left = x; x.right = T2; avlUpdateHeight(x); avlUpdateHeight(y); return y; }
+function avlInsert(node, val) {
+  if (!node) return new AVLNode(val);
+  if (val < node.val) node.left  = avlInsert(node.left,  val);
+  else if (val > node.val) node.right = avlInsert(node.right, val);
+  else return node;
+  avlUpdateHeight(node);
+  const bf = avlBF(node);
+  if (bf >  1 && val < node.left.val)  return avlRotateRight(node);
+  if (bf < -1 && val > node.right.val) return avlRotateLeft(node);
+  if (bf >  1 && val > node.left.val)  { node.left  = avlRotateLeft(node.left);  return avlRotateRight(node); }
+  if (bf < -1 && val < node.right.val) { node.right = avlRotateRight(node.right); return avlRotateLeft(node); }
+  return node;
+}
+
+function layoutAVL() {
+  if (!avlRoot) return;
+  const nodes = [];
+  function inorder(n) { if (!n) return; inorder(n.left); nodes.push(n); inorder(n.right); }
+  inorder(avlRoot);
+  const usableW = avlCanvas.width - 60;
+  nodes.forEach((nd, i) => { nd.x = 30 + (usableW / (nodes.length + 1)) * (i + 1); });
+  function setY(n, depth) { if (!n) return; n.y = 40 + depth * 75; setY(n.left, depth+1); setY(n.right, depth+1); }
+  setY(avlRoot, 0);
+}
+
+function drawAVL() {
+  avlCtx.clearRect(0, 0, avlCanvas.width, avlCanvas.height);
+  if (!avlRoot) {
+    avlCtx.fillStyle = '#30363d'; avlCtx.font = "14px 'Sora',sans-serif";
+    avlCtx.textAlign = 'center';
+    avlCtx.fillText('Insert values to build the AVL tree', avlCanvas.width/2, avlCanvas.height/2);
+    return;
+  }
+  drawAVLEdges(avlRoot); drawAVLNodes(avlRoot);
+}
+function drawAVLEdges(n) {
+  if (!n) return;
+  avlCtx.lineWidth = 1.5; avlCtx.strokeStyle = '#30363d';
+  if (n.left)  { avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.left.x,n.left.y);   avlCtx.stroke(); drawAVLEdges(n.left);  }
+  if (n.right) { avlCtx.beginPath(); avlCtx.moveTo(n.x,n.y); avlCtx.lineTo(n.right.x,n.right.y); avlCtx.stroke(); drawAVLEdges(n.right); }
+}
+function drawAVLNodes(n) {
+  if (!n) return;
+  const R = 20;
+  let fill = '#1f2937', stroke = '#3b82f6', txt = '#e6edf3';
+  if (n.highlight) { fill = 'rgba(59,130,246,0.25)'; stroke = '#60a5fa'; }
+  avlCtx.beginPath(); avlCtx.arc(n.x, n.y, R, 0, Math.PI*2);
+  avlCtx.fillStyle = fill; avlCtx.fill();
+  avlCtx.lineWidth = 2; avlCtx.strokeStyle = stroke; avlCtx.stroke();
+  // BF label
+  const bf = avlBF(n);
+  const bfColor = Math.abs(bf) > 1 ? '#ef4444' : Math.abs(bf) === 1 ? '#f59e0b' : '#22c55e';
+  avlCtx.fillStyle = bfColor; avlCtx.font = "9px 'JetBrains Mono',monospace";
+  avlCtx.textAlign = 'center'; avlCtx.textBaseline = 'bottom';
+  avlCtx.fillText('BF:'+bf, n.x, n.y - R - 2);
+  avlCtx.fillStyle = txt; avlCtx.font = "bold 13px 'JetBrains Mono',monospace";
+  avlCtx.textBaseline = 'middle'; avlCtx.fillText(n.val, n.x, n.y);
+  drawAVLNodes(n.left); drawAVLNodes(n.right);
+}
+
+function avlInsertUI() {
+  const v = parseInt(document.getElementById('avl-insert').value);
+  if (isNaN(v)) { log('Enter a number to insert'); return; }
+  avlRoot = avlInsert(avlRoot, v);
+  layoutAVL(); drawAVL();
+  document.getElementById('avl-insert').value = '';
+  updateStats(avlRoot, avlHeight);
+  log('Inserted ' + v + ' into AVL tree');
+}
+function clearAVL() {
+  avlRoot = null; layoutAVL(); drawAVL();
+  updateStats(null, avlHeight); log('AVL tree cleared');
+}
+function avlInsertPreset() {
+  clearAVL();
+  [30, 20, 40, 10, 25, 35, 50].forEach(v => { avlRoot = avlInsert(avlRoot, v); });
+  layoutAVL(); drawAVL(); updateStats(avlRoot, avlHeight); log('Balanced AVL preset loaded');
+}
+function avlInsertRandom() {
+  clearAVL();
+  Array.from({length:7}, () => Math.floor(Math.random()*90)+5)
+    .forEach(v => { avlRoot = avlInsert(avlRoot, v); });
+  layoutAVL(); drawAVL(); updateStats(avlRoot, avlHeight); log('Random AVL tree loaded');
+}
+
+// Enter key on AVL input
+document.getElementById('avl-insert').addEventListener('keypress', e => { if (e.key === 'Enter') avlInsertUI(); });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  RED-BLACK TREE  (simplified demo — shows BST structure with color fixing)
+// ═══════════════════════════════════════════════════════════════════════════════
+class RBNode {
+  constructor(v) { this.val = v; this.left = null; this.right = null; this.color = 'red'; this.parent = null; this.x = 0; this.y = 0; }
+}
 let rbRoot = null;
-function resizeRB(){ if(!rbCanvas) return; rbCanvas.width = rbCanvas.offsetWidth; rbCanvas.height = rbCanvas.offsetHeight; layoutRB(); drawRB(); }
-function layoutRB(){ if(!rbRoot) return; const nodes=[]; function inorder(n){ if(!n) return; inorder(n.left); nodes.push(n); inorder(n.right);} inorder(rbRoot); const n=nodes.length; const usableW=rbCanvas.width-60; const startX=30; nodes.forEach((nd,i)=>{ nd.x = startX + (usableW/(n+1))*(i+1); }); function setY(n,depth){ if(!n) return; n.y = 30 + depth*70; setY(n.left,depth+1); setY(n.right,depth+1);} setY(rbRoot,0); }
-function drawRB(){ if(!rbCtx) return; rbCtx.clearRect(0,0,rbCanvas.width,rbCanvas.height); if(!rbRoot){ rbCtx.fillStyle='#30363d'; rbCtx.font='13px monospace'; rbCtx.textAlign='center'; rbCtx.fillText('Insert values to build RB demo', rbCanvas.width/2, rbCanvas.height/2); return;} drawRBEdges(rbRoot); drawRBNodes(rbRoot); }
-function drawRBEdges(n){ if(!n) return; rbCtx.lineWidth=1.5; rbCtx.strokeStyle='#30363d'; if(n.left){ rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.left.x,n.left.y); rbCtx.stroke(); drawRBEdges(n.left);} if(n.right){ rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.right.x,n.right.y); rbCtx.stroke(); drawRBEdges(n.right);} }
-function drawRBNodes(n){ if(!n) return; const R=18; rbCtx.beginPath(); rbCtx.arc(n.x,n.y,R,0,Math.PI*2); rbCtx.fillStyle = n.color==='red' ? '#ef4444' : '#111827'; rbCtx.fill(); rbCtx.lineWidth=2; rbCtx.strokeStyle='#fff'; rbCtx.stroke(); rbCtx.fillStyle = n.color==='red' ? '#fff' : '#e6edf3'; rbCtx.font='12px monospace'; rbCtx.textAlign='center'; rbCtx.textBaseline='middle'; rbCtx.fillText(n.val,n.x,n.y); drawRBNodes(n.left); drawRBNodes(n.right); }
+const rbCanvas = document.getElementById('rb-canvas');
+const rbCtx    = rbCanvas.getContext('2d');
 
-function rbInsertUI(){ const v=parseInt(document.getElementById('rb-insert').value); if(isNaN(v)) return; rbRoot = rbInsert(rbRoot, v); if(rbRoot) rbRoot.color='black'; layoutRB(); drawRB(); document.getElementById('rb-insert').value=''; setTraceStatus('rb-trace-status','Ready.'); }
-function rbInsert(rootNode, val){ // simplified demo insert: BST insert then simple recolor for demo
-	if(!rootNode) return new RBNode(val);
-	if(val < rootNode.val){ rootNode.left = rbInsert(rootNode.left, val); rootNode.left.parent = rootNode; }
-	else if(val > rootNode.val){ rootNode.right = rbInsert(rootNode.right, val); rootNode.right.parent = rootNode; }
-	// simple fix: if parent and uncle are red, recolor (very simplified)
-	if(rootNode.left && rootNode.left.color==='red' && rootNode.right && rootNode.right.color==='red'){
-		rootNode.left.color='black'; rootNode.right.color='black'; rootNode.color = (rootNode.parent ? 'red' : 'black');
-	}
-	return rootNode;
+function resizeRB() { rbCanvas.width = rbCanvas.offsetWidth; rbCanvas.height = rbCanvas.offsetHeight; layoutRB(); drawRB(); }
+
+function rbInsert(root, val) {
+  if (!root) return new RBNode(val);
+  if (val < root.val) { root.left  = rbInsert(root.left,  val); root.left.parent  = root; }
+  else if (val > root.val) { root.right = rbInsert(root.right, val); root.right.parent = root; }
+  // Simplified recolor: if both children red, flip colors (uncle-is-red case)
+  if (root.left && root.left.color === 'red' && root.right && root.right.color === 'red') {
+    root.left.color = 'black'; root.right.color = 'black';
+    root.color = root.parent ? 'red' : 'black';
+  }
+  return root;
 }
-function avlInsertPreset(){ [20,10,30,5,25].forEach(v=>{ avlRoot = avlInsert(avlRoot, v); }); layoutAVL(); drawAVL(); setTraceStatus('avl-trace-status','Ready.'); updateStats(); }
-function rbInsertPreset(){ [15,5,25,12,18].forEach(v=>{ rbRoot = rbInsert(rbRoot, v); if(rbRoot) rbRoot.color='black'; }); layoutRB(); drawRB(); setTraceStatus('rb-trace-status','Ready.'); }
-function clearRB(){ rbRoot = null; if(rbCtx){ rbCtx.clearRect(0,0,rbCanvas.width,rbCanvas.height); rbCtx.fillStyle='#30363d'; rbCtx.font='13px monospace'; rbCtx.textAlign='center'; rbCtx.fillText('Insert values to build RB demo', rbCanvas.width/2, rbCanvas.height/2); } setTraceStatus('rb-trace-status','Ready.'); }
-function runRBTrace(){ playCodeTrace(['rb-insert','rb-rotate'], null, 'rb-trace-status'); }
-function showPanel(name){
-	const rbPanel = document.getElementById('rb-panel');
-	const avlPanel = document.getElementById('avl-panel');
-	const avlCanvasEl = document.getElementById('avl-canvas');
-	const rbCanvasEl = document.getElementById('rb-canvas');
-	if(rbPanel) rbPanel.style.display = name==='rb' ? 'block' : 'none';
-	if(avlPanel) avlPanel.style.display = name==='avl' ? 'block' : 'none';
-	if(avlCanvasEl) avlCanvasEl.style.display = name==='avl' ? 'block' : 'none';
-	if(rbCanvasEl) rbCanvasEl.style.display = name==='rb' ? 'block' : 'none';
-	// Toggle any known AVL/RB button ids without throwing if missing
-	['show-avl','show-avl-main'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('active', name==='avl'); });
-	['show-rb','show-rb-main'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('active', name==='rb'); });
+
+function layoutRB() {
+  if (!rbRoot) return;
+  const nodes = [];
+  function inorder(n) { if (!n) return; inorder(n.left); nodes.push(n); inorder(n.right); }
+  inorder(rbRoot);
+  const usableW = rbCanvas.width - 60;
+  nodes.forEach((nd, i) => { nd.x = 30 + (usableW / (nodes.length + 1)) * (i + 1); });
+  function setY(n, depth) { if (!n) return; n.y = 40 + depth * 75; setY(n.left, depth+1); setY(n.right, depth+1); }
+  setY(rbRoot, 0);
 }
-window.addEventListener('resize', resizeRB);
-document.fonts?.ready.then(()=>{ resizeAVL(); resizeRB(); checkAndLoadPresets(); showPanel('avl'); });
+
+function drawRB() {
+  rbCtx.clearRect(0, 0, rbCanvas.width, rbCanvas.height);
+  if (!rbRoot) {
+    rbCtx.fillStyle = '#30363d'; rbCtx.font = "14px 'Sora',sans-serif";
+    rbCtx.textAlign = 'center';
+    rbCtx.fillText('Insert values to build the Red-Black tree', rbCanvas.width/2, rbCanvas.height/2);
+    return;
+  }
+  drawRBEdges(rbRoot); drawRBNodes(rbRoot);
+}
+function drawRBEdges(n) {
+  if (!n) return;
+  rbCtx.lineWidth = 1.5; rbCtx.strokeStyle = '#30363d';
+  if (n.left)  { rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.left.x,n.left.y);   rbCtx.stroke(); drawRBEdges(n.left);  }
+  if (n.right) { rbCtx.beginPath(); rbCtx.moveTo(n.x,n.y); rbCtx.lineTo(n.right.x,n.right.y); rbCtx.stroke(); drawRBEdges(n.right); }
+}
+function drawRBNodes(n) {
+  if (!n) return;
+  const R = 20;
+  const isRed = n.color === 'red';
+  rbCtx.beginPath(); rbCtx.arc(n.x, n.y, R, 0, Math.PI*2);
+  rbCtx.fillStyle = isRed ? '#7f1d1d' : '#111827'; rbCtx.fill();
+  rbCtx.lineWidth = 2; rbCtx.strokeStyle = isRed ? '#ef4444' : '#6b7280'; rbCtx.stroke();
+  rbCtx.fillStyle = isRed ? '#fca5a5' : '#e6edf3';
+  rbCtx.font = "bold 13px 'JetBrains Mono',monospace";
+  rbCtx.textAlign = 'center'; rbCtx.textBaseline = 'middle'; rbCtx.fillText(n.val, n.x, n.y);
+  // Color label
+  rbCtx.fillStyle = isRed ? '#ef4444' : '#9ca3af'; rbCtx.font = "9px 'JetBrains Mono',monospace";
+  rbCtx.textBaseline = 'bottom'; rbCtx.fillText(isRed ? 'R' : 'B', n.x, n.y - R - 2);
+  drawRBNodes(n.left); drawRBNodes(n.right);
+}
+
+function rbInsertUI() {
+  const v = parseInt(document.getElementById('rb-insert').value);
+  if (isNaN(v)) { log('Enter a number to insert'); return; }
+  rbRoot = rbInsert(rbRoot, v);
+  if (rbRoot) rbRoot.color = 'black';
+  layoutRB(); drawRB();
+  document.getElementById('rb-insert').value = '';
+  function rbHeight(n) { return n ? 1 + Math.max(rbHeight(n.left), rbHeight(n.right)) : 0; }
+  updateStats(rbRoot, rbHeight);
+  log('Inserted ' + v + ' into Red-Black tree');
+}
+function clearRB() {
+  rbRoot = null; layoutRB(); drawRB();
+  document.getElementById('stat-nodes').textContent  = 0;
+  document.getElementById('stat-height').textContent = 0;
+  log('Red-Black tree cleared');
+}
+function rbInsertPreset() {
+  clearRB();
+  [20, 10, 30, 5, 15, 25, 35].forEach(v => { rbRoot = rbInsert(rbRoot, v); if (rbRoot) rbRoot.color = 'black'; });
+  layoutRB(); drawRB();
+  function rbHeight(n) { return n ? 1 + Math.max(rbHeight(n.left), rbHeight(n.right)) : 0; }
+  updateStats(rbRoot, rbHeight);
+  log('Red-Black preset loaded');
+}
+
+// Enter key on RB input
+document.getElementById('rb-insert').addEventListener('keypress', e => { if (e.key === 'Enter') rbInsertUI(); });
+
+// ─── Resizable panels ─────────────────────────────────────────────────────────
+function makeResizer(resizerId, panelId, side) {
+  const resizer = document.getElementById(resizerId);
+  const panel   = document.getElementById(panelId);
+  if (!resizer || !panel) return;
+  resizer.addEventListener('mousedown', e => {
+    e.preventDefault(); resizer.classList.add('dragging');
+    const startX = e.clientX, startW = panel.offsetWidth;
+    function onMove(e) {
+      let newW = side === 'left' ? startW + (e.clientX - startX) : startW - (e.clientX - startX);
+      newW = Math.max(180, Math.min(480, newW));
+      panel.style.width = newW + 'px'; panel.style.flex = 'none';
+      if (currentPanel === 'avl') resizeAVL(); else resizeRB();
+    }
+    function onUp() { resizer.classList.remove('dragging'); document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+  });
+}
+makeResizer('resizer-left',  'panel-left',  'left');
+makeResizer('resizer-right', 'panel-right', 'right');
+
+// ─── Preset flags from code pages ─────────────────────────────────────────────
+function checkAndLoadPresets() {
+  try {
+    if (localStorage.getItem('sim11.loadAVL')) { localStorage.removeItem('sim11.loadAVL'); avlInsertPreset(); showPanel('avl'); }
+    if (localStorage.getItem('sim11.loadRB'))  { localStorage.removeItem('sim11.loadRB');  rbInsertPreset();  showPanel('rb');  }
+  } catch(e) {}
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  if (currentPanel === 'avl') resizeAVL(); else resizeRB();
+});
+document.fonts.ready.then(() => {
+  resizeAVL(); resizeRB(); showPanel('avl'); checkAndLoadPresets();
+});
 </script>
 </body>
 </html>

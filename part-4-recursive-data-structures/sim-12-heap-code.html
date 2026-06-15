@@ -1,131 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Heap Operations Trace</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Heap Insertion Code – ATC SimLab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 <style>
-  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
-  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;min-height:100vh;display:flex;flex-direction:column}
-  header{padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-  .back-btn{color:var(--text);text-decoration:none;padding:8px 12px;border:1px solid var(--border);border-radius:6px;display:inline-flex;align-items:center}
-  .content{flex:1;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .panel{background:var(--surface);padding:18px;border:1px solid var(--border);border-radius:12px}
-  .panel h2{margin-bottom:14px;font-size:14px;color:var(--accent)}
-  .code-line{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);font-family:'Courier New',monospace;line-height:1.6;font-size:12px}
-  .code-line strong{color:#fff}
-  .code-line .kw{color:#60a5fa}
-  .code-line .func{color:#10b981}
-  .code-line .comment{color:#8b949e}
-  .button-row{display:flex;gap:10px;flex-wrap:wrap}
-  .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
-  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .trace-status{margin-top:14px;color:var(--muted);font-family:monospace;font-size:12px}
-  .code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:8px}
-  .code-section{margin-bottom:20px}
-  .code-section h3{font-size:13px;color:var(--muted);margin:12px 0 8px 0}
-  @media(max-width:980px){.content{grid-template-columns:1fr}}
+  :root { --bg:#0d1117; --surface:#161b22; --surface2:#1f2937; --border:#30363d; --accent:#3b82f6; --accent2:#6366f1; --green:#22c55e; --red:#ef4444; --text:#e6edf3; --muted:#8b949e; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  header { display: flex; align-items: center; gap: 12px; padding: 0 24px; height: 54px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .breadcrumb { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .breadcrumb span { color: var(--accent); }
+  .back-btn { margin-left: auto; padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); cursor: pointer; border-radius: 4px; font-size: 12px; text-decoration: none; font-family: 'Sora', sans-serif; transition: all .15s; }
+  .back-btn:hover { background: var(--border); border-color: var(--accent); color: var(--accent); }
+  .sim-badge { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
+  .container { display: flex; flex: 1; overflow: hidden; }
+  .code-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; }
+  .code-header { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .code-header h2 { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .code-content { flex: 1; overflow-y: auto; padding: 16px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; }
+  .code-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 16px 0 6px 8px; font-family: 'JetBrains Mono', monospace; }
+  .code-line { margin: 4px 0; padding: 4px 8px; border-radius: 4px; transition: all .2s; display: flex; align-items: baseline; }
+  .code-line:hover { background: rgba(59,130,246,0.1); }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+  .line-num { display: inline-block; min-width: 40px; color: var(--muted); margin-right: 12px; text-align: right; flex-shrink: 0; }
+  .kw { color: #f97316; } .func { color: #60a5fa; } .cmt { color: var(--muted); font-style: italic; }
+  .info-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .info-header { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
+  .info-header h2 { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .info-body { flex: 1; overflow-y: auto; padding: 18px; }
+  .insight-box { background: rgba(59,130,246,0.08); padding: 14px; border-radius: 6px; border-left: 3px solid var(--accent); margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #c9d1d9; }
+  .insight-box strong { color: var(--text); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn { padding: 8px 16px; border-radius: 6px; border: none; font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #fff; } .btn-primary:hover { background: #2563eb; }
+  .btn-purple  { background: rgba(99,102,241,.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); } .btn-purple:hover { background: rgba(99,102,241,.3); }
+  .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .trace-status { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .steps-list { list-style: none; margin-top: 14px; }
+  .steps-list li { font-size: 13px; color: #c9d1d9; line-height: 1.8; padding-left: 16px; position: relative; }
+  .steps-list li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .steps-list li strong { color: var(--text); }
+  .formula-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.9; color: #c9d1d9; }
+  @media (max-width: 900px) {
+    body { height: auto; overflow: auto; }
+    .container { flex-direction: column; overflow: visible; }
+    .code-panel, .info-panel { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .code-content, .info-body { max-height: 50vh; }
+    .back-btn { display: none; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <a href="sim-12-heap-priority-queue.html" class="back-btn">← Back</a>
-  <div>
-    <div style="font-size:16px;font-weight:700">Heap Operations Trace</div>
-    <div style="font-size:12px;color:var(--muted);">Step-by-step min-heap insertion and extraction</div>
-  </div>
+  <div class="breadcrumb">Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Heap Insertion Code</span></div>
+  <a href="sim-12-heap-priority-queue.html" class="back-btn">← Back to Simulation</a>
+  <div class="sim-badge">Code Trace</div>
 </header>
-<div class="content">
-  <div class="panel">
-    <h2>Heap Insert Algorithm</h2>
-    <div class="code-section">
-      <div class="code-line" data-segment="heap-insert-start"><span class="kw">function</span> <span class="func">insert</span>(heap, val)</div>
-      <div class="code-line" data-segment="heap-insert-start">&nbsp;&nbsp;heap.push(val)</div>
-      <div class="code-line" data-segment="heap-insert-start">&nbsp;&nbsp;<span class="func">siftUp</span>(heap, heap.length - 1)</div>
-      <div class="code-line" data-segment="heap-insert-end"><span class="kw">return</span> heap</div>
-    </div>
-    <div class="code-section">
-      <h3>SiftUp (Bubble Up)</h3>
-      <div class="code-line" data-segment="heap-siftup"><span class="kw">function</span> <span class="func">siftUp</span>(heap, i)</div>
-      <div class="code-line" data-segment="heap-siftup"><span class="kw">while</span> i > 0:</div>
-      <div class="code-line" data-segment="heap-siftup">&nbsp;&nbsp;parent = (i - 1) / 2  <span class="comment">// integer division</span></div>
-      <div class="code-line" data-segment="heap-siftup"><span class="kw">if</span> heap[i] < heap[parent]:</div>
-      <div class="code-line" data-segment="heap-siftup">&nbsp;&nbsp;swap(heap[i], heap[parent])</div>
-      <div class="code-line" data-segment="heap-siftup">&nbsp;&nbsp;i = parent</div>
-      <div class="code-line" data-segment="heap-siftup"><span class="kw">else</span>: <span class="kw">break</span></div>
-    </div>
-  </div>
-  <div class="panel">
-    <h2>Heap Extract (Removal) Algorithm</h2>
-    <div class="code-section">
-      <div class="code-line" data-segment="heap-extract-start"><span class="kw">function</span> <span class="func">extractMin</span>(heap)</div>
-      <div class="code-line" data-segment="heap-extract-start"><span class="kw">if</span> heap is empty: <span class="kw">return</span> null</div>
-      <div class="code-line" data-segment="heap-extract-save">root = heap[0]</div>
-      <div class="code-line" data-segment="heap-extract-replace">heap[0] = heap[heap.length - 1]</div>
-      <div class="code-line" data-segment="heap-extract-pop">heap.pop()</div>
-      <div class="code-line" data-segment="heap-extract-siftdown"><span class="func">siftDown</span>(heap, 0)</div>
-      <div class="code-line" data-segment="heap-extract-end"><span class="kw">return</span> root</div>
-    </div>
-    <div class="code-section">
-      <h3>SiftDown (Bubble Down)</h3>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">function</span> <span class="func">siftDown</span>(heap, i)</div>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">while</span> 2*i + 1 < heap.length:</div>
-      <div class="code-line" data-segment="heap-siftdown">&nbsp;&nbsp;left = 2*i + 1</div>
-      <div class="code-line" data-segment="heap-siftdown">&nbsp;&nbsp;right = 2*i + 2</div>
-      <div class="code-line" data-segment="heap-siftdown">&nbsp;&nbsp;smallest = i</div>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">if</span> heap[left] < heap[smallest]: smallest = left</div>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">if</span> right < heap.length <span class="kw">and</span> heap[right] < heap[smallest]: smallest = right</div>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">if</span> smallest != i:</div>
-      <div class="code-line" data-segment="heap-siftdown">&nbsp;&nbsp;swap(heap[i], heap[smallest])</div>
-      <div class="code-line" data-segment="heap-siftdown">&nbsp;&nbsp;i = smallest</div>
-      <div class="code-line" data-segment="heap-siftdown"><span class="kw">else</span>: <span class="kw">break</span></div>
-    </div>
-    <div class="button-row">
-      <button class="btn" onclick="playInsertTrace()">Trace Insert</button>
-      <button class="btn" onclick="playExtractTrace()">Trace Extract</button>
-      <button class="btn btn-ghost" onclick="loadPreset()">Load & Practice</button>
-    </div>
-    <div class="trace-status" id="trace-status">Trace ready.</div>
-    <div style="margin-top:18px;color:var(--muted);font-size:13px;line-height:1.8">
-      <strong>Key Concepts:</strong><br/>
-      • Parent of node i: (i-1)/2<br/>
-      • Left child: 2i+1 | Right child: 2i+2<br/>
-      • Min-Heap: parent ≤ both children<br/>
-      • Time: Insert O(log n), Extract O(log n)
+<div class="container">
+
+  <!-- LEFT: Code -->
+  <div class="code-panel">
+    <div class="code-header"><h2>Python Implementation</h2></div>
+    <div class="code-content">
+
+      <div class="code-section-label">Insert</div>
+      <div class="code-line" data-segment="heap-insert-start"><span class="line-num">1</span><span><span class="kw">def</span> <span class="func">insert</span>(heap, val):</span></div>
+      <div class="code-line" data-segment="heap-insert-start"><span class="line-num">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;heap.append(val) &nbsp;<span class="cmt"># add to end</span></span></div>
+      <div class="code-line" data-segment="heap-insert-start"><span class="line-num">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">sift_up</span>(heap, <span class="func">len</span>(heap) - 1)</span></div>
+      <div class="code-line" data-segment="heap-insert-end"><span class="line-num">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> heap</span></div>
+
+      <div class="code-section-label">SiftUp (Bubble Up)</div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">5</span><span><span class="kw">def</span> <span class="func">sift_up</span>(heap, i):</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> i &gt; 0:</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parent = (i - 1) // 2 &nbsp;<span class="cmt"># integer division</span></span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> heap[i] &lt; heap[parent]:</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heap[i], heap[parent] = heap[parent], heap[i]</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i = parent</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:</span></div>
+      <div class="code-line" data-segment="heap-siftup"><span class="line-num">12</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">break</span> &nbsp;<span class="cmt"># heap property satisfied</span></span></div>
+
     </div>
   </div>
+
+  <!-- RIGHT: Info -->
+  <div class="info-panel">
+    <div class="info-header"><h2>Heap Insertion — SiftUp</h2></div>
+    <div class="info-body">
+      <div class="insight-box">
+        <strong>Key Idea:</strong> Appending to the end maintains the <em>complete binary tree</em> shape. Then sifting up restores the <em>heap order property</em> by bubbling the new element to its correct position. At most O(log n) swaps.
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="playInsertTrace()">▶ Trace Insert</button>
+        <button class="btn btn-ghost" onclick="loadPreset()">Load &amp; Practice</button>
+      </div>
+      <div class="trace-status" id="trace-status">Trace ready.</div>
+
+      <div class="formula-box">
+        Parent of node i : &nbsp; <span style="color:var(--accent)">(i − 1) // 2</span><br/>
+        Left child of i  : &nbsp; <span style="color:var(--accent)">2i + 1</span><br/>
+        Right child of i : &nbsp; <span style="color:var(--accent)">2i + 2</span>
+      </div>
+
+      <ul class="steps-list" style="margin-top:16px">
+        <li><strong>Append:</strong> Place the new value at the next available position (end of array).</li>
+        <li><strong>Compare with parent:</strong> If the new value is smaller than its parent, swap them.</li>
+        <li><strong>Repeat:</strong> Continue comparing and swapping upward until the heap property holds or the root is reached.</li>
+        <li><strong>Time complexity:</strong> O(log n) — at most one swap per level.</li>
+      </ul>
+    </div>
+  </div>
+
 </div>
 <script>
-function setStatus(text){ document.getElementById('trace-status').textContent = text; }
-async function playInsertTrace(){
-  const segments=['heap-insert-start','heap-siftup','heap-insert-end'];
-  const all=document.querySelectorAll('[data-segment]');
-  function clear(){ all.forEach(n=>n.classList.remove('active-line')); }
-  for(const s of segments){
+async function playInsertTrace() {
+  const segments = ['heap-insert-start','heap-siftup','heap-insert-end'];
+  const all = document.querySelectorAll('[data-segment]');
+  function clear() { all.forEach(n => n.classList.remove('active-line')); }
+  for (const s of segments) {
     clear();
-    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
-    setStatus('Executing: '+s.replace(/-/g,' '));
-    await new Promise(r=>setTimeout(r,700));
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n => n.classList.add('active-line'));
+    document.getElementById('trace-status').textContent = 'Executing: ' + s.replace(/-/g,' ');
+    await new Promise(r => setTimeout(r, 700));
   }
   clear();
-  setStatus('Trace complete.');
+  document.getElementById('trace-status').textContent = 'Trace complete.';
 }
-async function playExtractTrace(){
-  const segments=['heap-extract-start','heap-extract-save','heap-extract-replace','heap-extract-pop','heap-siftdown','heap-extract-end'];
-  const all=document.querySelectorAll('[data-segment]');
-  function clear(){ all.forEach(n=>n.classList.remove('active-line')); }
-  for(const s of segments){
-    clear();
-    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
-    setStatus('Executing: '+s.replace(/-/g,' '));
-    await new Promise(r=>setTimeout(r,700));
-  }
-  clear();
-  setStatus('Trace complete.');
-}
-function loadPreset(){
-  try{ localStorage.setItem('sim12.loadHeap','1'); }catch(e){ console.warn('Could not set preset flag', e); }
-  window.location.href='sim-12-heap-priority-queue.html';
+function loadPreset() {
+  try { localStorage.setItem('sim12.loadHeap','1'); } catch(e) {}
+  window.location.href = 'sim-12-heap-priority-queue.html';
 }
 </script>
 </body>
