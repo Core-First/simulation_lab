@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Heap Extraction & Heapify</title>
+<style>
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;min-height:100vh;display:flex;flex-direction:column}
+  header{padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .back-btn{color:var(--text);text-decoration:none;padding:8px 12px;border:1px solid var(--border);border-radius:6px;display:inline-flex;align-items:center}
+  .content{flex:1;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--surface);padding:18px;border:1px solid var(--border);border-radius:12px}
+  .panel h2{margin-bottom:14px;font-size:14px;color:var(--accent)}
+  .code-line{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);font-family:monospace;line-height:1.6;font-size:12px}
+  .code-line strong{color:#fff}
+  .code-line .kw{color:#60a5fa}
+  .code-line .func{color:#10b981}
+  .code-line .comment{color:#8b949e}
+  .button-row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .trace-status{margin-top:14px;color:var(--muted);font-family:monospace;font-size:12px}
+  @media(max-width:980px){.content{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="sim-12-heap-priority-queue.html" class="back-btn">← Back</a>
+  <div>
+    <div style="font-size:16px;font-weight:700">Heap Extraction & Heapify</div>
+    <div style="font-size:12px;color:var(--muted);">Extracting minimum and restoring heap order</div>
+  </div>
+</header>
+<div class="content">
+  <div class="panel">
+    <h2>Extract-Min & Heapify Algorithm</h2>
+    <div class="code-line" data-segment="heap-extract-start"><span class="kw">function</span> <span class="func">extractMin</span>()</div>
+    <div class="code-line" data-segment="heap-extract-check"><span class="kw">if</span> heap.length === 0 <span class="kw">return</span> null</div>
+    <div class="code-line" data-segment="heap-extract-save">root = heap[0]  <span class="comment">// Save minimum value</span></div>
+    <div class="code-line" data-segment="heap-extract-replace">heap[0] = heap[heap.length - 1]  <span class="comment">// Move last to root</span></div>
+    <div class="code-line" data-segment="heap-extract-pop">heap.pop()  <span class="comment">// Remove last element</span></div>
+    <div class="code-line" data-segment="heap-siftdown-start"><span class="func">siftDown</span>(0)  <span class="comment">// Restore heap property</span></div>
+    <div class="code-line" data-segment="heap-extract-return"><span class="kw">return</span> root</div>
+    <div style="height:1px;background:var(--border);margin:12px 0"></div>
+    <div class="code-line" data-segment="heap-siftdown-start"><span class="kw">function</span> <span class="func">siftDown</span>(i)</div>
+    <div class="code-line" data-segment="heap-siftdown-loop"><span class="kw">while</span> i has children:</div>
+    <div class="code-line" data-segment="heap-siftdown-find">left = 2*i + 1, right = 2*i + 2</div>
+    <div class="code-line" data-segment="heap-siftdown-smallest">smallest = i</div>
+    <div class="code-line" data-segment="heap-siftdown-compare"><span class="kw">if</span> left &lt; n and heap[left] &lt; heap[smallest]:</div>
+    <div class="code-line" data-segment="heap-siftdown-compare">smallest = left</div>
+    <div class="code-line" data-segment="heap-siftdown-compare"><span class="kw">if</span> right &lt; n and heap[right] &lt; heap[smallest]:</div>
+    <div class="code-line" data-segment="heap-siftdown-compare">smallest = right</div>
+    <div class="code-line" data-segment="heap-siftdown-swap"><span class="kw">if</span> smallest ≠ i:</div>
+    <div class="code-line" data-segment="heap-siftdown-swap">swap(heap[i], heap[smallest])</div>
+    <div class="code-line" data-segment="heap-siftdown-recur">i = smallest</div>
+    <div class="code-line" data-segment="heap-siftdown-end"><span class="kw">else break</span></div>
+  </div>
+  <div class="panel">
+    <h2>Understanding Extraction</h2>
+    <div style="background:rgba(59,130,246,0.08);padding:12px;border-radius:6px;border-left:3px solid var(--accent);margin-bottom:12px">
+      <strong>Key Insight:</strong> To extract the minimum efficiently, we remove the root and restore the heap property by moving the last element to the root and sifting it down.
+    </div>
+    <div class="button-row">
+      <button class="btn" onclick="playCodeTrace()">Run Trace</button>
+      <button class="btn btn-ghost" onclick="loadPreset()">Load & Test</button>
+    </div>
+    <div class="trace-status" id="trace-status">Trace ready.</div>
+    <div style="margin-top:18px;color:var(--muted);font-size:13px;line-height:1.7">
+      <strong>Extraction Steps:</strong><br/>
+      1. Return the root (minimum value)<br/>
+      2. Move the last element to the root<br/>
+      3. Remove the last element from the array<br/>
+      4. Sift down from the root<br/><br/>
+      <strong>SiftDown Process:</strong><br/>
+      - Compare node with its children<br/>
+      - Swap with the smaller child if necessary<br/>
+      - Continue until heap property is restored<br/>
+      - Time complexity: O(log n)
+    </div>
+  </div>
+</div>
+<script>
+function setStatus(text){ document.getElementById('trace-status').textContent = text; }
+async function playCodeTrace(){
+  const segments=['heap-extract-start','heap-extract-check','heap-extract-save','heap-extract-replace','heap-extract-pop','heap-siftdown-start','heap-extract-return','heap-siftdown-loop','heap-siftdown-find','heap-siftdown-smallest','heap-siftdown-compare','heap-siftdown-swap','heap-siftdown-recur','heap-siftdown-end'];
+  const all=document.querySelectorAll('[data-segment]');
+  function clear(){ all.forEach(n=>n.classList.remove('active-line')); }
+  for(const s of segments){
+    clear();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
+    setStatus('Executing: '+s.replace(/-/g,' '));
+    await new Promise(r=>setTimeout(r,650));
+  }
+  clear();
+  setStatus('Trace complete.');
+}
+function loadPreset(){
+  try{ localStorage.setItem('sim12.loadHeap','1'); }catch(e){ console.warn('Could not set preset flag', e); }
+  window.location.href='sim-12-heap-priority-queue.html';
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('[data-segment]').forEach(el=>el.classList.add('code-line'));
+});
+</script>
+<style>
+.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:8px}
+</style>
+</body>
+</html>

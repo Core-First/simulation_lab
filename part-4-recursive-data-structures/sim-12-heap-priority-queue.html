@@ -5,38 +5,148 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Heap / Priority Queue - Simulation (Scaffold)</title>
 <style>
-	:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+	:root{--bg:#0d1117;--surface:#161b22;--surface2:#1f2937;--border:#30363d;--accent:#3b82f6;--accent2:#6366f1;--muted:#8b949e;--text:#e6edf3;--green:#10b981;--red:#ef4444}
 	body{font-family:Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column}
 	header{height:54px;padding:0 16px;display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border)}
 	.breadcrumb{color:var(--muted);font-family:monospace}
-	.container{flex:1;display:flex;flex-direction:column}
-	.panel{flex:1;padding:12px}
+	.container{flex:1;display:flex;overflow:hidden}
+	.sidebar{width:320px;min-width:280px;background:var(--surface2);border-right:1px solid var(--border);padding:18px;overflow-y:auto}
+	.main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+	.panel{flex:1;padding:18px;overflow:auto}
+	.sidebar h2{font-size:14px;margin-bottom:10px;color:var(--text)}
+	.sidebar p{color:var(--muted);font-size:13px;line-height:1.6}
+	.sidebar .section{margin-top:18px}
+	.sidebar .section h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
+	.sidebar ul{list-style:none;padding-left:0}
+	.sidebar li{color:var(--text);font-size:13px;line-height:1.7;margin-bottom:8px;padding-left:12px;position:relative}
+	.sidebar li::before{content:'›';position:absolute;left:0;color:var(--accent)}
+	.op-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:6px;border:1px solid transparent;background:rgba(59,130,246,0.08);color:var(--text);cursor:pointer;transition:all .2s;text-decoration:none;font-size:13px;min-width:120px}
+	.op-link:hover{background:rgba(59,130,246,0.16);border-color:rgba(59,130,246,0.3)}
+	.op-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px}
+	.control-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+	.canvas-wrapper{height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px}
+	.code-box{margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px}
+	.trace-status{margin-top:8px;color:var(--muted);font-family:monospace;font-size:12px}
+	.code-line{margin:4px 0;padding:6px 8px;border-radius:4px;transition:background .2s,transform .2s}
+	.code-line:hover{background:rgba(59,130,246,0.08)}
 	.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:6px}
-	@media(max-width:900px){ .container{padding:8px} }
+	@media(max-width:900px){ .container{flex-direction:column} .sidebar{width:auto;min-width:auto;border-right:none;border-bottom:1px solid var(--border)} }
+	@media(max-width:720px){ .control-row{flex-direction:column;align-items:stretch} }
 	</style>
 </head>
 <body>
 <header><div class="breadcrumb">Part 4: Recursive Data Structures › <span>Heap / Priority Queue (scaffold)</span></div></header>
-<div class="container">
-	<div class="panel">
-		<h3>Heap (Min-Heap) Visualiser</h3>
-		<p style="color:var(--muted)">Array-backed min-heap with insert and extract-min operations. Visualized as a tree.</p>
-		<div style="margin:8px 0;display:flex;gap:8px;align-items:center">
-			<input id="heap-insert" type="number" placeholder="Value" min="1" max="999" style="padding:6px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--text)"/>
-			<button onclick="heapInsertUI()" style="padding:6px 10px;background:var(--accent);border:none;border-radius:4px;color:#fff">Insert</button>
-			<button onclick="heapExtractUI()" style="padding:6px 10px;background:#6366f1;border:none;border-radius:4px;color:#fff">Extract Min</button>
-			<button onclick="runCodeTrace()" style="padding:6px 10px;background:#10b981;border:none;border-radius:4px;color:#fff">Run Trace</button>
-			<button onclick="heapClear()" style="padding:6px 10px;background:var(--red);border:none;border-radius:4px;color:#fff">Clear</button>
+	<div class="container">
+		<div class="sidebar">
+			<div class="panel">
+				<h2>Heap / Priority Queue</h2>
+				<p>Visualize a min-heap represented as an array and tree structure. Insert values, extract the minimum, and inspect the heap rebalancing process.</p>
+				<div class="section">
+					<h3>What you can do</h3>
+					<ul>
+						<li>Insert values into the heap</li>
+						<li>Extract the minimum value</li>
+						<li>Run code tracing through heap operations</li>
+						<li>Reset the heap quickly</li>
+					</ul>
+				</div>
+				<div class="section">
+					<h3>Quick operations</h3>
+					<div class="op-grid">
+						<button class="op-link" onclick="heapInsertPreset()">Load Preset</button>
+						<button class="op-link" onclick="heapInsertUI()">Insert Value</button>
+						<button class="op-link" onclick="heapExtractUI()">Extract Min</button>
+						<a class="op-link" href="sim-12-heap-code.html">Insertion</a>
+						<a class="op-link" href="sim-12-heap-extraction-code.html">Extraction</a>
+						<button class="op-link" onclick="heapClear()">Clear</button>
+					</div>
+				</div>
+
+				<div class="section">
+					<h3>Min-Heap Properties</h3>
+					<p>A <strong>min-heap</strong> is a complete binary tree where each parent is smaller than or equal to its children. The minimum element is always at the root.</p>
+					<p style="margin-top:8px"><strong>Key Features:</strong></p>
+					<ul>
+						<li>Parent at index i: left child at 2i+1, right at 2i+2</li>
+						<li>Efficient minimum extraction: O(log n)</li>
+						<li>Used in priority queues and heap sort</li>
+					</ul>
+					<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;font-family:monospace">
+						<thead><tr style="background:rgba(255,255,255,.05)"><th style="padding:6px;text-align:left;color:var(--accent)">Operation</th><th style="padding:6px;text-align:left;color:var(--accent)">Time</th></tr></thead>
+						<tbody>
+						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Insert</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
+						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Extract Min</td><td style="padding:6px;color:#22c55e">O(log n)</td></tr>
+						<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px">Peek Min</td><td style="padding:6px;color:#22c55e">O(1)</td></tr>
+						<tr><td style="padding:6px">Heapify</td><td style="padding:6px;color:#22c55e">O(n)</td></tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="section">
+					<h3>Priority Queues</h3>
+					<p>Heaps are ideal for implementing priority queues where elements with higher priority are accessed first. Used in algorithms like Dijkstra's shortest path and A* search.</p>
+				</div>
+			</div>
 		</div>
-		<div id="heap-canvas-wrap" style="height:320px;margin-top:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);padding:8px">
-			<canvas id="heap-canvas" style="width:100%;height:100%"></canvas>
+		<div class="main-panel">
+			<div class="panel layout-grid" style="display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start">
+				<div class="sim-column">
+					<h3>Heap (Min-Heap) Visualiser</h3>
+					<p style="color:var(--muted);margin-bottom:8px">The middle panel shows the tree view derived from the internal array. Nodes are placed by level; edges show parent-child relationships.</p>
+					<div class="canvas-wrapper">
+						<canvas id="heap-canvas" style="width:100%;height:100%"></canvas>
+					</div>
+				</div>
+				<div class="controls-column">
+					<div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
+						<h3 style="margin:0 0 8px 0">How to use this simulation</h3>
+						<p style="color:var(--muted);font-size:13px;line-height:1.6">Use the controls below to interact with the heap. Typical workflow:
+						<ol style="color:var(--muted);margin-top:8px">
+							<li>Enter a value and press <strong>Insert</strong>.</li>
+							<li>Press <strong>Extract Min</strong> to remove the smallest value.</li>
+							<li>Run the Heap Trace to step through the algorithm.</li>
+						</ol>
+						</p>
+						<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+							<input id="heap-insert" type="number" placeholder="Value" min="1" max="999" style="padding:8px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);width:120px"/>
+							<button onclick="heapInsertUI()" style="padding:8px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff">Insert</button>
+							<button onclick="heapExtractUI()" style="padding:8px 12px;background:#6366f1;border:none;border-radius:6px;color:#fff">Extract Min</button>
+							<button onclick="runHeapTrace()" style="padding:8px 12px;background:var(--green);border:none;border-radius:6px;color:#fff">Run Trace</button>
+							<button onclick="heapClear()" style="padding:8px 12px;background:var(--red);border:none;border-radius:6px;color:#fff">Clear</button>
+						</div>
+					</div>
+
+					<!-- Speed Control -->
+					<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
+						<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Animation Speed: <strong id="speed-display">600ms</strong></div>
+						<input id="speed-slider" type="range" min="100" max="1200" step="50" value="600" style="width:100%;cursor:pointer" oninput="updateSpeed(this.value)"/>
+						<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">Slow ← → Fast</div>
+					</div>
+
+					<!-- Statistics Panel -->
+					<div style="margin-top:12px;background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);">
+						<div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px">Statistics</div>
+						<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+							<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
+								<div style="color:var(--muted);font-size:11px">Elements</div>
+								<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-elements">0</div>
+							</div>
+							<div style="background:rgba(59,130,246,0.08);padding:8px;border-radius:4px">
+								<div style="color:var(--muted);font-size:11px">Height</div>
+								<div style="font-size:16px;font-weight:600;color:var(--text)" id="stat-height">0</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="code-box" style="margin-top:12px">
+						<div class="code-line" data-segment="heap-insert">insert() — push and siftUp</div>
+						<div class="code-line" data-segment="heap-siftup">siftUp() — swap with parent while smaller</div>
+						<div class="code-line" data-segment="heap-extract">extractMin() — replace root and siftDown</div>
+					</div>
+					<div id="heap-trace-status" class="trace-status">Trace ready.</div>
+				</div>
+			</div>
 		</div>
-		<div style="margin-top:10px;font-family:monospace;background:var(--surface);padding:10px;border-radius:6px">
-			<div class="code-line" data-segment="heap-insert">insert() — push and siftUp</div>
-			<div class="code-line" data-segment="heap-siftup">siftUp() — swap with parent while smaller</div>
-			<div class="code-line" data-segment="heap-extract">extractMin() — replace root and siftDown</div>
-		</div>
-	</div>
 </div>
 <script>
 // Heap implementation + visualization
@@ -50,9 +160,23 @@ function siftUp(i){ while(i>0){ const p = Math.floor((i-1)/2); if(heap[i] < heap
 function extractMin(){ if(heap.length===0) return null; const root = heap[0]; if(heap.length===1){ heap.pop(); return root; } heap[0]=heap.pop(); siftDown(0); return root; }
 function siftDown(i){ const n=heap.length; while(true){ let l=2*i+1, r=2*i+2, smallest=i; if(l<n && heap[l]<heap[smallest]) smallest=l; if(r<n && heap[r]<heap[smallest]) smallest=r; if(smallest!==i){ [heap[i],heap[smallest]]=[heap[smallest],heap[i]]; i=smallest; } else break; } }
 
-function heapInsertUI(){ const v=parseInt(document.getElementById('heap-insert').value); if(isNaN(v)) return; heapInsert(v); document.getElementById('heap-insert').value=''; drawHeap(); }
-function heapExtractUI(){ const v = extractMin(); drawHeap(); if(v!==null) alert('Extracted: '+v); }
-function heapClear(){ heap=[]; drawHeap(); }
+function heapInsertUI(){ const v=parseInt(document.getElementById('heap-insert').value); if(isNaN(v)) return; heapInsert(v); document.getElementById('heap-insert').value=''; drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); }
+function heapExtractUI(){ const v = extractMin(); drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); if(v!==null) alert('Extracted: '+v); }
+function heapClear(){ heap=[]; drawHeap(); setTraceStatus('heap-trace-status','Ready.'); updateStats(); }
+function heapInsertPreset(){ [15,7,20,3,13].forEach(v=>{ heapInsert(v); }); drawHeap(); setTraceStatus('heap-trace-status','Ready preset loaded.'); updateStats(); }
+
+function updateStats(){
+	const n = heap.length;
+	const height = n === 0 ? 0 : Math.floor(Math.log2(n)) + 1;
+	document.getElementById('stat-elements').textContent = n;
+	document.getElementById('stat-height').textContent = height;
+}
+
+let animationDelay = 600;
+function updateSpeed(val){
+	animationDelay = parseInt(val);
+	document.getElementById('speed-display').textContent = val + 'ms';
+}
 
 function drawHeap(){ heapCtx.clearRect(0,0,heapCanvas.width,heapCanvas.height); if(heap.length===0){ heapCtx.fillStyle='#30363d'; heapCtx.font='14px monospace'; heapCtx.textAlign='center'; heapCtx.fillText('Insert values to build heap', heapCanvas.width/2, heapCanvas.height/2); return; }
 	const levelHeight = 70; const R=20; for(let i=0;i<heap.length;i++){ const level = Math.floor(Math.log2(i+1)); const indexInLevel = i - (2**level -1); const nodesInLevel = 2**level; const usableW = heapCanvas.width - 40; const x = 20 + (usableW / (nodesInLevel+1)) * (indexInLevel+1); const y = 30 + level*levelHeight; heapCtx.beginPath(); heapCtx.arc(x,y,R,0,Math.PI*2); heapCtx.fillStyle='#1f2937'; heapCtx.fill(); heapCtx.lineWidth=2; heapCtx.strokeStyle='#3b82f6'; heapCtx.stroke(); heapCtx.fillStyle='#e6edf3'; heapCtx.font='bold 13px monospace'; heapCtx.textAlign='center'; heapCtx.textBaseline='middle'; heapCtx.fillText(heap[i], x, y);
@@ -61,12 +185,29 @@ function drawHeap(){ heapCtx.clearRect(0,0,heapCanvas.width,heapCanvas.height); 
 	}
 }
 
+function setTraceStatus(statusId, text){ const status = document.getElementById(statusId); if(status) status.textContent = text; }
+
 // Code trace
-async function playCodeTrace(segments, delay=600){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const s of segments){ clear(); document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line')); await new Promise(r=>setTimeout(r,delay)); } clear(); }
-function runCodeTrace(){ playCodeTrace(['heap-insert','heap-siftup','heap-extract'], 600); }
+async function playCodeTrace(segments, delay, statusId){ const all=document.querySelectorAll('[data-segment]'); function clear(){ all.forEach(n=>n.classList.remove('active-line')); } for(const s of segments){ clear(); const nodes = document.querySelectorAll(`[data-segment="${s}"]`);
+ if(nodes.length){ nodes.forEach(n=>n.classList.add('active-line')); nodes[0].scrollIntoView({block:'center',inline:'nearest'}); }
+ setTraceStatus(statusId, `Executing: ${s.replace(/-/g,' ')}`);
+ await new Promise(r=>setTimeout(r,delay || animationDelay)); }
+ clear(); setTraceStatus(statusId, 'Trace complete.'); }
+function runHeapTrace(){ playCodeTrace(['heap-insert','heap-siftup','heap-extract'], null, 'heap-trace-status'); }
+
+// Check for preset flag set by heap trace page
+function checkAndLoadHeapPreset(){
+	try{
+		if(localStorage.getItem('sim12.loadHeap')){
+			localStorage.removeItem('sim12.loadHeap');
+			heapInsertPreset();
+			setTraceStatus('heap-trace-status','Ready preset loaded.');
+		}
+	}catch(e){ console.warn('Heap preset load failed', e); }
+}
 
 window.addEventListener('resize', resizeHeap);
-document.fonts?.ready.then(()=>{ resizeHeap(); });
+document.fonts?.ready.then(()=>{ resizeHeap(); checkAndLoadHeapPreset(); });
 </script>
 </body>
 </html>

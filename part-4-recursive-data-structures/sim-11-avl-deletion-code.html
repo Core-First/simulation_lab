@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AVL Deletion & Rebalancing</title>
+<style>
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;min-height:100vh;display:flex;flex-direction:column}
+  header{padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .back-btn{color:var(--text);text-decoration:none;padding:8px 12px;border:1px solid var(--border);border-radius:6px;display:inline-flex;align-items:center}
+  .content{flex:1;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--surface);padding:18px;border:1px solid var(--border);border-radius:12px}
+  .panel h2{margin-bottom:14px;font-size:14px;color:var(--accent)}
+  .code-line{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);font-family:monospace;line-height:1.6;font-size:12px}
+  .code-line strong{color:#fff}
+  .code-line .kw{color:#60a5fa}
+  .code-line .func{color:#10b981}
+  .code-line .comment{color:#8b949e}
+  .button-row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .trace-status{margin-top:14px;color:var(--muted);font-family:monospace;font-size:12px}
+  @media(max-width:980px){.content{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="sim-11-avl-red-black.html" class="back-btn">← Back</a>
+  <div>
+    <div style="font-size:16px;font-weight:700">AVL Deletion & Rebalancing</div>
+    <div style="font-size:12px;color:var(--muted);">Learn how AVL trees maintain balance after deletion</div>
+  </div>
+</header>
+<div class="content">
+  <div class="panel">
+    <h2>Deletion & Rebalancing Algorithm</h2>
+    <div class="code-line" data-segment="avl-del-start"><span class="kw">function</span> <span class="func">delete</span>(node, val)</div>
+    <div class="code-line" data-segment="avl-del-search"><span class="kw">if</span> node is null <span class="kw">return</span> null</div>
+    <div class="code-line" data-segment="avl-del-compare"><span class="kw">if</span> val &lt; node.val: node.left = delete(node.left, val)</div>
+    <div class="code-line" data-segment="avl-del-compare"><span class="kw">else if</span> val &gt; node.val: node.right = delete(node.right, val)</div>
+    <div class="code-line" data-segment="avl-del-found"><span class="kw">else</span> (found target)</div>
+    <div class="code-line" data-segment="avl-del-leaf"><span class="kw">if</span> no children: <span class="kw">return</span> null</div>
+    <div class="code-line" data-segment="avl-del-one-child"><span class="kw">if</span> one child: <span class="kw">return</span> that child</div>
+    <div class="code-line" data-segment="avl-del-two-child"><span class="kw">if</span> two children: find inorder successor</div>
+    <div class="code-line" data-segment="avl-del-replace">node.val = successor.val; delete successor</div>
+    <div class="code-line" data-segment="avl-update-height">updateHeight(node)</div>
+    <div class="code-line" data-segment="avl-balance">balance_factor = height(left) - height(right)</div>
+    <div class="code-line" data-segment="avl-rotate-ll"><span class="kw">if</span> BF &gt; 1 and left.BF ≥ 0: <span class="func">rotateRight</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate-lr"><span class="kw">if</span> BF &gt; 1 and left.BF &lt; 0: <span class="func">rotateLeft</span>(left); <span class="func">rotateRight</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate-rr"><span class="kw">if</span> BF &lt; -1 and right.BF ≤ 0: <span class="func">rotateLeft</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate-rl"><span class="kw">if</span> BF &lt; -1 and right.BF &gt; 0: <span class="func">rotateRight</span>(right); <span class="func">rotateLeft</span>(node)</div>
+    <div class="code-line" data-segment="avl-del-return"><span class="kw">return</span> node</div>
+  </div>
+  <div class="panel">
+    <h2>Understanding Deletion</h2>
+    <div style="background:rgba(59,130,246,0.08);padding:12px;border-radius:6px;border-left:3px solid var(--accent);margin-bottom:12px">
+      <strong>Key Insight:</strong> After deleting a node, AVL trees may become unbalanced. The balance factor helps us identify which rotations to apply to restore the AVL property.
+    </div>
+    <div class="button-row">
+      <button class="btn" onclick="playCodeTrace()">Run Trace</button>
+      <button class="btn btn-ghost" onclick="loadPreset()">Load & Test</button>
+    </div>
+    <div class="trace-status" id="trace-status">Trace ready.</div>
+    <div style="margin-top:18px;color:var(--muted);font-size:13px;line-height:1.7">
+      <strong>Three deletion cases:</strong><br/>
+      1. <strong>Leaf node:</strong> Simply remove it<br/>
+      2. <strong>One child:</strong> Replace with that child<br/>
+      3. <strong>Two children:</strong> Find inorder successor, copy its value, then delete the successor<br/><br/>
+      <strong>Rebalancing:</strong> After deletion (or during recursive unwinding), check the balance factor at each node. Apply single or double rotations as needed.
+    </div>
+  </div>
+</div>
+<script>
+function setStatus(text){ document.getElementById('trace-status').textContent = text; }
+async function playCodeTrace(){
+  const segments=['avl-del-start','avl-del-search','avl-del-compare','avl-del-found','avl-del-leaf','avl-del-one-child','avl-del-two-child','avl-del-replace','avl-update-height','avl-balance','avl-rotate-ll','avl-rotate-lr','avl-rotate-rr','avl-rotate-rl','avl-del-return'];
+  const all=document.querySelectorAll('[data-segment]');
+  function clear(){ all.forEach(n=>n.classList.remove('active-line')); }
+  for(const s of segments){
+    clear();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
+    setStatus('Executing: '+s.replace(/-/g,' '));
+    await new Promise(r=>setTimeout(r,650));
+  }
+  clear();
+  setStatus('Trace complete.');
+}
+function loadPreset(){
+  try{ localStorage.setItem('sim11.loadAVL','1'); }catch(e){ console.warn('Could not set preset flag', e); }
+  window.location.href='sim-11-avl-red-black.html';
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('[data-segment]').forEach(el=>el.classList.add('code-line'));
+  document.querySelectorAll('.code-line .active-line').forEach(el=>el.classList.add('active-line'));
+});
+</script>
+<style>
+.code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:8px}
+</style>
+</body>
+</html>

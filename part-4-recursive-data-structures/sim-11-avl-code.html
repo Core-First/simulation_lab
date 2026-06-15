@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AVL Insertion Trace</title>
+<style>
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--accent:#3b82f6;--muted:#8b949e;--text:#e6edf3}
+  body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;min-height:100vh;display:flex;flex-direction:column}
+  header{padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .back-btn{color:var(--text);text-decoration:none;padding:8px 12px;border:1px solid var(--border);border-radius:6px;display:inline-flex;align-items:center}
+  .content{flex:1;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--surface);padding:18px;border:1px solid var(--border);border-radius:12px}
+  .panel h2{margin-bottom:14px;font-size:14px;color:var(--accent)}
+  .code-line{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);font-family:'Courier New',monospace;line-height:1.6;font-size:12px}
+  .code-line strong{color:#fff}
+  .code-line .kw{color:#60a5fa}
+  .code-line .func{color:#10b981}
+  .code-line .comment{color:#8b949e}
+  .button-row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .trace-status{margin-top:14px;color:var(--muted);font-family:monospace;font-size:12px}
+  .code-line.active-line{background:rgba(59,130,246,0.18);border-left:3px solid var(--accent);padding-left:8px}
+  @media(max-width:980px){.content{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="sim-11-avl-red-black.html" class="back-btn">← Back</a>
+  <div>
+    <div style="font-size:16px;font-weight:700">AVL Insertion Trace</div>
+    <div style="font-size:12px;color:var(--muted);">Step-by-step AVL tree insertion with balancing</div>
+  </div>
+</header>
+<div class="content">
+  <div class="panel">
+    <h2>AVL Insert Algorithm</h2>
+    <div class="code-line" data-segment="avl-insert-start"><span class="kw">function</span> <span class="func">insert</span>(node, val)</div>
+    <div class="code-line" data-segment="avl-insert-start">&nbsp;&nbsp;<span class="kw">if</span> node == null:</div>
+    <div class="code-line" data-segment="avl-insert-start">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="kw">new</span> <span class="func">Node</span>(val)</div>
+    <div class="code-line" data-segment="avl-insert-left"><span class="kw">if</span> val < node.val:</div>
+    <div class="code-line" data-segment="avl-insert-left">&nbsp;&nbsp;node.left = <span class="func">insert</span>(node.left, val)</div>
+    <div class="code-line" data-segment="avl-insert-right"><span class="kw">else if</span> val > node.val:</div>
+    <div class="code-line" data-segment="avl-insert-right">&nbsp;&nbsp;node.right = <span class="func">insert</span>(node.right, val)</div>
+    <div class="code-line" data-segment="avl-insert-right"><span class="kw">else</span>:</div>
+    <div class="code-line" data-segment="avl-insert-right">&nbsp;&nbsp;<span class="kw">return</span> node  <span class="comment">// duplicate</span></div>
+    <div class="code-line" data-segment="avl-update-height">&nbsp;&nbsp;<span class="func">updateHeight</span>(node)</div>
+    <div class="code-line" data-segment="avl-balance">bf = height(node.left) - height(node.right)</div>
+    <div class="code-line" data-segment="avl-rotate"><span class="kw">if</span> bf > 1 <span class="kw">and</span> val < node.left.val:</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;<span class="kw">return</span> <span class="func">rotateRight</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate"><span class="kw">if</span> bf > 1 <span class="kw">and</span> val > node.left.val:</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;node.left = <span class="func">rotateLeft</span>(node.left)</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;<span class="kw">return</span> <span class="func">rotateRight</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate"><span class="kw">if</span> bf < -1 <span class="kw">and</span> val > node.right.val:</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;<span class="kw">return</span> <span class="func">rotateLeft</span>(node)</div>
+    <div class="code-line" data-segment="avl-rotate"><span class="kw">if</span> bf < -1 <span class="kw">and</span> val < node.right.val:</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;node.right = <span class="func">rotateRight</span>(node.right)</div>
+    <div class="code-line" data-segment="avl-rotate">&nbsp;&nbsp;<span class="kw">return</span> <span class="func">rotateLeft</span>(node)</div>
+    <div class="code-line" data-segment="avl-insert-end"><span class="kw">return</span> node</div>
+  </div>
+  <div class="panel">
+    <h2>Interactive Trace & Practice</h2>
+    <div style="background:rgba(59,130,246,0.08);padding:12px;border-radius:6px;border-left:3px solid var(--accent);margin-bottom:12px">
+      <strong>How Balance Factor Works:</strong><br/>
+      BF = height(left) - height(right)<br/>
+      • BF > 1: Left-heavy (left rotations needed)<br/>
+      • BF < -1: Right-heavy (right rotations needed)<br/>
+      • -1 ≤ BF ≤ 1: Balanced
+    </div>
+    <div class="button-row">
+      <button class="btn" onclick="playCodeTrace()">Run Trace</button>
+      <button class="btn btn-ghost" onclick="loadPreset()">Load & Practice</button>
+    </div>
+    <div class="trace-status" id="trace-status">Trace ready.</div>
+    <div style="margin-top:18px;color:var(--muted);font-size:13px;line-height:1.8">
+      <strong>Algorithm Steps:</strong><br/>
+      1. Recursively insert value (BST property)<br/>
+      2. Update height of current node<br/>
+      3. Calculate balance factor<br/>
+      4. Perform rotations if needed<br/><br/>
+      <strong>Rotation Types:</strong><br/>
+      • <strong>LL:</strong> Left-left imbalance → single right rotation<br/>
+      • <strong>LR:</strong> Left-right imbalance → left then right rotation<br/>
+      • <strong>RR:</strong> Right-right imbalance → single left rotation<br/>
+      • <strong>RL:</strong> Right-left imbalance → right then left rotation
+    </div>
+  </div>
+</div>
+<script>
+function setStatus(text){ document.getElementById('trace-status').textContent = text; }
+async function playCodeTrace(){
+  const segments=['avl-insert-start','avl-insert-left','avl-insert-right','avl-update-height','avl-balance','avl-rotate','avl-insert-end'];
+  const all=document.querySelectorAll('[data-segment]');
+  function clear(){ all.forEach(n=>n.classList.remove('active-line')); }
+  for(const s of segments){
+    clear();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
+    setStatus('Executing: '+s.replace(/-/g,' '));
+    await new Promise(r=>setTimeout(r,700));
+  }
+  clear();
+  setStatus('Trace complete.');
+}
+function loadPreset(){
+  try{ localStorage.setItem('sim11.loadAVL','1'); }catch(e){ console.warn('Could not set preset flag', e); }
+  window.location.href='sim-11-avl-red-black.html';
+}
+</script>
+</body>
+</html>
