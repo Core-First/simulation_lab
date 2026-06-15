@@ -60,6 +60,7 @@
           <input type="number" id="search-value" placeholder="Value" min="1" max="99" />
           <button onclick="searchAndVisualize()">Search</button>
         </div>
+        <button onclick="loadCurrentSimulation()" style="padding:4px 10px;background:#6366f1;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Load Current Tree</button>
         <button onclick="loadPreset()" style="padding:4px 10px;background:#3b82f6;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Load Balanced</button>
       </div>
     </div>
@@ -76,6 +77,10 @@ let root = null;
 const canvas = document.getElementById('bst-canvas');
 const ctx = canvas.getContext('2d');
 const R = 22; const V_GAP = 70;
+let zoom = 1;
+const MIN_ZOOM = 0.7;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.08;
 function resizeCanvas(){canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; layoutTree(); draw();}
 window.addEventListener('resize', resizeCanvas);
 
@@ -84,7 +89,22 @@ function insert(node,val){ if(node===null) return new BSTNode(val); if(val<node.
 
 function layoutTree(){ if(!root) return; const nodes = inorder(root); const n = nodes.length; const usableW = canvas.width - 60; const startX = 30; nodes.forEach((node,i)=>{ node.x = startX + (usableW/(n+1))*(i+1); }); function setY(node,depth){ if(!node) return; node.y = 50 + depth*V_GAP; setY(node.left,depth+1); setY(node.right,depth+1);} setY(root,0); }
 
-function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); if(!root){ ctx.fillStyle='#30363d'; ctx.font = "14px 'Sora', sans-serif"; ctx.textAlign='center'; ctx.fillText('Load a tree to get started', canvas.width/2, canvas.height/2); return;} drawEdges(root); drawNodes(root); }
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.setTransform(zoom,0,0,zoom,0,0);
+  if(!root){
+    ctx.restore();
+    ctx.fillStyle='#30363d';
+    ctx.font = "14px 'Sora', sans-serif";
+    ctx.textAlign='center';
+    ctx.fillText('Load a tree to get started', canvas.width/2, canvas.height/2);
+    return;
+  }
+  drawEdges(root);
+  drawNodes(root);
+  ctx.restore();
+}
 function drawEdges(node){ if(!node) return; ctx.lineWidth = 1.5; if(node.left){ ctx.beginPath(); ctx.moveTo(node.x,node.y); ctx.lineTo(node.left.x,node.left.y); ctx.strokeStyle = (node.highlighted||node.left.highlighted)?'#6366f1':'#30363d'; ctx.stroke(); drawEdges(node.left);} if(node.right){ ctx.beginPath(); ctx.moveTo(node.x,node.y); ctx.lineTo(node.right.x,node.right.y); ctx.strokeStyle = (node.highlighted||node.right.highlighted)?'#6366f1':'#30363d'; ctx.stroke(); drawEdges(node.right);} }
 function drawNodes(node){ if(!node) return; let fill='#1f2937', stroke='#3b82f6', textColor='#e6edf3', nr=R; if(node.found){ fill='rgba(34,197,94,0.25)'; stroke='#22c55e'; textColor='#4ade80'; } else if(node.highlighted){ fill='rgba(245,158,11,0.25)'; stroke='#f59e0b'; textColor='#fbbf24'; } if(node.hovered){ nr=R*1.25; ctx.shadowColor='#3b82f6'; ctx.shadowBlur=8; } else { ctx.shadowColor='transparent'; ctx.shadowBlur=0; } ctx.beginPath(); ctx.arc(node.x,node.y,nr,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill(); ctx.shadowColor='transparent'; ctx.lineWidth=2; ctx.strokeStyle=stroke; ctx.stroke(); ctx.fillStyle=textColor; ctx.font = "bold 13px 'JetBrains Mono', monospace"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(node.val,node.x,node.y); drawNodes(node.left); drawNodes(node.right); }
 
@@ -92,20 +112,98 @@ function clearHighlights(node){ if(!node) return; node.highlighted=false; node.f
 
 function log(msg){ document.getElementById('log-area').textContent = msg; }
 
+const STORAGE_KEY = 'sim10-bst-tree';
+
+function serializeTree(node) {
+  if (!node) return null;
+  return {
+    val: node.val,
+    left: serializeTree(node.left),
+    right: serializeTree(node.right)
+  };
+}
+
+function deserializeTree(data) {
+  if (!data) return null;
+  const node = new BSTNode(data.val);
+  node.left = deserializeTree(data.left);
+  node.right = deserializeTree(data.right);
+  return node;
+}
+
+function saveCurrentSimulation() {
+  if (!root) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTree(root)));
+}
+
+function loadCurrentSimulation() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    log('No current simulation found. Load a tree or preset.');
+    return false;
+  }
+  try {
+    root = deserializeTree(JSON.parse(stored));
+    clearHighlights(root);
+    layoutTree();
+    draw();
+    log('Current simulation loaded');
+    return true;
+  } catch (err) {
+    log('Unable to load current simulation');
+    return false;
+  }
+}
+
 function searchPath(node,val,path=[]){ if(!node) return null; path.push(node); if(val===node.val) return path; if(val<node.val) return searchPath(node.left,val,path); return searchPath(node.right,val,path); }
 
 function searchAndVisualize(){ const inp = document.getElementById('search-value'); const v = parseInt(inp.value); if(isNaN(v)){ log('Enter a value to search'); return;} clearHighlights(root); draw(); const path = searchPath(root,v); if(!path){ log(`${v} not found in tree`); return; } let i=0; function step(){ if(i>0) path[i-1].highlighted = false; if(i<path.length-1){ path[i].highlighted = true; log(`Comparing: ${path[i].val} — going ${v < path[i].val ? 'left' : 'right'}...`); } else { path[i].found = true; log(`Found ${v}! Steps: ${path.length}`); draw(); return; } draw(); i++; setTimeout(step, 450); } step(); inp.value=''; }
 
-function loadPreset(){ root = null; [50,25,75,12,37,62,87].forEach(v=>{ root = insert(root,v); }); layoutTree(); draw(); log('Balanced tree loaded'); }
+function loadPreset(){ root = null; [50,25,75,12,37,62,87].forEach(v=>{ root = insert(root,v); }); layoutTree(); draw(); saveCurrentSimulation(); log('Balanced tree loaded'); }
 
 // interactive highlights for code segments (simple messages)
 document.querySelectorAll('[data-segment]').forEach(line=>{ line.addEventListener('mouseenter',()=>{ const s=line.dataset.segment; clearHighlights(root); if(s==='search-base') log('Base case: empty subtree -> not found'); else if(s==='search-compare') log('Compare and recurse left or right'); draw(); }); });
 
 // basic canvas mouse hover for nodes
-canvas.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; let found=null; function find(node){ if(!node) return null; const d=Math.hypot(mx-node.x,my-node.y); if(d<=R*1.4) return node; return find(node.left)||find(node.right); } found=find(root); document.getElementById('node-tooltip').classList.remove('visible'); if(found){ found.hovered=true; document.getElementById('node-tooltip').innerHTML=`Value: <span class="tval">${found.val}</span>`; const tip=document.getElementById('node-tooltip'); tip.classList.add('visible'); tip.style.left=(e.clientX+10)+'px'; tip.style.top=(e.clientY+10)+'px'; } else { if(root) clearHighlights(root); } draw();});
+canvas.addEventListener('mousemove',(e)=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left;
+  const my=e.clientY-rect.top;
+  const tx = mx / zoom;
+  const ty = my / zoom;
+  let found=null;
+  function find(node){ if(!node) return null; const d=Math.hypot(tx-node.x,ty-node.y); if(d<=R*1.4) return node; return find(node.left)||find(node.right); }
+  found=find(root);
+  document.getElementById('node-tooltip').classList.remove('visible');
+  if(found){
+    found.hovered=true;
+    document.getElementById('node-tooltip').innerHTML=`Value: <span class="tval">${found.val}</span>`;
+    const tip=document.getElementById('node-tooltip');
+    tip.classList.add('visible');
+    tip.style.left=(e.clientX+10)+'px';
+    tip.style.top=(e.clientY+10)+'px';
+  } else {
+    if(root) clearHighlights(root);
+  }
+  draw();
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + (e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP)));
+  draw();
+});
+
+window.addEventListener('storage', () => { loadCurrentSimulation(); });
 
 // init
-resizeCanvas(); loadPreset();
+resizeCanvas();
+if (!loadCurrentSimulation()) {
+  log('No saved simulation found. Use Load Current Tree or Load Balanced.');
+}
 </script>
 </body>
 </html>

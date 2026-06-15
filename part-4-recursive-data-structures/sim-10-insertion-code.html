@@ -371,6 +371,7 @@
           <input type="number" id="insert-value" placeholder="Value" min="1" max="99" />
           <button onclick="insertAndVisualize()">Insert</button>
         </div>
+        <button onclick="loadCurrentSimulation()" style="padding:4px 10px;background:#6366f1;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Load Current Tree</button>
         <button onclick="clearSimulation()" style="padding:4px 10px;background:var(--red);border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Clear</button>
       </div>
     </div>
@@ -403,6 +404,10 @@ const ctx = canvas.getContext('2d');
 const R = 22;
 const V_GAP = 70;
 
+let zoom = 1;
+const MIN_ZOOM = 0.7;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.08;
 let hoveredNode = null;
 let mouseX = 0;
 let mouseY = 0;
@@ -434,7 +439,10 @@ function layoutTree() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.setTransform(zoom, 0, 0, zoom, 0, 0);
   if (!root) {
+    ctx.restore();
     ctx.fillStyle = '#30363d';
     ctx.font = "14px 'Sora', sans-serif";
     ctx.textAlign = 'center';
@@ -443,6 +451,7 @@ function draw() {
   }
   drawEdges(root);
   drawNodes(root);
+  ctx.restore();
 }
 
 function drawEdges(node) {
@@ -529,13 +538,59 @@ function countNodes(node) {
   return 1 + countNodes(node.left) + countNodes(node.right);
 }
 
+const STORAGE_KEY = 'sim10-bst-tree';
+
+function serializeTree(node) {
+  if (!node) return null;
+  return {
+    val: node.val,
+    left: serializeTree(node.left),
+    right: serializeTree(node.right)
+  };
+}
+
+function deserializeTree(data) {
+  if (!data) return null;
+  const node = new BSTNode(data.val);
+  node.left = deserializeTree(data.left);
+  node.right = deserializeTree(data.right);
+  return node;
+}
+
+function saveCurrentSimulation() {
+  if (!root) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTree(root)));
+}
+
+function loadCurrentSimulation() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    log('No current simulation found. Load a tree or preset.');
+    return false;
+  }
+  try {
+    root = deserializeTree(JSON.parse(stored));
+    clearHighlights(root);
+    layoutTree();
+    draw();
+    log('Current simulation loaded');
+    return true;
+  } catch (err) {
+    log('Unable to load current simulation');
+    return false;
+  }
+}
+
 function insert(node, val) {
   if (node === null) {
     return new BSTNode(val);
   }
   if (val < node.val) {
     node.left = insert(node.left, val);
-  } else {
+  } else if (val > node.val) {
     node.right = insert(node.right, val);
   }
   return node;
@@ -543,7 +598,9 @@ function insert(node, val) {
 
 function getNodeAtPoint(x, y, node = root) {
   if (!node) return null;
-  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  const tx = x / zoom;
+  const ty = y / zoom;
+  const dist = Math.sqrt((tx - node.x) ** 2 + (ty - node.y) ** 2);
   if (dist <= R * 1.4) return node;
   const left = getNodeAtPoint(x, y, node.left);
   if (left) return left;
@@ -555,6 +612,14 @@ function log(msg) {
   document.getElementById('log-area').textContent = msg;
 }
 
+function searchPath(node, val, path = []) {
+  if (!node) return null;
+  path.push(node);
+  if (val === node.val) return path;
+  if (val < node.val) return searchPath(node.left, val, path);
+  return searchPath(node.right, val, path);
+}
+
 function insertAndVisualize() {
   const input = document.getElementById('insert-value');
   const val = parseInt(input.value);
@@ -562,9 +627,14 @@ function insertAndVisualize() {
     log('Enter a value between 1 and 99');
     return;
   }
+  if (searchPath(root, val)) {
+    log(`Value ${val} already exists in the tree`);
+    return;
+  }
   root = insert(root, val);
   layoutTree();
   draw();
+  saveCurrentSimulation();
   log(`Inserted ${val}. Tree now has ${countNodes(root)} nodes.`);
   input.value = '';
 }
@@ -573,6 +643,7 @@ function clearSimulation() {
   root = null;
   hoveredNode = null;
   draw();
+  saveCurrentSimulation();
   log('Tree cleared.');
 }
 
@@ -651,8 +722,10 @@ document.querySelectorAll('[data-editable]').forEach(elem => {
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('storage', () => { loadCurrentSimulation(); });
 document.fonts.ready.then(() => {
   resizeCanvas();
+  loadCurrentSimulation();
 });
 </script>
 </body>

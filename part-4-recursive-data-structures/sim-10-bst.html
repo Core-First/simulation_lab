@@ -208,6 +208,7 @@
   }
   .sim-toolbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
@@ -241,6 +242,42 @@
   }
   #bst-canvas:active {
     cursor: grabbing;
+  }
+
+  .traversal-strip {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(18, 23, 34, 0.96);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #c9d1d9;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .traversal-strip span {
+    flex-shrink: 0;
+  }
+  .trav-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(59,130,246,.18);
+    border: 1px solid rgba(59,130,246,.35);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    transition: all .3s;
+  }
+  .trav-arrow {
+    color: var(--muted);
+    font-size: 14px;
   }
 
   /* Node info tooltip */
@@ -543,19 +580,15 @@
   <!-- ═══════════════ MIDDLE: SIMULATION ═══════════════ -->
   <div class="sim-area" id="panel-mid" style="flex:1;min-width:300px">
     <div class="sim-toolbar">
-      <span class="tb-label">MODE:</span>
-      <button class="btn btn-ghost" id="btn-insert-mode" onclick="setMode('insert')">Insert</button>
-      <button class="btn btn-ghost" id="btn-delete-mode" onclick="setMode('delete')">Delete</button>
-      <button class="btn btn-ghost" id="btn-search-mode" onclick="setMode('search')">Search</button>
-      <div class="op-log" id="op-log">Ready — insert a value to begin</div>
+      <div class="op-log" id="op-log">Ready — use the controls or load the current tree</div>
+    </div>
+
+    <div class="traversal-strip" id="traversal-strip">
+      <span style="color:var(--muted);font-size:12px">Run a traversal to see the visit order here</span>
     </div>
 
     <canvas id="bst-canvas"></canvas>
     <div id="node-tooltip"></div>
-
-    <div class="traversal-strip" id="traversal-strip">
-      <span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>
-    </div>
   </div><!-- /panel-mid -->
 
   <div class="resizer" id="resizer-right"></div>
@@ -661,7 +694,6 @@ class BSTNode {
 
 let root = null;
 let animSpeed = 600;
-let currentMode = 'insert';
 let animating = false;
 
 function insert(node, val) {
@@ -716,6 +748,55 @@ function inorder(node, arr=[])   { if(node){ inorder(node.left,arr);   arr.push(
 function preorder(node, arr=[])  { if(node){ arr.push(node); preorder(node.left,arr);  preorder(node.right,arr);  } return arr; }
 function postorder(node, arr=[]) { if(node){ postorder(node.left,arr); postorder(node.right,arr); arr.push(node); } return arr; }
 
+const STORAGE_KEY = 'sim10-bst-tree';
+
+function serializeTree(node) {
+  if (!node) return null;
+  return {
+    val: node.val,
+    left: serializeTree(node.left),
+    right: serializeTree(node.right)
+  };
+}
+
+function deserializeTree(data) {
+  if (!data) return null;
+  const node = new BSTNode(data.val);
+  node.left = deserializeTree(data.left);
+  node.right = deserializeTree(data.right);
+  return node;
+}
+
+function saveCurrentSimulation() {
+  if (!root) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTree(root)));
+}
+
+function loadCurrentSimulation() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return false;
+  try {
+    root = deserializeTree(JSON.parse(stored));
+    clearHighlights(root);
+    document.getElementById('traversal-strip').innerHTML = '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
+    layoutTree();
+    draw();
+    updateStats();
+    log('Current simulation loaded');
+    return true;
+  } catch (err) {
+    console.warn('Failed to load stored BST', err);
+    return false;
+  }
+}
+
+window.addEventListener('storage', () => {
+  loadCurrentSimulation();
+});
+
 // ─── Canvas Rendering ─────────────────────────────────────────────────────────
 const canvas = document.getElementById('bst-canvas');
 const ctx    = canvas.getContext('2d');
@@ -725,11 +806,18 @@ const V_GAP  = 70;
 // Pan variables (zoom removed)
 let panX = 0;
 let panY = 0;
+let zoom = 1;
+const MIN_ZOOM = 0.6;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.08;
 let isPanning = false;
 let panStartX = 0;
 let panStartY = 0;
 let panStartPanX = 0;
 let panStartPanY = 0;
+
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
 
 // Interactive node variables
 let hoveredNode = null;
@@ -767,16 +855,20 @@ function layoutTree() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+  ctx.save();
+  ctx.setTransform(zoom, 0, 0, zoom, panX, panY);
+
   if (!root) {
+    ctx.restore();
     ctx.fillStyle = '#30363d';
     ctx.font = "14px 'Sora', sans-serif";
     ctx.textAlign = 'center';
-    ctx.fillText('Insert values to build the tree', canvas.width/2, canvas.height/2);
+    ctx.fillText('Insert values to build the tree', canvas.width / 2, canvas.height / 2);
     return;
   }
   drawEdges(root);
   drawNodes(root);
+  ctx.restore();
 }
 
 function drawEdges(node) {
@@ -830,7 +922,16 @@ function drawNodes(node) {
   } else if (node.highlighted) {
     fill = 'rgba(245,158,11,0.25)'; stroke = '#f59e0b'; textColor = '#fbbf24';
   } else if (node.traversed) {
-    fill = 'rgba(99,102,241,0.25)'; stroke = '#6366f1'; textColor = '#a5b4fc';
+    fill = 'rgba(56,189,248,0.28)'; stroke = '#38bdf8'; textColor = '#e0f2fe';
+  }
+
+  // Traversal glow
+  const isTraversalGlow = node.traversed && hoveredNode !== node && selectedNode !== node;
+  if (isTraversalGlow) {
+    ctx.shadowColor = 'rgba(56,189,248,0.45)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
 
   // Hover effect
@@ -838,7 +939,7 @@ function drawNodes(node) {
     nodeRadius = R * 1.25;
     stroke = '#3b82f6';
     ctx.shadowColor = '#3b82f6';
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   } else if (selectedNode === node) {
@@ -896,16 +997,6 @@ function log(msg, cls='') {
   el.className = 'op-log ' + cls;
 }
 
-function setMode(m) {
-  currentMode = m;
-  ['insert','delete','search'].forEach(mode => {
-    document.getElementById('btn-'+mode+'-mode').style.borderColor =
-      mode === m ? 'var(--accent)' : 'var(--border)';
-    document.getElementById('btn-'+mode+'-mode').style.color =
-      mode === m ? 'var(--accent)' : 'var(--text)';
-  });
-}
-
 function insertVal() {
   const inp = document.getElementById('insert-val');
   const v   = parseInt(inp.value);
@@ -916,6 +1007,7 @@ function insertVal() {
   layoutTree();
   draw();
   updateStats();
+  saveCurrentSimulation();
   log(`Inserted ${v} into the BST`, 'found-msg');
   inp.value = '';
 }
@@ -932,8 +1024,12 @@ function deleteVal() {
   layoutTree();
   draw();
   updateStats();
-  if (before !== after) log(`Deleted ${v} from the BST`, 'found-msg');
-  else log(`Value ${v} not found`, 'notfound-msg');
+  if (before !== after) {
+    saveCurrentSimulation();
+    log(`Deleted ${v} from the BST`, 'found-msg');
+  } else {
+    log(`Value ${v} not found`, 'notfound-msg');
+  }
   inp.value = '';
 }
 
@@ -988,6 +1084,7 @@ async function runTraversal(type) {
   for (let i = 0; i < nodes.length; i++) {
     nodes[i].traversed = true;
     log(`Visiting node: ${nodes[i].val}`);
+    playTraversalTone(i, nodes.length);
 
     const span = document.createElement('span');
     span.className = 'trav-node';
@@ -1011,8 +1108,9 @@ async function runTraversal(type) {
 }
 
 function updateSpeed(v) {
-  animSpeed = parseInt(v);
-  document.getElementById('speed-label').textContent = v + 'ms';
+  const value = parseInt(v);
+  animSpeed = 1300 - value;
+  document.getElementById('speed-label').textContent = animSpeed + 'ms';
 }
 
 function clearTree() {
@@ -1022,10 +1120,35 @@ function clearTree() {
   selectedNode = null;
   clearHighlights(root);
   document.getElementById('traversal-strip').innerHTML =
-    '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
+    '<span style="color:var(--muted);font-size:12px">Run a traversal to see the visit order here</span>';
   draw();
   updateStats();
+  saveCurrentSimulation();
   log('Tree cleared');
+}
+
+function playTraversalTone(step, total) {
+  if (!AudioContextClass) return;
+  if (!audioCtx) {
+    audioCtx = new AudioContextClass();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const minFreq = 220;
+  const maxFreq = 880;
+  const freq = minFreq + ((maxFreq - minFreq) * (step / Math.max(total - 1, 1)));
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.value = 0.12;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+  osc.stop(audioCtx.currentTime + 0.09);
 }
 
 function loadPreset(type) {
@@ -1046,8 +1169,10 @@ function loadPreset(type) {
 // Find node at screen coordinates
 function getNodeAtPoint(x, y, node = root) {
   if (!node) return null;
+  const tx = (x - panX) / zoom;
+  const ty = (y - panY) / zoom;
   
-  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  const dist = Math.sqrt((tx - node.x) ** 2 + (ty - node.y) ** 2);
   if (dist <= R * 1.4) {
     return node;
   }
@@ -1123,6 +1248,22 @@ canvas.addEventListener('mousemove', (e) => {
   draw();
 });
 
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  document.activeElement.blur();
+  const previousZoom = zoom;
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta));
+  const worldX = (cx - panX) / previousZoom;
+  const worldY = (cy - panY) / previousZoom;
+  panX = cx - worldX * zoom;
+  panY = cy - worldY * zoom;
+  draw();
+});
+
 canvas.addEventListener('mouseup', () => {
   isPanning = false;
 });
@@ -1135,7 +1276,6 @@ canvas.addEventListener('mouseleave', () => {
 });
 
 // Init
-setMode('insert');
 window.addEventListener('resize', resizeCanvas);
 
 // Allow Enter key on inputs
@@ -1187,7 +1327,7 @@ function makeResizer(resizerId, panelId, side) {
 makeResizer('resizer-left',  'panel-left',  'left');
 makeResizer('resizer-right', 'panel-right', 'right');
 // Wait for fonts then resize
-document.fonts.ready.then(() => { resizeCanvas(); loadPreset('balanced'); });
+document.fonts.ready.then(() => { resizeCanvas(); initSimulation(); });
 </script>
 </body>
 </html>

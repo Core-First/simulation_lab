@@ -397,6 +397,7 @@
     <div class="sim-header">
       <h2>Live Simulation</h2>
       <div class="sim-controls">
+        <button class="load-preset" onclick="loadCurrentSimulation()">Load Current Tree</button>
         <button class="load-preset" onclick="loadPreset()">Load Balanced Tree</button>
         <div class="input-group">
           <input type="number" id="delete-value" placeholder="Value" min="1" max="99" />
@@ -430,6 +431,10 @@ const canvas = document.getElementById('bst-canvas');
 const ctx = canvas.getContext('2d');
 const R = 22;
 const V_GAP = 70;
+let zoom = 1;
+const MIN_ZOOM = 0.7;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.08;
 let hoveredNode = null;
 
 function resizeCanvas() {
@@ -459,7 +464,10 @@ function layoutTree() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.setTransform(zoom, 0, 0, zoom, 0, 0);
   if (!root) {
+    ctx.restore();
     ctx.fillStyle = '#30363d';
     ctx.font = "14px 'Sora', sans-serif";
     ctx.textAlign = 'center';
@@ -468,6 +476,7 @@ function draw() {
   }
   drawEdges(root);
   drawNodes(root);
+  ctx.restore();
 }
 
 function drawEdges(node) {
@@ -547,6 +556,52 @@ function insert(node, val) {
   return node;
 }
 
+const STORAGE_KEY = 'sim10-bst-tree';
+
+function serializeTree(node) {
+  if (!node) return null;
+  return {
+    val: node.val,
+    left: serializeTree(node.left),
+    right: serializeTree(node.right)
+  };
+}
+
+function deserializeTree(data) {
+  if (!data) return null;
+  const node = new BSTNode(data.val);
+  node.left = deserializeTree(data.left);
+  node.right = deserializeTree(data.right);
+  return node;
+}
+
+function saveCurrentSimulation() {
+  if (!root) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTree(root)));
+}
+
+function loadCurrentSimulation() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    log('No current simulation found. Load a tree or preset.');
+    return false;
+  }
+  try {
+    root = deserializeTree(JSON.parse(stored));
+    clearHighlights(root);
+    layoutTree();
+    draw();
+    log('Current simulation loaded');
+    return true;
+  } catch (err) {
+    log('Unable to load current simulation');
+    return false;
+  }
+}
+
 function deleteNode(node, val) {
   if (node === null) return null;
   if (val < node.val) node.left = deleteNode(node.left, val);
@@ -584,8 +639,12 @@ function deleteAndVisualize() {
   const after = countNodes(root);
   layoutTree();
   draw();
-  if (before !== after) log(`Deleted ${val}. Tree now has ${after} nodes.`);
-  else log(`Value ${val} not found in tree.`);
+  if (before !== after) {
+    saveCurrentSimulation();
+    log(`Deleted ${val}. Tree now has ${after} nodes.`);
+  } else {
+    log(`Value ${val} not found in tree.`);
+  }
   input.value = '';
 }
 
@@ -594,6 +653,7 @@ function loadPreset() {
   [50, 25, 75, 12, 37, 62, 87].forEach(v => { root = insert(root, v); });
   layoutTree();
   draw();
+  saveCurrentSimulation();
   log('Balanced tree loaded with values: 50, 25, 75, 12, 37, 62, 87');
 }
 
@@ -633,14 +693,24 @@ canvas.addEventListener('mousemove', (e) => {
   }
 });
 
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + (e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP)));
+  draw();
+});
+
 canvas.addEventListener('mouseleave', () => {
   hoveredNode = null;
   draw();
 });
 
+window.addEventListener('storage', () => { loadCurrentSimulation(); });
+
 function getNodeAtPoint(x, y, node = root) {
   if (!node) return null;
-  const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+  const tx = x / zoom;
+  const ty = y / zoom;
+  const dist = Math.sqrt((tx - node.x) ** 2 + (ty - node.y) ** 2);
   if (dist <= R * 1.4) return node;
   const left = getNodeAtPoint(x, y, node.left);
   if (left) return left;
@@ -648,7 +718,7 @@ function getNodeAtPoint(x, y, node = root) {
 }
 
 window.addEventListener('resize', resizeCanvas);
-document.fonts.ready.then(() => { resizeCanvas(); });
+document.fonts.ready.then(() => { resizeCanvas(); loadCurrentSimulation(); });
 </script>
 </body>
 </html>
