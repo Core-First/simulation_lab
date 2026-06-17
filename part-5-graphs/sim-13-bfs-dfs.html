@@ -1,186 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Graphs – BFS / DFS</title>
-    <link href="/assets/css/main.css" rel="stylesheet">
-    <style>
-        body { font-family: system-ui, Arial, sans-serif; padding: 16px; }
-        #controls { margin-bottom: 12px; }
-        canvas { border: 1px solid #ccc; background: #0f172a; display:block; margin:0 auto }
-        .btn { margin-right:8px }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BFS / DFS – Part 5 | ATC SimLab</title>
+  <meta name="description" content="Interactive BFS and DFS visualisation with step-by-step Canvas animation, traversal order, and AI assistant." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
 </head>
-<body>
-    <h2>Graph Traversals — BFS & DFS</h2>
-    <div id="controls">
-        <button id="genBtn" class="btn">Generate Graph</button>
-        <button id="bfsBtn" class="btn">Run BFS</button>
-        <button id="dfsBtn" class="btn">Run DFS</button>
-        <button id="resetBtn" class="btn">Reset</button>
-        <label style="margin-left:12px">Nodes: <input id="nodesCount" type="number" min="3" max="20" value="8" style="width:60px"></label>
-    </div>
+<body class="sim-page">
 
-    <canvas id="graphCanvas" width="900" height="500"></canvas>
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-sitemap text-primary me-2"></i> BFS & DFS Graph Traversal
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <a href="index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Graphs
+        </a>
+      </div>
+    </header>
 
-    <script src="/assets/js/utils.js"></script>
+    <div class="sim-body">
+      <!-- Left Panel: Canvas & Info -->
+      <div class="left-panel">
+        <div class="panel-title">
+          <i class="fa-solid fa-diagram-project text-info me-1"></i> Interactive Graph Canvas
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 320px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px;">
+          <div id="controls" style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface);">
+            <button id="genBtn" class="btn btn-sm btn-outline-primary">Generate</button>
+            <button id="playBtn" class="btn btn-sm btn-primary">Play</button>
+            <button id="pauseBtn" class="btn btn-sm btn-secondary" disabled>Pause</button>
+            <button id="bfsBtn" class="btn btn-sm btn-info">BFS</button>
+            <button id="dfsBtn" class="btn btn-sm btn-warning">DFS</button>
+            <label class="ms-auto d-flex align-items-center gap-2">
+              <span style="font-size: 12px; color: var(--muted);">Nodes:</span>
+              <input id="nodesCount" type="number" min="3" max="20" value="8" class="form-control form-control-sm" style="width: 70px;" />
+            </label>
+          </div>
+          <canvas id="graphCanvas" style="width: 100%; height: 280px; display: block; background: #0a0e27;"></canvas>
+        </div>
 
-    <script>
-        // Simple graph visualizer with BFS/DFS animations
-        class GraphVisualizer {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
-                this.ctx = this.canvas.getContext('2d');
-                this.nodes = []; // {x,y,label}
-                this.adj = new Map(); // label -> [{to,weight}]
-                this.nodeRadius = 18;
-                this.colors = { default: '#0ea5a4', visited: '#f97316', frontier: '#eab308', path: '#34d399' };
-                this.running = false;
-            }
+        <div class="panel-title" style="margin-top: 16px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 12px;">
+            <strong>BFS (Breadth-First Search)</strong> explores neighbors layer by layer using a queue. Best for shortest path in unweighted graphs and level-order traversal.
+          </p>
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 12px;">
+            <strong>DFS (Depth-First Search)</strong> explores as deep as possible using recursion or a stack. Useful for connectivity, topological sorting, and backtracking problems.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">Unweighted</span>
+            <span class="badge bg-secondary">Graph Traversal</span>
+          </div>
+          <div class="comparison-stats">
+            <span>Time: <strong class="text-white">O(V+E)</strong></span>
+            <span>Space: <strong class="text-white">O(V)</strong></span>
+          </div>
+        </div>
 
-            clear() {
-                this.nodes = [];
-                this.adj.clear();
-                this.draw();
-            }
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> AI Assistant
+          </div>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted);">
+            Ask me about BFS, DFS, or graph traversal concepts!
+          </div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., When to use DFS?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
 
-            generate(n = 8) {
-                this.clear();
-                const w = this.canvas.width, h = this.canvas.height;
-                for (let i = 0; i < n; i++) {
-                    const angle = (i / n) * Math.PI * 2;
-                    const cx = w/2 + Math.cos(angle) * Math.min(w,h)/3.2;
-                    const cy = h/2 + Math.sin(angle) * Math.min(w,h)/3.2;
-                    this.nodes.push({x: cx, y: cy, label: i});
-                    this.adj.set(i, []);
-                }
+      <!-- Right Panel: Controls & Statistics -->
+      <div class="right-panel">
+        <div class="panel-card">
+          <div class="panel-title">Traversal Output</div>
+          <div id="traversal-strip" style="min-height: 80px; padding: 12px; background: var(--surface-2); border-radius: 6px; border: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; color: var(--muted); overflow-y: auto; max-height: 120px;">
+            <span style="color: var(--muted);">Traversal order will appear here</span>
+          </div>
+        </div>
 
-                // random edges (undirected)
-                for (let i=0;i<n;i++){
-                    for (let j=i+1;j<n;j++){
-                        if (Math.random() < 0.28) {
-                            this.adj.get(i).push({to:j});
-                            this.adj.get(j).push({to:i});
-                        }
-                    }
-                }
+        <div class="panel-card" id="tour-stats" style="margin-top: 16px;">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-check"></i> Visited: <span id="statVisited" class="font-monospace text-white fw-bold">—</span></div>
+            <div class="stat-item"><i class="fa-solid fa-list"></i> Queue/Stack: <span id="statQueue" class="font-monospace text-white fw-bold">—</span></div>
+            <div class="stat-item"><i class="fa-solid fa-sitemap"></i> Algorithm: <span id="statAlgo" class="font-monospace text-white fw-bold">—</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+            <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#0ea5a4;border-radius:2px;"></div> Unvisited</div>
+            <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#eab308;border-radius:2px;"></div> Frontier</div>
+            <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f97316;border-radius:2px;"></div> Visited</div>
+          </div>
+        </div>
 
-                // Ensure connectedness: simple spanning chain
-                for (let i=1;i<n;i++){
-                    if (!this.adj.get(i).some(e=>e.to===i-1)){
-                        this.adj.get(i).push({to:i-1});
-                        this.adj.get(i-1).push({to:i});
-                    }
-                }
-
-                this.draw();
-            }
-
-            draw(highlight = new Map()){
-                const ctx = this.ctx;
-                ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-                // edges
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#94a3b8';
-                for (const [u, list] of this.adj.entries()){
-                    const nu = this.nodes[u];
-                    for (const e of list){
-                        const v = e.to;
-                        if (v <= u) continue; // draw once
-                        const nv = this.nodes[v];
-                        ctx.beginPath();
-                        ctx.moveTo(nu.x, nu.y);
-                        ctx.lineTo(nv.x, nv.y);
-                        ctx.stroke();
-                    }
-                }
-
-                // nodes
-                for (const node of this.nodes){
-                    const col = highlight.has(node.label) ? highlight.get(node.label) : this.colors.default;
-                    ctx.fillStyle = col;
-                    ctx.beginPath();
-                    ctx.arc(node.x, node.y, this.nodeRadius, 0, Math.PI*2);
-                    ctx.fill();
-
-                    ctx.fillStyle = '#04293a';
-                    ctx.font = '14px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(node.label, node.x, node.y);
-                }
-            }
-
-            async bfs(start = 0){
-                if (this.running) return;
-                this.running = true;
-                const q = [start];
-                const visited = new Set([start]);
-                const highlight = new Map();
-                highlight.set(start, this.colors.frontier);
-                this.draw(highlight);
-                while(q.length && this.running){
-                    const u = q.shift();
-                    highlight.set(u, this.colors.visited);
-                    this.draw(highlight);
-                    await sleep(450);
-                    for (const e of this.adj.get(u)){
-                        const v = e.to;
-                        if (!visited.has(v)){
-                            visited.add(v);
-                            q.push(v);
-                            highlight.set(v, this.colors.frontier);
-                            this.draw(highlight);
-                            await sleep(250);
-                        }
-                    }
-                }
-                this.running = false;
-            }
-
-            async dfs(start = 0){
-                if (this.running) return;
-                this.running = true;
-                const visited = new Set();
-                const highlight = new Map();
-                const self = this;
-
-                async function visit(u){
-                    if (!self.running) return;
-                    visited.add(u);
-                    highlight.set(u, self.colors.visited);
-                    self.draw(highlight);
-                    await sleep(450);
-                    for (const e of self.adj.get(u)){
-                        const v = e.to;
-                        if (!visited.has(v)){
-                            highlight.set(v, self.colors.frontier);
-                            self.draw(highlight);
-                            await sleep(220);
-                            await visit(v);
-                        }
-                    }
-                }
-
-                await visit(start);
-                this.running = false;
-            }
+        <div class="panel-card" style="margin-top: 16px;">
+          <div class="panel-title">C Implementation</div>
+          <div style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">
+            Download and compile the C source locally for step-by-step CLI tracing.
+          </div>
+          <div class="d-flex gap-2 mb-2">
+            <a href="graph_visualizer.c" download class="btn btn-sm btn-outline-primary">
+              <i class="fa-solid fa-download me-1"></i> Download C source
+            </a>
+          </div>
+          <pre style="background: #071223; color: #cfe8ff; padding: 8px; border-radius: 6px; overflow: auto; font-size: 11px; margin: 0;">// BFS snippet (C)
+void run_bfs(AdjList *G, int n, int s){
+    int *q = malloc(sizeof(int)*n);
+    int qh=0, qt=0; int *vis = calloc(n,sizeof(int));
+    q[qt++] = s; vis[s]=1;
+    while(qh<qt){
+        int u=q[qh++]; printf(" visit %d\n", u);
+        for(int k=0;k<G[u].count;k++){
+            int v=G[u].edges[k].to;
+            if(!vis[v]){ vis[v]=1; q[qt++]=v; }
         }
+    }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // Helpers
-        function $(id){return document.getElementById(id)}
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/sim-audio.js"></script>
+  <script src="../assets/js/ai-assistant.js"></script>
 
-        const gv = new GraphVisualizer('graphCanvas');
-        gv.generate(parseInt($('#nodesCount').value,10));
+  <script>
+    // GraphVisualizer: inline graph visualization with BFS/DFS
+    class GraphVisualizer {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.nodes = [];
+        this.adj = new Map();
+        this.nodeRadius = 18;
+        this.colors = { default: '#0ea5a4', visited: '#f97316', frontier: '#eab308' };
+        this.running = false;
+      }
 
-        $('#genBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
-        $('#bfsBtn').addEventListener('click', ()=> gv.bfs(0));
-        $('#dfsBtn').addEventListener('click', ()=> gv.dfs(0));
-        $('#resetBtn').addEventListener('click', ()=> gv.generate(parseInt($('#nodesCount').value,10)));
+      clear() {
+        this.nodes = [];
+        this.adj.clear();
+        this.draw();
+      }
 
-        // small sleep wrapper uses utils.sleep if available
-        async function sleep(ms){ if (window.utils && window.utils.sleep) return window.utils.sleep(ms); return new Promise(r=>setTimeout(r,ms)); }
-    </script>
+      generate(n = 8) {
+        this.clear();
+        const w = this.canvas.width = this.canvas.parentElement.clientWidth;
+        const h = this.canvas.height = 280;
+        for (let i = 0; i < n; i++) {
+          const angle = (i / n) * Math.PI * 2;
+          const cx = w / 2 + Math.cos(angle) * Math.min(w, h) / 3.2;
+          const cy = h / 2 + Math.sin(angle) * Math.min(w, h) / 3.2;
+          this.nodes.push({ x: cx, y: cy, label: i });
+          this.adj.set(i, []);
+        }
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            if (Math.random() < 0.28) {
+              this.adj.get(i).push(j);
+              this.adj.get(j).push(i);
+            }
+          }
+        }
+        for (let i = 1; i < n; i++) {
+          if (!this.adj.get(i).some(e => e === i - 1)) {
+            this.adj.get(i).push(i - 1);
+            this.adj.get(i - 1).push(i);
+          }
+        }
+        this.draw();
+      }
+
+      draw(highlight = new Map()) {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#94a3b8';
+        for (const [u, list] of this.adj.entries()) {
+          const nu = this.nodes[u];
+          for (const v of list) {
+            if (v <= u) continue;
+            const nv = this.nodes[v];
+            ctx.beginPath();
+            ctx.moveTo(nu.x, nu.y);
+            ctx.lineTo(nv.x, nv.y);
+            ctx.stroke();
+          }
+        }
+        for (const node of this.nodes) {
+          const col = highlight.has(node.label) ? highlight.get(node.label) : this.colors.default;
+          ctx.fillStyle = col;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, this.nodeRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#04293a';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(node.label, node.x, node.y);
+        }
+      }
+
+      async bfs(start = 0) {
+        if (this.running) return;
+        this.running = true;
+        document.getElementById('statAlgo').textContent = 'BFS';
+        const q = [start];
+        const visited = new Set([start]);
+        const highlight = new Map();
+        const order = [];
+        highlight.set(start, this.colors.frontier);
+        this.draw(highlight);
+        while (q.length && this.running) {
+          const u = q.shift();
+          highlight.set(u, this.colors.visited);
+          order.push(u);
+          this.draw(highlight);
+          document.getElementById('statVisited').textContent = visited.size;
+          document.getElementById('statQueue').textContent = q.length;
+          document.getElementById('traversal-strip').textContent = 'Order: ' + order.join(' → ');
+          await sleep(420);
+          for (const v of this.adj.get(u)) {
+            if (!visited.has(v)) {
+              visited.add(v);
+              q.push(v);
+              highlight.set(v, this.colors.frontier);
+              this.draw(highlight);
+              await sleep(220);
+            }
+          }
+        }
+        this.running = false;
+      }
+
+      async dfs(start = 0) {
+        if (this.running) return;
+        this.running = true;
+        document.getElementById('statAlgo').textContent = 'DFS';
+        const visited = new Set();
+        const highlight = new Map();
+        const order = [];
+        const self = this;
+        async function visit(u) {
+          if (!self.running) return;
+          visited.add(u);
+          highlight.set(u, self.colors.visited);
+          order.push(u);
+          self.draw(highlight);
+          document.getElementById('statVisited').textContent = visited.size;
+          document.getElementById('traversal-strip').textContent = 'Order: ' + order.join(' → ');
+          await sleep(420);
+          for (const v of self.adj.get(u)) {
+            if (!visited.has(v)) {
+              highlight.set(v, self.colors.frontier);
+              self.draw(highlight);
+              await sleep(220);
+              await visit(v);
+            }
+          }
+        }
+        await visit(start);
+        this.running = false;
+      }
+    }
+
+    function $(id) { return document.getElementById(id); }
+
+    const gv = new GraphVisualizer('graphCanvas');
+    function init() { gv.generate(parseInt($('nodesCount').value, 10)); }
+    init();
+
+    $('genBtn').addEventListener('click', () => {
+      gv.generate(parseInt($('nodesCount').value, 10));
+      document.getElementById('statVisited').textContent = '—';
+      document.getElementById('statQueue').textContent = '—';
+      document.getElementById('statAlgo').textContent = '—';
+      document.getElementById('traversal-strip').textContent = 'Traversal order will appear here';
+    });
+
+    $('bfsBtn').addEventListener('click', async () => { await gv.bfs(0); });
+    $('dfsBtn').addEventListener('click', async () => { await gv.dfs(0); });
+    $('playBtn').addEventListener('click', async () => {
+      $('playBtn').disabled = true;
+      $('pauseBtn').disabled = false;
+      gv.generate(parseInt($('nodesCount').value, 10));
+      await sleep(300);
+      await gv.bfs(0);
+      if (gv.running) {
+        await sleep(500);
+        await gv.dfs(0);
+      }
+      $('playBtn').disabled = false;
+      $('pauseBtn').disabled = true;
+    });
+
+    $('pauseBtn').addEventListener('click', () => {
+      gv.running = false;
+      $('playBtn').disabled = false;
+      $('pauseBtn').disabled = true;
+    });
+
+    // AI assistant wiring
+    let assistant = null;
+    function ensureAssistant() { if (window.AIAssistant && !assistant) assistant = new AIAssistant(); }
+    $('aiSend').addEventListener('click', async () => {
+      ensureAssistant();
+      const q = $('aiInput').value.trim();
+      if (!q) return;
+      $('aiInput').value = '';
+      $('aiResponse').textContent = 'Thinking...';
+      const ans = assistant ? await assistant.getHint({ algorithm: 'graph', query: q }) : 'AI assistant not available.';
+      $('aiResponse').textContent = ans;
+    });
+
+    async function sleep(ms) {
+      if (window.utils && window.utils.sleep) return window.utils.sleep(ms);
+      return new Promise(r => setTimeout(r, ms));
+    }
+  </script>
+
 </body>
 </html>

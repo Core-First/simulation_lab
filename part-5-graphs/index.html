@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Graph Algorithms - DSA Practical Guide</title>
-  <link href="../../assets/css/main.css" rel="stylesheet">
-  <link href="../../assets/css/simulation-base.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="../assets/css/simulation-base.css" rel="stylesheet">
+  <link href="../assets/css/main.css" rel="stylesheet">
 </head>
-<body>
+<body class="sim-page">
   <!-- Header Bar -->
   <header class="topbar">
     <div class="page-title">
@@ -26,66 +26,78 @@
   </header>
 
   <div class="container-fluid mt-4">
-    
     <div class="row">
       <div class="col-md-8">
-        <div class="simulation-container">
-          <div class="canvas-wrapper">
-            <canvas id="graphCanvas" width="800" height="400"></canvas>
-          </div>
-          <div class="controls-panel">
-            <div class="control-group">
-              <label for="algorithm">Algorithm:</label>
-              <select id="algorithm">
-                <option value="bfs">Breadth-First Search (BFS)</option>
-                <option value="dfs">Depth-First Search (DFS)</option>
-                <option value="dijkstra">Dijkstra\'s Algorithm</option>
-              </select>
-            </div>
-            <div class="control-group">
-              <label for="startNode">Start Node:</label>
-              <input type="number" id="startNode" min="0" max="9" value="0">
-            </div>
-            <div class="control-group">
-              <label for="speed">Speed:</label>
-              <input type="range" id="speed" min="1" max="10" value="5">
-            </div>
-            <button class="btn btn-primary" id="startBtn">Start Algorithm</button>
-            <button class="btn btn-outline-secondary" id="resetBtn">Reset</button>
-            <button class="btn btn-outline-secondary" id="newGraphBtn">New Graph</button>
-          </div>
-          <div class="ai-panel">
-            <h3>AI Assistant</h3>
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="input-group">
-              <input type="text" id="userInput" placeholder="Ask for a hint...">
-              <button class="btn btn-success" id="sendBtn">Send</button>
-            </div>
+        <div class="panel-card">
+          <div class="panel-title">Overview</div>
+          <p class="small text-muted">This section groups interactive visualizations for core graph algorithms used in the ATC SimLab: Breadth-First Search (BFS), Depth-First Search (DFS), and Dijkstra's shortest-path algorithm. Each simulation is a standalone HTML page that uses the shared project helpers in <code>assets/js</code> and the common styles in <code>assets/css</code>.</p>
+        </div>
+
+        <div class="panel-card mt-3">
+          <div class="panel-title">Algorithms</div>
+          <ul>
+            <li><strong>BFS</strong> — level-order traversal for unweighted graphs; discovers shortest path in number of edges.</li>
+            <li><strong>DFS</strong> — depth-first traversal useful for connectivity, topological order (with modifications), and backtracking.</li>
+            <li><strong>Dijkstra</strong> — single-source shortest paths for non-negative weighted graphs.</li>
+          </ul>
+        </div>
+
+        <div class="panel-card mt-3">
+          <div class="panel-title">Quick Links</div>
+          <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-primary" href="sim-13-bfs-dfs.html">Open BFS / DFS Simulation</a>
+            <a class="btn btn-outline-primary" href="sim-14-dijkstra.html">Open Dijkstra Simulation</a>
           </div>
         </div>
+
+        <div class="panel-card mt-3">
+          <div class="panel-title">How to Use</div>
+          <ol class="small text-muted">
+            <li>Open a simulation (BFS/DFS or Dijkstra) using the links above.</li>
+            <li>Use the <em>Generate</em> control to create a random graph.</li>
+            <li>Choose an algorithm control (BFS / DFS / Run Dijkstra) and start the animation using <em>Play</em> or step through with <em>Step</em>.</li>
+            <li>Use the AI Assistant panel in each simulation to request hints or explanations; the assistant uses a local static hint generator in <code>assets/js/ai-assistant.js</code>.</li>
+          </ol>
+        </div>
+
       </div>
       <div class="col-md-4">
-        <div class="card">
-          <h5>Graph Info</h5>
-          <div id="graphInfo">
-            <p>Currently displaying: Undirected, Unweighted Graph</p>
-          </div>
+        <div class="panel-card">
+          <div class="panel-title">Implementation Notes</div>
+          <ul class="small text-muted">
+            <li>Visual drawing is implemented with the Canvas API in <code>assets/js/visualizer-core.js</code>.</li>
+            <li>Shared utilities (timers, sleep, generators) live in <code>assets/js/utils.js</code>.</li>
+            <li>Each simulation is intentionally standalone (no bundler). Use relative paths to include shared assets.</li>
+          </ul>
         </div>
-        <div class="card mt-3">
-          <h5>Steps</h5>
-          <div id="stepsInfo">
-            <p>Visited: --</p>
-            <p>Queue/Stack: --</p>
-            <p>Distances: --</p>
-          </div>
+
+        <div class="panel-card mt-3">
+          <div class="panel-title">Run / Test Locally</div>
+          <p class="small text-muted">This is a static site — run a local HTTP server from the repository root to avoid local file restrictions:</p>
+          <pre class="small">python -m http.server 8000</pre>
+          <p class="small text-muted">Then open:</p>
+          <ul class="small">
+            <li><a href="/part-5-graphs/sim-13-bfs-dfs.html">/part-5-graphs/sim-13-bfs-dfs.html</a></li>
+            <li><a href="/part-5-graphs/sim-14-dijkstra.html">/part-5-graphs/sim-14-dijkstra.html</a></li>
+          </ul>
         </div>
+
+        <div class="panel-card mt-3">
+          <div class="panel-title">Limitations & Accessibility</div>
+          <ul class="small text-muted">
+            <li>Graphs are randomly generated and small (up to 20 nodes) for readability and performance.</li>
+            <li>Dijkstra visualization assumes non-negative weights and highlights distances; very large graphs may be slow on low-end devices.</li>
+            <li>Keyboard navigation and ARIA labels are minimal; consider adding textual step logs for screen readers in future work.</li>
+          </ul>
+        </div>
+
       </div>
     </div>
   </div>
   
-  <script src="../../assets/js/utils.js"></script>
-  <script src="../../assets/js/visualizer-core.js"></script>
-  <script src="../../assets/js/ai-assistant.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/visualizer-core.js"></script>
+  <script src="../assets/js/ai-assistant.js"></script>
   <script>
     // Initialize the visualizer and AI assistant
     const visualizer = new window.visualizer.ArrayVisualizer('graphCanvas'); // We'll use a custom drawing approach
@@ -368,7 +380,8 @@
       }
     });
   </script>
-  <script src="../../assets/js/theme-toggle.js"></script>
-  <script src="../../assets/js/sim-audio.js"></script>
+  <script src="../assets/js/theme-toggle.js"></script>
+  <script src="../assets/js/sim-audio.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
