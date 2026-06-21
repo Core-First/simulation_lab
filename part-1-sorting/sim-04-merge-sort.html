@@ -294,16 +294,44 @@
     if(!n)return;
 
     const gap=6;
-    const boxSize=Math.max(26, Math.min(64, Math.floor((W-20)/n) - gap));
-    const totalW=n*(boxSize+gap)-gap;
-    const sx=(W-totalW)/2;
-    const sy=(H-boxSize)/2 - 15;
-    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    
+    // Find optimal box size that fits the grid both horizontally and vertically
+    let boxSize = 60;
+    let cols = 1;
+    let numRows = 1;
+    let totalHeight = 0;
+    while (boxSize > 24) {
+      cols = Math.max(1, Math.floor((W - 20) / (boxSize + gap)));
+      numRows = Math.ceil(n / cols);
+      // We need extra vertical room for brackets underneath each row
+      const rowHeight = boxSize + 22; // 22px for brackets and depth text
+      totalHeight = numRows * rowHeight + (numRows - 1) * gap;
+      if (totalHeight <= H - 20) {
+        break;
+      }
+      boxSize--;
+    }
+    
+    const sy = (H - totalHeight) / 2;
+    const fs = Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    const s = state;
+
+    // Helper to compute centered coordinates for element at index k
+    function getCoords(k) {
+      const r = Math.floor(k / cols);
+      const c = k % cols;
+      const numItemsInRow = (r === numRows - 1) ? (n - r * cols) : cols;
+      const sx = (W - (numItemsInRow * (boxSize + gap) - gap)) / 2;
+      const x = sx + c * (boxSize + gap);
+      const rowHeight = boxSize + 22;
+      const y = sy + r * (rowHeight + gap) + 2; // leave 2px at top
+      return { x, y };
+    }
 
     const activeRange=state&&(state.lo!=null)?new Set(Array.from({length:state.hi-state.lo+1},(_,i)=>state.lo+i)):new Set();
 
     for(let k=0;k<n;k++){
-      const x=sx+k*(boxSize+gap), y=sy;
+      const { x, y } = getCoords(k);
       let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
 
       if(state){
@@ -330,21 +358,34 @@
     }
 
     if(state&&state.lo!=null&&state.hi!=null&&state.t!=='done'){
-      const x1=sx+state.lo*(boxSize+gap)-gap/2;
-      const x2=sx+state.hi*(boxSize+gap)+boxSize+gap/2;
-      const bracketY=sy+boxSize+10;
-      ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=2;
-      ctx.beginPath();
-      ctx.moveTo(x1,bracketY);
-      ctx.lineTo(x1,bracketY+8);
-      ctx.lineTo(x2,bracketY+8);
-      ctx.lineTo(x2,bracketY);
-      ctx.stroke();
+      const midIdx = Math.floor((state.lo + state.hi) / 2);
+      const midRow = Math.floor(midIdx / cols);
 
-      if(state.depth!=null){
-        ctx.fillStyle='rgba(167,139,250,.7)';ctx.font='11px Segoe UI';
-        ctx.textAlign='center';ctx.textBaseline='top';
-        ctx.fillText(`depth = ${state.depth}`,(x1+x2)/2,bracketY+12);
+      for (let r = 0; r < numRows; r++) {
+        const rowStartIdx = Math.max(state.lo, r * cols);
+        const rowEndIdx = Math.min(state.hi, (r + 1) * cols - 1);
+        if (rowStartIdx <= rowEndIdx) {
+          const coordsStart = getCoords(rowStartIdx);
+          const coordsEnd = getCoords(rowEndIdx);
+          const x1 = coordsStart.x - gap / 2;
+          const x2 = coordsEnd.x + boxSize + gap / 2;
+          const bracketY = coordsStart.y + boxSize + 6;
+          
+          ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=2;
+          ctx.beginPath();
+          ctx.moveTo(x1,bracketY);
+          ctx.lineTo(x1,bracketY+6);
+          ctx.lineTo(x2,bracketY+6);
+          ctx.lineTo(x2,bracketY);
+          ctx.stroke();
+
+          // Draw depth text only under the row that contains the middle of the range
+          if (r === midRow && state.depth != null) {
+            ctx.fillStyle='rgba(167,139,250,.7)';ctx.font='11px Segoe UI';
+            ctx.textAlign='center';ctx.textBaseline='top';
+            ctx.fillText(`depth = ${state.depth}`,(x1+x2)/2,bracketY+10);
+          }
+        }
       }
     }
   }

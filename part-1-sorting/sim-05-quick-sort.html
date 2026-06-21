@@ -301,29 +301,66 @@
     if(!n)return;
 
     const gap=6;
-    const boxSize=Math.max(26, Math.min(64, Math.floor((W-20)/n) - gap));
-    const totalW=n*(boxSize+gap)-gap;
-    const sx=(W-totalW)/2;
-    const sy=(H-boxSize)/2 - 10;
-    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
-    const s=state;
-    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
     
-    // Active range background highlight
+    // Find optimal box size that fits the grid both horizontally and vertically
+    let boxSize = 60;
+    let cols = 1;
+    let numRows = 1;
+    let totalHeight = 0;
+    while (boxSize > 24) {
+      cols = Math.max(1, Math.floor((W - 20) / (boxSize + gap)));
+      numRows = Math.ceil(n / cols);
+      // We need a tiny bit of extra room for partition range highlights (10px padding top/bottom)
+      const rowHeight = boxSize + 20; 
+      totalHeight = numRows * rowHeight + (numRows - 1) * gap;
+      if (totalHeight <= H - 20) {
+        break;
+      }
+      boxSize--;
+    }
+    
+    const sy = (H - totalHeight) / 2;
+    const fs = Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    const s = state;
+    const ep = easeOut(Math.min(1.0, Math.max(0.0, t)));
+
+    // Helper to compute centered coordinates for element at index k
+    function getCoords(k) {
+      const r = Math.floor(k / cols);
+      const c = k % cols;
+      const numItemsInRow = (r === numRows - 1) ? (n - r * cols) : cols;
+      const sx = (W - (numItemsInRow * (boxSize + gap) - gap)) / 2;
+      const x = sx + c * (boxSize + gap);
+      const rowHeight = boxSize + 20;
+      const y = sy + r * (rowHeight + gap) + 10; // leave 10px for the border outline
+      return { x, y };
+    }
+    
+    // Active range background highlight (drawn for each row segment)
     if(s && s.lo!=null && s.hi!=null && s.t!=='done'){
-      const ax=sx+s.lo*(boxSize+gap)-gap/2;
-      const aw=(s.hi-s.lo+1)*(boxSize+gap);
-      ctx.fillStyle='rgba(167,139,250,0.06)';
-      ctx.beginPath();
-      ctx.roundRect(ax, sy-10, aw, boxSize+20, 8);
-      ctx.fill();
-      ctx.strokeStyle='rgba(167,139,250,0.35)';
-      ctx.lineWidth=1.5;
-      ctx.setLineDash([4,4]);
-      ctx.beginPath();
-      ctx.roundRect(ax, sy-10, aw, boxSize+20, 8);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      for (let r = 0; r < numRows; r++) {
+        const rowStartIdx = Math.max(s.lo, r * cols);
+        const rowEndIdx = Math.min(s.hi, (r + 1) * cols - 1);
+        if (rowStartIdx <= rowEndIdx) {
+          const coordsStart = getCoords(rowStartIdx);
+          const coordsEnd = getCoords(rowEndIdx);
+          const x1 = coordsStart.x - gap / 2;
+          const x2 = coordsEnd.x + boxSize + gap / 2;
+          const y1 = coordsStart.y - 10;
+          
+          ctx.fillStyle='rgba(167,139,250,0.06)';
+          ctx.beginPath();
+          ctx.roundRect(x1, y1, x2 - x1, boxSize+20, 8);
+          ctx.fill();
+          ctx.strokeStyle='rgba(167,139,250,0.35)';
+          ctx.lineWidth=1.5;
+          ctx.setLineDash([4,4]);
+          ctx.beginPath();
+          ctx.roundRect(x1, y1, x2 - x1, boxSize+20, 8);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
     }
 
     const isSwapping = s && (s.t==='swap' || s.t==='swap-pvt');
@@ -331,7 +368,7 @@
     // Draw static slots
     for(let k=0;k<n;k++){
       if(isSwapping && (k===s.a || k===s.b)) continue;
-      const x=sx+k*(boxSize+gap), y=sy;
+      const { x, y } = getCoords(k);
       let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
 
       if(s){
@@ -356,13 +393,15 @@
     // Draw swapping slots
     if(isSwapping){
       const a = s.a, b = s.b;
-      const x_a_start = sx + b * (boxSize + gap);
-      const x_a_end   = sx + a * (boxSize + gap);
-      const x_b_start = sx + a * (boxSize + gap);
-      const x_b_end   = sx + b * (boxSize + gap);
+      const pos_a_start = getCoords(b);
+      const pos_a_end   = getCoords(a);
+      const pos_b_start = getCoords(a);
+      const pos_b_end   = getCoords(b);
       
-      const x_a = lerpN(x_a_start, x_a_end, ep);
-      const x_b = lerpN(x_b_start, x_b_end, ep);
+      const x_a = lerpN(pos_a_start.x, pos_a_end.x, ep);
+      const y_a = lerpN(pos_a_start.y, pos_a_end.y, ep);
+      const x_b = lerpN(pos_b_start.x, pos_b_end.x, ep);
+      const y_b = lerpN(pos_b_start.y, pos_b_end.y, ep);
       
       const fill_a = (a===s.pvtIdx) ? '#24080c' : '#1c1000';
       const border_a = (a===s.pvtIdx) ? '#ef4444' : '#f59e0b';
@@ -376,8 +415,8 @@
       const glow_b = (b===s.pvtIdx) ? '#ef4444' : '#f59e0b';
       const glowSz_b = (b===s.pvtIdx) ? 14 : 12;
 
-      _box(x_a, sy, boxSize, fill_a, border_a, text_a, arr[a], fs, glow_a, glowSz_a);
-      _box(x_b, sy, boxSize, fill_b, border_b, text_b, arr[b], fs, glow_b, glowSz_b);
+      _box(x_a, y_a, boxSize, fill_a, border_a, text_a, arr[a], fs, glow_a, glowSz_a);
+      _box(x_b, y_b, boxSize, fill_b, border_b, text_b, arr[b], fs, glow_b, glowSz_b);
     }
   }
 

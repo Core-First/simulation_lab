@@ -324,19 +324,43 @@
     if(!n) return;
 
     const gap=8;
-    const boxSize=Math.max(26, Math.min(56, Math.floor((W-20)/n) - gap));
-    const totalW=n*(boxSize+gap)-gap;
-    const sx=(W-totalW)/2;
-    const rowY=Math.round(H*0.62);        // main row
-    const floatY=rowY-boxSize-22;         // floating key y
-    const fs=Math.max(10,Math.min(20,Math.floor(boxSize*0.44)));
-    const ep=easeOut(Math.min(1,Math.max(0,t)));
-    const s=state;
+    
+    // Find optimal box size that fits the grid both horizontally and vertically
+    let boxSize = 56;
+    let cols = 1;
+    let numRows = 1;
+    let totalHeight = 0;
+    while (boxSize > 20) {
+      cols = Math.max(1, Math.floor((W - 20) / (boxSize + gap)));
+      numRows = Math.ceil(n / cols);
+      // Each row needs space for the main box and the floating key box above it
+      const rowHeight = boxSize * 2 + 18;
+      totalHeight = numRows * rowHeight + (numRows - 1) * gap;
+      if (totalHeight <= H - 20) {
+        break;
+      }
+      boxSize--;
+    }
+    
+    const sy = (H - totalHeight) / 2;
+    const fs = Math.max(10, Math.min(20, Math.floor(boxSize * 0.44)));
+    const ep = easeOut(Math.min(1, Math.max(0, t)));
+    const s = state;
+
+    // Helper to compute coordinates for regular box (isKey = false) and floating key box (isKey = true)
+    function getCoords(k, isKey = false) {
+      const r = Math.floor(k / cols);
+      const c = k % cols;
+      const numItemsInRow = (r === numRows - 1) ? (n - r * cols) : cols;
+      const sx = (W - (numItemsInRow * (boxSize + gap) - gap)) / 2;
+      const x = sx + c * (boxSize + gap);
+      const rowHeight = boxSize * 2 + 18;
+      const rowY = sy + r * (rowHeight + gap) + boxSize + 12;
+      const y = isKey ? (rowY - boxSize - 12) : rowY;
+      return { x, y };
+    }
 
     // ── What's the current 'insertion-hole' ghost slot? ─────
-    // It starts at the pick position (s.key = i) and moves LEFT
-    // after each shift.  During 'cmp' j, hole is at j+1.
-    // During 'shift', hole animates from s.to → s.from.
     let ghostSlot = -1;
     if(s){
       if(s.t==='pick')  ghostSlot = s.key;
@@ -344,22 +368,36 @@
       else if(s.t==='shift') ghostSlot = s.from; // after shift completes
     }
 
-    // Animated ghost x (for shift: moves right-to-left)
-    let ghostX;
+    // Animated ghost coords
+    let ghostPos = null;
     if(s && s.t==='shift'){
-      ghostX = lerpN(sx+s.to*(boxSize+gap), sx+s.from*(boxSize+gap), ep);
+      const pos_to = getCoords(s.to);
+      const pos_from = getCoords(s.from);
+      ghostPos = {
+        x: lerpN(pos_to.x, pos_from.x, ep),
+        y: lerpN(pos_to.y, pos_from.y, ep)
+      };
     } else if(ghostSlot>=0){
-      ghostX = sx+ghostSlot*(boxSize+gap);
+      ghostPos = getCoords(ghostSlot);
     }
 
-    // Key hovers at ghost X
-    let keyX, keyY;
+    // Key position
+    let keyPos = null;
     if(s && (s.t==='pick'||s.t==='cmp'||s.t==='shift')){
-      keyX = ghostX;
-      keyY = (s.t==='pick') ? lerpN(rowY, floatY, ep) : floatY;
+      const startPos = getCoords(s.key, false);
+      const floatPos = ghostPos ? { x: ghostPos.x, y: getCoords(ghostSlot, true).y } : getCoords(s.key, true);
+      
+      keyPos = {
+        x: floatPos.x,
+        y: (s.t==='pick') ? lerpN(startPos.y, floatPos.y, ep) : floatPos.y
+      };
     } else if(s && s.t==='place'){
-      keyX = sx+s.pos*(boxSize+gap);
-      keyY = lerpN(floatY, rowY, ep);
+      const floatPos = getCoords(s.pos, true);
+      const destPos = getCoords(s.pos, false);
+      keyPos = {
+        x: destPos.x,
+        y: lerpN(floatPos.y, destPos.y, ep)
+      };
     }
 
     // ── Draw regular slots ──────────────────────────────────
@@ -373,82 +411,80 @@
       skipSlots.add(ghostSlot);
     }
 
-    // Draw animating shift element (slides right)
+    // Draw animating shift element
     if(s && s.t==='shift'){
-      const elemX = lerpN(sx+s.from*(boxSize+gap), sx+s.to*(boxSize+gap), ep);
-      _box(elemX,rowY,boxSize,'#241800','#fb923c','#fff',arr[s.to],fs,'#fb923c',14);
+      const pos_from = getCoords(s.from);
+      const pos_to = getCoords(s.to);
+      const elemX = lerpN(pos_from.x, pos_to.x, ep);
+      const elemY = lerpN(pos_from.y, pos_to.y, ep);
+      _box(elemX,elemY,boxSize,'#241800','#fb923c','#fff',arr[s.to],fs,'#fb923c',14);
     }
 
     // Draw animated ghost
-    if(ghostX!==undefined){
-      _ghost(ghostX, rowY, boxSize);
+    if(ghostPos){
+      _ghost(ghostPos.x, ghostPos.y, boxSize);
     }
 
     // Draw static slots
     for(let k=0;k<n;k++){
       if(skipSlots.has(k)) continue;
-      const kx=sx+k*(boxSize+gap);
+      const { x: kx, y: ky } = getCoords(k);
 
       // Default teal
       let fill='#0c2e2c',brd='#00bfa0',txt='#ccfff4',glow=null,gsz=0;
 
       if(s){
-        // SORTED → solid bright green fill
         if(s.t==='done'||(s.boundary&&k<s.boundary)){
           fill='#007a50';brd='#22c55e';txt='#ffffff';
         }
-        // Comparison target → amber glow
         if(s.t==='cmp'&&k===s.j){
           fill='#2a1600';brd='#f59e0b';txt='#fcd34d';glow='#f59e0b';gsz=14;
         }
-        // Placed → green fill with green glow
         if(s.t==='place'&&k===s.pos){
           fill='#007a50';brd='#22c55e';txt='#ffffff';glow='#22c55e';gsz=16;
         }
       }
-      _box(kx,rowY,boxSize,fill,brd,txt,arr[k],fs,glow,gsz);
+      _box(kx,ky,boxSize,fill,brd,txt,arr[k],fs,glow,gsz);
     }
 
     // ── Floating key (pick / cmp / shift) ──────────────────
-    if(s&&(s.t==='pick'||s.t==='cmp'||s.t==='shift')&&s.keyVal!=null){
-      _keyBox(keyX, keyY, boxSize, s.keyVal, fs);
-      // dashed connector
-      if(keyY<rowY-4){
+    if(s&&(s.t==='pick'||s.t==='cmp'||s.t==='shift')&&s.keyVal!=null && keyPos){
+      _keyBox(keyPos.x, keyPos.y, boxSize, s.keyVal, fs);
+      const targetY = getCoords(ghostSlot >= 0 ? ghostSlot : s.key).y;
+      if(keyPos.y < targetY - 4){
         ctx.strokeStyle='rgba(245,166,35,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-        ctx.beginPath();ctx.moveTo(keyX+boxSize/2,keyY+boxSize);
-        ctx.lineTo(keyX+boxSize/2,rowY);ctx.stroke();ctx.setLineDash([]);
+        ctx.beginPath();ctx.moveTo(keyPos.x+boxSize/2,keyPos.y+boxSize);
+        ctx.lineTo(keyPos.x+boxSize/2,targetY);ctx.stroke();ctx.setLineDash([]);
       }
     }
 
     // ── Key dropping during place ───────────────────────────
-    if(s&&s.t==='place'&&ep<1.0){
-      // Lerp colors from gold (key) to green (placed/sorted)
+    if(s&&s.t==='place'&&ep<1.0 && keyPos){
       const fillColor = lerpColor('#1c1000', '#007a50', ep);
       const borderColor = lerpColor('#f5a623', '#22c55e', ep);
       const textColor = '#ffffff';
-      
       const glowColor = lerpColor('#f5a623', '#22c55e', ep);
       const glowSize = lerpN(22, 16, ep);
       
-      // Draw key label fading out
       if(ep<0.8){
         ctx.save();
         ctx.globalAlpha=1-ep/0.8;
         ctx.fillStyle='#f5a623';ctx.font=`bold 11px 'Segoe UI',sans-serif`;
         ctx.textAlign='center';ctx.textBaseline='bottom';
-        ctx.fillText('key',keyX+boxSize/2,keyY-3);
+        ctx.fillText('key',keyPos.x+boxSize/2,keyPos.y-3);
         ctx.restore();
       }
       
-      _box(keyX, keyY, boxSize, fillColor, borderColor, textColor, s.keyVal != null ? s.keyVal : arr[s.pos], fs, glowColor, glowSize);
+      _box(keyPos.x, keyPos.y, boxSize, fillColor, borderColor, textColor, s.keyVal != null ? s.keyVal : arr[s.pos], fs, glowColor, glowSize);
     }
 
     // ── Boundary divider ────────────────────────────────────
     if(s&&s.boundary&&s.boundary<n&&s.t!=='done'){
-      const lx=sx+s.boundary*(boxSize+gap)-gap/2;
+      const pos = getCoords(s.boundary);
+      const lx = pos.x - gap / 2;
       ctx.shadowBlur=0;ctx.strokeStyle='rgba(167,139,250,0.5)';ctx.lineWidth=2;
       ctx.setLineDash([5,4]);
-      ctx.beginPath();ctx.moveTo(lx,rowY-14);ctx.lineTo(lx,rowY+boxSize+14);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(lx,pos.y-14);ctx.lineTo(lx,pos.y+boxSize+14);ctx.stroke();
       ctx.setLineDash([]);
     }
   }
