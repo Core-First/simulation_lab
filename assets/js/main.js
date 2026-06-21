@@ -1,26 +1,4 @@
-// Theme toggle
-const themeBtn = document.getElementById("themeToggle");
-const applyTheme = (theme) => {
-  if (theme === "light") {
-    document.body.classList.add("light-theme");
-    themeBtn.innerHTML =
-      '<i class="fa-solid fa-sun"></i><span>Light Mode</span>';
-  } else {
-    document.body.classList.remove("light-theme");
-    themeBtn.innerHTML =
-      '<i class="fa-solid fa-moon"></i><span>Dark Mode</span>';
-  }
-};
-applyTheme(localStorage.getItem("theme") || "dark");
-themeBtn.addEventListener("click", () => {
-  const next = document.body.classList.contains("light-theme")
-    ? "dark"
-    : "light";
-  localStorage.setItem("theme", next);
-  applyTheme(next);
-});
-
-// Sidebar active state (top-level links only � skip nested submenu links here)
+// Sidebar active state (top-level links only — skip nested submenu links here)
 document
   .querySelectorAll("nav > .nav-link-custom, .sidebar-footer .nav-link-custom")
   .forEach((link) => {
@@ -107,6 +85,16 @@ const simPaths = {
   "Simulation 3: Insertion Sort": "part-1-sorting/sim-03-insertion-sort.html",
   "Simulation 4: Merge Sort": "part-1-sorting/sim-04-merge-sort.html",
   "Simulation 5: Quick Sort": "part-1-sorting/sim-05-quick-sort.html",
+  "Simulation 6: Linear vs Binary Search": "part-2-searching/sim-06-linear-binary-search.html",
+  "Simulation 7: Hashing and Collision Resolution": "part-2-searching/sim-07-hashing-collision.html",
+  "Simulation 8: Singly Linked List Visualiser": "part-3-linear-data-structures/sim-08-singly-linked-list.html",
+  "Simulation 9: Stack and Queue Visualiser": "part-3-linear-data-structures/sim-09-stack-queue.html",
+  "Simulation 10: Binary Search Tree (BST) Visualiser":
+    "part-4-recursive-data-structures/sim-10-bst.html",
+  "Simulation 11: AVL Tree / Red-Black Tree":
+    "part-4-recursive-data-structures/sim-11-avl-red-black.html",
+  "Simulation 12: Heap / Priority Queue":
+    "part-4-recursive-data-structures/sim-12-heap-priority-queue.html",
   "Simulation 15: Dynamic Programming (Memoization)":
     "part-6-algorithm-design/sim-15-dp-memoization.html",
   "Simulation 16: Backtracking (N-Queens / Sudoku Solver)":
@@ -116,25 +104,25 @@ const simPaths = {
 const dsaRoot = document.querySelector("#dsaMenu .submenu");
 dsaData.forEach((p, i) => {
   const partId = `dsaPart${i}`;
-  const isReady = i === 0 || i == 5;
+  const isReady = i === 0 || i === 1 || i === 2 || i === 3 || i === 5;
   const li = document.createElement("li");
   li.innerHTML = `
-      <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
-        <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid" style="width:10px;height:10px;></span>' : ""}
-        <i class="fa-solid fa-chevron-right chev"></i>
-      </button>
-      <div class="collapse" id="${partId}"> 
-        <ul class="submenu">
-          ${p.sims
-            .map((s) => {
-              const href = simPaths[s] || "#";
-              const hasGlow = simPaths[s] && href !== "#";
-              return `<li><a href="${href}" class="sub-link">${hasGlow ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : '<i class="fa-solid fa-circle"></i>'} ${s}</a></li>`;
-            })
-            .join("")}
-        </ul>
-      </div>
-    `;
+    <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
+      <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : ""}
+      <i class="fa-solid fa-chevron-right chev"></i>
+    </button>
+    <div class="collapse" id="${partId}">
+      <ul class="submenu">
+        ${p.sims
+          .map((s) => {
+            const href = simPaths[s] || "#";
+            const hasGlow = simPaths[s] && href !== "#";
+            return `<li><a href="${href}" class="sub-link">${hasGlow ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : '<i class="fa-solid fa-circle"></i>'} ${s}</a></li>`;
+          })
+          .join("")}
+      </ul>
+    </div>
+  `;
   dsaRoot.appendChild(li);
 });
 

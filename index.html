@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -41,10 +41,122 @@
 
     <div class="sidebar-footer">
       <a href="#" class="nav-link-custom"><i class="fa-regular fa-circle-question"></i> Help & Support</a>
-      <a href="#" class="nav-link-custom"><i class="fa-solid fa-gear"></i> Settings</a>
+      <button class="nav-link-custom" id="settingsBtn" type="button">
+        <i class="fa-solid fa-gear"></i> Settings
+        <span id="settingsBadge" style="margin-left:auto; font-size:9px; padding:2px 7px; border-radius:99px; background:var(--primary); color:#fff; font-weight:700; display:none;">●</span>
+      </button>
     </div>
   </aside>
   <div class="backdrop" id="backdrop"></div>
+
+  <!-- ══ Settings Drawer ══════════════════════════════════════ -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-drawer" id="settingsDrawer" role="dialog" aria-modal="true" aria-label="Settings">
+
+      <!-- Header -->
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </div>
+        <button class="settings-close" id="settingsClose" aria-label="Close settings">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- ─ Appearance ─ -->
+      <div class="settings-section">
+        <div class="settings-section-label">
+          <i class="fa-solid fa-palette"></i> Appearance
+        </div>
+
+        <!-- Theme -->
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-title">Theme</span>
+            <span class="settings-row-desc" id="themeDesc">Dark mode active</span>
+          </div>
+          <div class="settings-theme-pills" id="themePills">
+            <button class="theme-pill active" id="pillDark" data-theme="dark">
+              <i class="fa-solid fa-moon"></i> Dark
+            </button>
+            <button class="theme-pill" id="pillLight" data-theme="light">
+              <i class="fa-solid fa-sun"></i> Light
+            </button>
+          </div>
+        </div>
+
+        <!-- Accent color -->
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-title">Accent Colour</span>
+            <span class="settings-row-desc">Highlights &amp; active states</span>
+          </div>
+          <div class="accent-swatches" id="accentSwatches">
+            <button class="accent-swatch active" data-color="#2563eb" style="background:#2563eb;" title="Blue" aria-label="Blue accent"></button>
+            <button class="accent-swatch" data-color="#8b5cf6" style="background:#8b5cf6;" title="Purple" aria-label="Purple accent"></button>
+            <button class="accent-swatch" data-color="#22c55e" style="background:#22c55e;" title="Green" aria-label="Green accent"></button>
+            <button class="accent-swatch" data-color="#f59e0b" style="background:#f59e0b;" title="Amber" aria-label="Amber accent"></button>
+            <button class="accent-swatch" data-color="#ef4444" style="background:#ef4444;" title="Red" aria-label="Red accent"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Audio ─ -->
+      <div class="settings-section">
+        <div class="settings-section-label">
+          <i class="fa-solid fa-volume-high"></i> Audio &amp; Sound
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-title">Simulation Sound Effects</span>
+            <span class="settings-row-desc" id="audioDesc">Sounds play during simulations</span>
+          </div>
+          <button class="settings-toggle-btn" id="audioToggleSettings" role="switch" aria-checked="true">
+            <span class="settings-toggle-track">
+              <span class="settings-toggle-thumb"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─ Simulation Defaults ─ -->
+      <div class="settings-section">
+        <div class="settings-section-label">
+          <i class="fa-solid fa-sliders"></i> Simulation Defaults
+        </div>
+
+        <div class="settings-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="settings-row-info">
+              <span class="settings-row-title">Default Playback Speed</span>
+              <span class="settings-row-desc">Applied when simulations start</span>
+            </div>
+            <span class="settings-speed-badge" id="speedBadgeLabel">5×</span>
+          </div>
+          <input type="range" id="defaultSpeed" min="1" max="10" value="5"
+            class="settings-range" aria-label="Default simulation speed" />
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--muted);">
+            <span>Slow</span><span>Fast</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ About ─ -->
+      <div class="settings-section settings-about">
+        <div class="settings-section-label"><i class="fa-solid fa-circle-info"></i> About</div>
+        <div style="font-size:12px; color:var(--muted); line-height:1.6;">
+          <strong style="color:var(--text);">ATC SimLab</strong> — DSA Algorithm Visualiser<br>
+          Version <strong style="color:var(--primary);">1.0.0</strong>
+        </div>
+        <button class="settings-reset-btn" id="resetAllSettings">
+          <i class="fa-solid fa-rotate-left"></i> Reset All Settings
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Main -->
   <div class="main">
@@ -54,9 +166,7 @@
         <strong>Dashboard</strong>
       </div>
       <div class="topbar-right">
-        <button class="theme-toggle" id="themeToggle">
-          <i class="fa-solid fa-moon"></i><span>Dark Mode</span>
-        </button>
+
         <div class="profile">
           <div class="avatar">AJ</div>
           <div class="profile-text">
@@ -232,6 +342,133 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/main.js"></script></body>
+<script src="assets/js/theme-toggle.js"></script>
+<script src="assets/js/main.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Settings drawer open/close ───────────────────────────────
+  const overlay  = document.getElementById('settingsOverlay');
+  const drawer   = document.getElementById('settingsDrawer');
+  const openBtn  = document.getElementById('settingsBtn');
+  const closeBtn = document.getElementById('settingsClose');
+
+  function openSettings() {
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSettings() {
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openSettings);
+  closeBtn.addEventListener('click', closeSettings);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSettings(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
+
+  // ── Theme pills ──────────────────────────────────────────────
+  const pillDark  = document.getElementById('pillDark');
+  const pillLight = document.getElementById('pillLight');
+  const themeDesc = document.getElementById('themeDesc');
+
+  function syncThemePills() {
+    const isDark = !document.body.classList.contains('light-theme');
+    pillDark.classList.toggle('active', isDark);
+    pillLight.classList.toggle('active', !isDark);
+    themeDesc.textContent = isDark ? 'Dark mode active' : 'Light mode active';
+  }
+
+  pillDark.addEventListener('click', () => {
+    localStorage.setItem('theme', 'dark');
+    document.body.classList.remove('light-theme');
+    window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme: 'dark' } }));
+    syncThemePills();
+  });
+
+  pillLight.addEventListener('click', () => {
+    localStorage.setItem('theme', 'light');
+    document.body.classList.add('light-theme');
+    window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme: 'light' } }));
+    syncThemePills();
+  });
+
+
+
+  syncThemePills();
+
+  // ── Accent colour swatches ───────────────────────────────────
+  const swatches = document.querySelectorAll('.accent-swatch');
+  const savedAccent = localStorage.getItem('accent-color') || '#2563eb';
+
+  function applyAccent(color) {
+    document.documentElement.style.setProperty('--primary', color);
+    document.documentElement.style.setProperty('--active-bg', color);
+    localStorage.setItem('accent-color', color);
+    swatches.forEach(s => s.classList.toggle('active', s.dataset.color === color));
+  }
+
+  swatches.forEach(sw => {
+    sw.addEventListener('click', () => applyAccent(sw.dataset.color));
+  });
+
+  applyAccent(savedAccent);
+
+  // ── Audio toggle ─────────────────────────────────────────────
+  const audioBtn  = document.getElementById('audioToggleSettings');
+  const audioDesc = document.getElementById('audioDesc');
+  let isMuted = localStorage.getItem('sorting-audio-muted') === 'true';
+
+  function syncAudioBtn() {
+    audioBtn.setAttribute('aria-checked', String(!isMuted));
+    audioBtn.classList.toggle('off', isMuted);
+    audioDesc.textContent = isMuted ? 'Sounds are muted' : 'Sounds play during simulations';
+  }
+
+  audioBtn.addEventListener('click', () => {
+    isMuted = !isMuted;
+    localStorage.setItem('sorting-audio-muted', String(isMuted));
+    syncAudioBtn();
+  });
+
+  syncAudioBtn();
+
+  // ── Default speed ────────────────────────────────────────────
+  const speedRange = document.getElementById('defaultSpeed');
+  const speedLabel = document.getElementById('speedBadgeLabel');
+  const savedSpeed = localStorage.getItem('default-sim-speed') || '5';
+  speedRange.value  = savedSpeed;
+  speedLabel.textContent = savedSpeed + '×';
+
+  speedRange.addEventListener('input', () => {
+    speedLabel.textContent = speedRange.value + '×';
+    localStorage.setItem('default-sim-speed', speedRange.value);
+  });
+
+  // ── Reset all ────────────────────────────────────────────────
+  document.getElementById('resetAllSettings').addEventListener('click', () => {
+    if (!confirm('Reset all settings to defaults?')) return;
+    localStorage.removeItem('theme');
+    localStorage.removeItem('accent-color');
+    localStorage.removeItem('sorting-audio-muted');
+    localStorage.removeItem('default-sim-speed');
+    // Re-apply defaults
+    document.body.classList.remove('light-theme');
+    window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme: 'dark' } }));
+    applyAccent('#2563eb');
+    isMuted = false;
+    syncAudioBtn();
+    speedRange.value = '5';
+    speedLabel.textContent = '5×';
+    syncThemePills();
+  });
+
+})();
+</script>
+</body>
 </html>
 

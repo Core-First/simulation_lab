@@ -10,11 +10,22 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="container-fluid">
-    <header class="mb-4">
-      <h1>Graph Algorithms</h1>
-      <p>Visualize and understand graph traversal and shortest path algorithms</p>
-    </header>
+  <!-- Header Bar -->
+  <header class="topbar">
+    <div class="page-title">
+      <i class="fa-solid fa-diagram-project text-primary me-2"></i> Part 5: Graph Algorithms &nbsp;›&nbsp; BFS, DFS & Dijkstra
+    </div>
+    <div class="topbar-right d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <a href="../index.html" class="back-btn">
+        <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+      </a>
+    </div>
+  </header>
+
+  <div class="container-fluid mt-4">
     
     <div class="row">
       <div class="col-md-8">
@@ -200,6 +211,7 @@
         const node = queue.shift();
         // Highlight current node
         visualizer.highlight(node, '#ff9f1c');
+        if (window.simAudio) window.simAudio.playTone(node, Array.from({length: graph.length}, (_, i) => i));
         await sleep(1000 / parseInt(speedInput.value));
         
         // Process neighbors
@@ -218,6 +230,9 @@
         updateGraphInfo();
       }
       
+      // Play completion sweep
+      if (window.simAudio) window.simAudio.playSweep(Array.from({length: graph.length}, (_, i) => i));
+
       // Re-enable controls
       startBtn.disabled = false;
       resetBtn.disabled = false;
@@ -236,6 +251,7 @@
           visited[node] = true;
           // Highlight current node
           visualizer.highlight(node, '#ff9f1c');
+          if (window.simAudio) window.simAudio.playTone(node, Array.from({length: graph.length}, (_, i) => i));
           await sleep(1000 / parseInt(speedInput.value));
           
           // Process neighbors (in reverse order to match typical DFS)
@@ -254,6 +270,9 @@
         }
       }
       
+      // Play completion sweep
+      if (window.simAudio) window.simAudio.playSweep(Array.from({length: graph.length}, (_, i) => i));
+
       // Re-enable controls
       startBtn.disabled = false;
       resetBtn.disabled = false;
@@ -282,6 +301,7 @@
         
         // Highlight current node
         visualizer.highlight(node, '#ff9f1c');
+        if (window.simAudio) window.simAudio.playTone(node, Array.from({length: graph.length}, (_, i) => i));
         await sleep(1000 / parseInt(speedInput.value));
         
         // Process neighbors
@@ -298,6 +318,9 @@
         updateGraphInfo();
       }
       
+      // Play completion sweep
+      if (window.simAudio) window.simAudio.playSweep(Array.from({length: graph.length}, (_, i) => i));
+
       // Re-enable controls
       startBtn.disabled = false;
       resetBtn.disabled = false;
@@ -345,5 +368,7 @@
       }
     });
   </script>
+  <script src="../../assets/js/theme-toggle.js"></script>
+  <script src="../../assets/js/sim-audio.js"></script>
 </body>
 </html>

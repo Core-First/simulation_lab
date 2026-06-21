@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BST Search - Interactive Code & Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#1f2937; --border:#30363d; --accent:#3b82f6; --muted:#8b949e; --text:#e6edf3; --node-r:26;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{display:flex;align-items:center;gap:12px;padding:0 24px;height:54px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+  .breadcrumb{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .back-btn{margin-left:auto;padding:6px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;border-radius:4px;text-decoration:none}
+  .container{display:flex;flex:1;overflow:hidden}
+  .code-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+  .code-header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .code-content{flex:1;overflow-y:auto;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6}
+  .code-line{margin:4px 0;padding:4px 8px;border-radius:4px;display:flex;align-items:center}
+  .line-num{display:inline-block;min-width:40px;color:var(--muted);margin-right:12px;text-align:right}
+  .keyword{color:#f97316}.function{color:#60a5fa}.comment{color:var(--muted);font-style:italic}
+  .sim-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .sim-header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;justify-content:space-between;align-items:center}
+  #bst-canvas{flex:1;width:100%}
+  .log-area{padding:12px 18px;border-top:1px solid var(--border);background:var(--surface);max-height:120px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="breadcrumb">Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>BST Search Code</span></div>
+  <a href="sim-10-bst.html" class="back-btn">← Back to Simulation</a>
+  <a href="../index.html" class="back-btn" style="margin-left:0;">
+    <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+  </a>
+  <div class="sim-badge">Interactive Learning</div>
+</header>
+<div class="container">
+  <div class="code-panel">
+    <div class="code-header"><h2>Python Implementation</h2></div>
+    <div class="code-content" id="code-content">
+      <div class="code-line" data-segment="search-start"><span class="line-num">1</span><span><span class="keyword">def</span> <span class="function">search</span>(node, val):</span></div>
+      <div class="code-line" data-segment="search-base"><span class="line-num">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Base case: empty subtree — value not found</span></span></div>
+      <div class="code-line" data-segment="search-base"><span class="line-num">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:</span></div>
+      <div class="code-line" data-segment="search-base"><span class="line-num">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="keyword">False</span></span></div>
+
+      <div class="code-line" data-segment="search-compare"><span class="line-num">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Check current node</span></span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> val == node.val:</span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="keyword">True</span></span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">elif</span> val &lt; node.val:</span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="function">search</span>(node.left, val)</span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">else</span>:</span></div>
+      <div class="code-line" data-segment="search-compare"><span class="line-num">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="function">search</span>(node.right, val)</span></div>
+    </div>
+  </div>
+
+  <div class="sim-panel">
+    <div class="sim-header">
+      <h2>Live Simulation</h2>
+      <div class="sim-controls">
+        <div class="input-group">
+          <input type="number" id="search-value" placeholder="Value" min="1" max="99" />
+          <button onclick="searchAndVisualize()">Search</button>
+        </div>
+        <button onclick="loadPreset()" style="padding:4px 10px;background:#3b82f6;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:11px">Load Balanced</button>
+      </div>
+    </div>
+    <canvas id="bst-canvas"></canvas>
+    <div id="node-tooltip"></div>
+    <div class="log-area" id="log-area">Load a tree using the button, then enter a value to search. Hover code segments to learn.</div>
+  </div>
+</div>
+
+<script>
+// Lightweight visualization JS (based on other code pages)
+class BSTNode{constructor(val){this.val=val;this.left=null;this.right=null;this.x=0;this.y=0;this.highlighted=false;this.found=false;this.hovered=false}}
+let root = null;
+const canvas = document.getElementById('bst-canvas');
+const ctx = canvas.getContext('2d');
+const R = 22; const V_GAP = 70;
+function resizeCanvas(){canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; layoutTree(); draw();}
+window.addEventListener('resize', resizeCanvas);
+
+function inorder(node, arr=[]){ if(node){ inorder(node.left,arr); arr.push(node); inorder(node.right,arr);} return arr }
+function insert(node,val){ if(node===null) return new BSTNode(val); if(val<node.val) node.left=insert(node.left,val); else if(val>node.val) node.right=insert(node.right,val); return node }
+
+function layoutTree(){ if(!root) return; const nodes = inorder(root); const n = nodes.length; const usableW = canvas.width - 60; const startX = 30; nodes.forEach((node,i)=>{ node.x = startX + (usableW/(n+1))*(i+1); }); function setY(node,depth){ if(!node) return; node.y = 50 + depth*V_GAP; setY(node.left,depth+1); setY(node.right,depth+1);} setY(root,0); }
+
+function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); if(!root){ ctx.fillStyle='#30363d'; ctx.font = "14px 'Sora', sans-serif"; ctx.textAlign='center'; ctx.fillText('Load a tree to get started', canvas.width/2, canvas.height/2); return;} drawEdges(root); drawNodes(root); }
+function drawEdges(node){ if(!node) return; ctx.lineWidth = 1.5; if(node.left){ ctx.beginPath(); ctx.moveTo(node.x,node.y); ctx.lineTo(node.left.x,node.left.y); ctx.strokeStyle = (node.highlighted||node.left.highlighted)?'#6366f1':'#30363d'; ctx.stroke(); drawEdges(node.left);} if(node.right){ ctx.beginPath(); ctx.moveTo(node.x,node.y); ctx.lineTo(node.right.x,node.right.y); ctx.strokeStyle = (node.highlighted||node.right.highlighted)?'#6366f1':'#30363d'; ctx.stroke(); drawEdges(node.right);} }
+function drawNodes(node){ if(!node) return; let fill='#1f2937', stroke='#3b82f6', textColor='#e6edf3', nr=R; if(node.found){ fill='rgba(34,197,94,0.25)'; stroke='#22c55e'; textColor='#4ade80'; } else if(node.highlighted){ fill='rgba(245,158,11,0.25)'; stroke='#f59e0b'; textColor='#fbbf24'; } if(node.hovered){ nr=R*1.25; ctx.shadowColor='#3b82f6'; ctx.shadowBlur=8; } else { ctx.shadowColor='transparent'; ctx.shadowBlur=0; } ctx.beginPath(); ctx.arc(node.x,node.y,nr,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill(); ctx.shadowColor='transparent'; ctx.lineWidth=2; ctx.strokeStyle=stroke; ctx.stroke(); ctx.fillStyle=textColor; ctx.font = "bold 13px 'JetBrains Mono', monospace"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(node.val,node.x,node.y); drawNodes(node.left); drawNodes(node.right); }
+
+function clearHighlights(node){ if(!node) return; node.highlighted=false; node.found=false; node.hovered=false; clearHighlights(node.left); clearHighlights(node.right); }
+
+function log(msg){ document.getElementById('log-area').textContent = msg; }
+
+function searchPath(node,val,path=[]){ if(!node) return null; path.push(node); if(val===node.val) return path; if(val<node.val) return searchPath(node.left,val,path); return searchPath(node.right,val,path); }
+
+function searchAndVisualize(){ const inp = document.getElementById('search-value'); const v = parseInt(inp.value); if(isNaN(v)){ log('Enter a value to search'); return;} clearHighlights(root); draw(); const path = searchPath(root,v); if(!path){ log(`${v} not found in tree`); return; } let i=0; function step(){ if(i>0) path[i-1].highlighted = false; if(i<path.length-1){ path[i].highlighted = true; log(`Comparing: ${path[i].val} — going ${v < path[i].val ? 'left' : 'right'}...`); } else { path[i].found = true; log(`Found ${v}! Steps: ${path.length}`); draw(); return; } draw(); i++; setTimeout(step, 450); } step(); inp.value=''; }
+
+function loadPreset(){ root = null; [50,25,75,12,37,62,87].forEach(v=>{ root = insert(root,v); }); layoutTree(); draw(); log('Balanced tree loaded'); }
+
+// interactive highlights for code segments (simple messages)
+document.querySelectorAll('[data-segment]').forEach(line=>{ line.addEventListener('mouseenter',()=>{ const s=line.dataset.segment; clearHighlights(root); if(s==='search-base') log('Base case: empty subtree -> not found'); else if(s==='search-compare') log('Compare and recurse left or right'); draw(); }); });
+
+// basic canvas mouse hover for nodes
+canvas.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; let found=null; function find(node){ if(!node) return null; const d=Math.hypot(mx-node.x,my-node.y); if(d<=R*1.4) return node; return find(node.left)||find(node.right); } found=find(root); document.getElementById('node-tooltip').classList.remove('visible'); if(found){ found.hovered=true; document.getElementById('node-tooltip').innerHTML=`Value: <span class="tval">${found.val}</span>`; const tip=document.getElementById('node-tooltip'); tip.classList.add('visible'); tip.style.left=(e.clientX+10)+'px'; tip.style.top=(e.clientY+10)+'px'; } else { if(root) clearHighlights(root); } draw();});
+
+// init
+resizeCanvas(); loadPreset();
+</script>
+<script src="../assets/js/theme-toggle.js"></script>
+</body>
+</html>

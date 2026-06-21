@@ -37,9 +37,6 @@
         <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
           <i class="fa-solid fa-volume-high"></i>
         </button>
-        <button class="btn btn-outline-secondary btn-sm" id="themeToggle">
-          <i class="fa-solid fa-moon"></i>
-        </button>
         <a href="../index.html" class="back-btn">
           <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
         </a>
@@ -162,35 +159,42 @@
   </div>
 
   <!-- Quiz Overlay -->
-  <div class="quiz-overlay" id="quizOverlay" style="display: none;">
-    <div class="quiz-backdrop" onclick="hideQuizOverlay()"></div>
+  <div class="quiz-overlay" id="quizOverlay" style="display: none">
+    <div class="quiz-backdrop"></div>
     <div class="quiz-modal">
-       <div class="quiz-header">
-         <h3 style="margin: 0;"><i class="fa-solid fa-circle-question text-warning"></i> Quick Sort Quiz</h3>
-         <button class="btn-close btn-close-white" onclick="hideQuizOverlay()"></button>
-       </div>
-       <div id="quizContainer">
-          <!-- Start Screen -->
-          <div class="text-center py-3" id="quizWelcomeScreen">
-            <div class="mb-3" style="font-size: 3rem; color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h4 class="text-white mb-2">Algorithm Challenge</h4>
-            <p class="text-muted small mb-4">Test your understanding of Quick Sort's pivots, partitioning schemes, and time complexity. You'll get 10 random questions.</p>
-            <div class="d-flex justify-content-center gap-4 my-3">
-              <div class="text-center"><span class="fs-4 fw-bold text-white">10</span><br><span class="text-muted small">Questions</span></div>
-              <div class="text-center"><span class="fs-4 fw-bold text-white">O(n log n)</span><br><span class="text-muted small">Focus</span></div>
-            </div>
-            <div class="text-center mt-4">
-               <button class="btn btn-primary px-4" id="startQuizBtn">Start Quiz <i class="fa-solid fa-arrow-right ms-2"></i></button>
-            </div>
-          </div>
-       </div>
+      <div class="quiz-header">
+        <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Quick Sort Quiz</h3>
+        <div class="quiz-progress">
+          <span id="quizProgress">Question 1 of 10</span>
+        </div>
+      </div>
+      <div class="quiz-content">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+        <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+      </div>
+      <div class="quiz-results" id="quizResults" style="display: none">
+        <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+        <div class="quiz-score" id="quizScore"></div>
+        <div class="quiz-summary" id="quizSummary"></div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+          <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+        </div>
+      </div>
     </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
 <script src="../assets/js/sorting-tour.js"></script>
 <script src="../assets/js/code-sync.js"></script>
-<script src="../assets/js/sorting-audio.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
 <script>
 (function () {
   'use strict';
@@ -572,115 +576,12 @@ quickSort(array);`;
     { q: "Why is Quick Sort often faster than Merge Sort in practice despite the same average complexity?", o: ["Better cache locality due to contiguous memory access", "It does fewer comparisons", "It is stable", "It is an online algorithm"], a: 0, e: "In-place partitioning is extremely cache-friendly, making the constant factors smaller than Merge Sort." }
   ];
 
-  let currentQuestions = [];
-  let currentQIdx = 0;
-  let score = 0;
-
-  function shuffle(array) {
-    let m = array.length, t, i;
-    while (m) {
-      i = Math.floor(Math.random() * m--);
-      t = array[m]; array[m] = array[i]; array[i] = t;
-    }
-    return array;
-  }
-
-  function initQuiz() {
-    currentQuestions = shuffle([...questionPool]).slice(0, 10);
-    currentQIdx = 0;
-    score = 0;
-    renderQuestion();
-  }
-
-  function renderQuestion() {
-    const container = document.getElementById('quizContainer');
-    if (currentQIdx >= currentQuestions.length) {
-      renderScoreCard();
-      return;
-    }
-
-    const qItem = currentQuestions[currentQIdx];
-    const progressText = `Question ${currentQIdx + 1} of ${currentQuestions.length}`;
-
-    container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="quiz-progress">${progressText}</span>
-      </div>
-      <div class="quiz-question">${qItem.q}</div>
-      <div class="quiz-options">
-        ${qItem.o.map((opt, i) => `
-          <div class="quiz-option" data-idx="${i}">
-            <strong>${String.fromCharCode(65 + i)}.</strong> ${opt}
-          </div>
-        `).join('')}
-      </div>
-      <div class="quiz-feedback" id="quizExpl">
-        <strong>Explanation:</strong> ${qItem.e}
-      </div>
-      <div class="d-flex justify-content-end mt-3" style="display: none !important;" id="quizNav">
-        <button class="btn btn-primary btn-sm" id="quizNextBtn">Next Question <i class="fa-solid fa-arrow-right ms-1"></i></button>
-      </div>
-    `;
-
-    container.querySelectorAll('.quiz-option').forEach(btn => {
-      btn.addEventListener('click', function() {
-        if(this.classList.contains('disabled')) return;
-        
-        container.querySelectorAll('.quiz-option').forEach(b => b.classList.add('disabled'));
-        const selectedIdx = parseInt(this.dataset.idx);
-        const isCorrect = selectedIdx === qItem.a;
-
-        if (isCorrect) {
-          score++;
-          this.classList.add('correct');
-        } else {
-          this.classList.add('incorrect');
-          container.querySelector('.quiz-option[data-idx="'+qItem.a+'"]').classList.add('correct');
-        }
-
-        const expl = document.getElementById('quizExpl');
-        expl.className = 'quiz-feedback show ' + (isCorrect ? 'correct' : 'incorrect');
-
-        const navRow = document.getElementById('quizNav');
-        navRow.style.setProperty('display', 'flex', 'important');
-
-        document.getElementById('quizNextBtn').onclick = () => {
-          currentQIdx++;
-          renderQuestion();
-        };
-      });
-    });
-  }
-
-  function renderScoreCard() {
-    const container = document.getElementById('quizContainer');
-    container.innerHTML = `
-      <div class="quiz-results">
-        <div class="quiz-score"><i class="fa-solid fa-star"></i> ${score} / ${currentQuestions.length}</div>
-        <h4>Challenge Complete!</h4>
-        <div class="quiz-summary">
-          <p class="text-muted">You have finished the quiz.</p>
-        </div>
-        <div class="quiz-actions justify-content-center">
-          <button class="btn btn-primary" id="retryQuizBtn"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
-          <button class="btn btn-secondary" onclick="hideQuizOverlay()">Close</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('retryQuizBtn').onclick = initQuiz;
-  }
-
-  document.addEventListener('click', (e) => {
-    if(e.target && e.target.id === 'startQuizBtn') {
-      initQuiz();
-    }
-  });
-
+  // Quiz Engine overlay logic
   window.showQuizOverlay = function() {
-    document.getElementById('quizOverlay').style.display = 'flex';
+    window.quizModule.initQuiz(questionPool, "Quick Sort Quiz");
   };
   window.hideQuizOverlay = function() {
-    document.getElementById('quizOverlay').style.display = 'none';
+    window.quizModule.closeQuiz();
   };
 
   // Initialize tour after DOM is fully loaded
@@ -690,18 +591,7 @@ quickSort(array);`;
     initTourDOMElements();
   }
 
-  // Theme toggle
-  const themeBtn=document.getElementById('themeToggle');
-  const applyTheme=t=>{
-    document.body.classList.toggle('light-theme',t==='light');
-    draw(lastState);
-  };
-  applyTheme(localStorage.getItem('theme')||'dark');
-  themeBtn.addEventListener('click',()=>{
-    const n=document.body.classList.contains('light-theme')?'dark':'light';
-    localStorage.setItem('theme',n);
-    applyTheme(n);
-  });
+  window.addEventListener('themechanged', () => { draw(lastState); });
 
   initState();
 })();

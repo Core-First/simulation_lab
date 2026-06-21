@@ -1,4 +1,5 @@
-class SortingAudio {
+// Centralized Simulation Audio Helper
+class SimAudio {
   constructor() {
     this.audioCtx = null;
     this.mainGain = null;
@@ -14,18 +15,13 @@ class SortingAudio {
     }
   }
 
-  /**
-   * Initializes the Web Audio API context on first user action.
-   */
   initContext() {
     if (this.audioCtx) return;
-    
     try {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       this.audioCtx = new AudioContextClass();
       
       this.mainGain = this.audioCtx.createGain();
-      // Set volume: 0.15 is clear but not piercing
       this.mainGain.gain.setValueAtTime(this.isMuted ? 0 : 0.15, this.audioCtx.currentTime);
       this.mainGain.connect(this.audioCtx.destination);
     } catch (e) {
@@ -33,9 +29,6 @@ class SortingAudio {
     }
   }
 
-  /**
-   * Hook up UI elements like the mute button.
-   */
   initUI() {
     const toggleBtn = document.getElementById('audioToggle');
     if (toggleBtn) {
@@ -47,24 +40,17 @@ class SortingAudio {
     }
   }
 
-  /**
-   * Toggles the mute state and saves it to local storage.
-   */
   toggleMute() {
     this.initContext();
     this.isMuted = !this.isMuted;
     localStorage.setItem('sorting-audio-muted', this.isMuted);
     
     if (this.mainGain && this.audioCtx) {
-      // Smooth volume transition to avoid pops
       const targetGain = this.isMuted ? 0 : 0.15;
       this.mainGain.gain.setTargetAtTime(targetGain, this.audioCtx.currentTime, 0.01);
     }
   }
 
-  /**
-   * Updates the icon class of the mute toggle button.
-   */
   updateToggleButton(btn) {
     const icon = btn.querySelector('i');
     if (icon) {
@@ -82,58 +68,66 @@ class SortingAudio {
     }
   }
 
-  /**
-   * Plays a quick tone mapped to the value of an array element.
-   * @param {number} value - The value to play
-   * @param {number[]} array - The current array context (used to scale frequency)
-   * @param {number} [duration=0.08] - Sound duration in seconds
-   */
   playTone(value, array, duration = 0.06) {
     this.initContext();
     if (!this.audioCtx || this.isMuted) return;
     
-    // Resume context if suspended (browser security policy)
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
 
-    // Map value to frequency (linear mapping between 150 Hz and 900 Hz)
     const minVal = Math.min(...array);
     const maxVal = Math.max(...array);
     const range = maxVal - minVal;
     const pct = range > 0 ? (value - minVal) / range : 0.5;
     const freq = 150 + pct * 750;
 
-    const osc = this.audioCtx.createOscillator();
-    const noteGain = this.audioCtx.createGain();
-
-    osc.connect(noteGain);
-    noteGain.connect(this.mainGain);
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-
-    // ADSR Envelope: Prevents audio clicks/pops with clean attack and decay
-    noteGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
-    noteGain.gain.linearRampToValueAtTime(1.0, this.audioCtx.currentTime + 0.005); // quick attack
-    noteGain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + duration); // quick decay
-
-    osc.start();
-    osc.stop(this.audioCtx.currentTime + duration);
-
-    // Keep track of active oscillator to allow emergency stop
-    this.activeOscillators.push(osc);
-    osc.onended = () => {
-      this.activeOscillators = this.activeOscillators.filter(o => o !== osc);
-    };
+    this.playSound(freq, duration * 1000, 'sine', 1.0);
   }
 
-  /**
-   * Sweeps through the final sorted array playing a rapid rising scale.
-   * @param {number[]} array - The sorted array
-   */
+  playSound(freq, durationMs, type = 'sine', volume = 0.3) {
+    this.initContext();
+    if (!this.audioCtx || this.isMuted) return;
+    
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+
+    try {
+      const osc = this.audioCtx.createOscillator();
+      const noteGain = this.audioCtx.createGain();
+
+      osc.connect(noteGain);
+      noteGain.connect(this.mainGain || this.audioCtx.destination);
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+
+      const durationSec = durationMs / 1000;
+      noteGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+      noteGain.gain.linearRampToValueAtTime(volume, this.audioCtx.currentTime + 0.005);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + durationSec);
+
+      osc.start();
+      osc.stop(this.audioCtx.currentTime + durationSec);
+
+      this.activeOscillators.push(osc);
+      osc.onended = () => {
+        this.activeOscillators = this.activeOscillators.filter(o => o !== osc);
+      };
+    } catch(e) {
+      console.warn("playSound failed:", e);
+    }
+  }
+
+  playCrackSound() {
+    this.playSound(120, 80, 'sawtooth', 0.6);
+    setTimeout(() => this.playSound(80, 120, 'sawtooth', 0.5), 50);
+    setTimeout(() => this.playSound(200, 60, 'square', 0.4), 120);
+  }
+
   playSweep(array) {
-    this.stop(); // Stop any pending sounds/sweeps first
+    this.stop();
     this.initContext();
     if (!this.audioCtx || this.isMuted) return;
 
@@ -142,38 +136,31 @@ class SortingAudio {
     }
 
     const n = array.length;
-    const sweepDuration = 1000; // total sweep duration in ms
-    const interval = Math.max(15, Math.min(40, sweepDuration / n)); // ms per element
+    const sweepDuration = 1000;
+    const interval = Math.max(15, Math.min(40, sweepDuration / n));
 
     array.forEach((val, idx) => {
       const tId = setTimeout(() => {
-        // slightly longer duration for sweep notes to make them ring nicely
         this.playTone(val, array, 0.12);
       }, idx * interval);
       this.sweepTimeouts.push(tId);
     });
   }
 
-  /**
-   * Stops all active oscillator nodes and clears scheduled sweeps.
-   */
   stop() {
-    // Clear any scheduled timeouts for sweeps
     this.sweepTimeouts.forEach(clearTimeout);
     this.sweepTimeouts = [];
 
-    // Stop and disconnect any playing oscillators immediately
     this.activeOscillators.forEach(osc => {
       try {
         osc.stop();
         osc.disconnect();
-      } catch (e) {
-        // Already stopped/disconnected
-      }
+      } catch (e) {}
     });
     this.activeOscillators = [];
   }
 }
 
-// Export globally
-window.SortingAudio = SortingAudio;
+window.SimAudio = SimAudio;
+window.SortingAudio = SimAudio;
+window.simAudio = new SimAudio();
