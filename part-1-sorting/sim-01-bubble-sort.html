@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bubble Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Interactive Bubble Sort visualisation with step-by-step Canvas animation, comparisons counter, and AI assistant." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
+</head>
+<body class="sim-page">
+
+  <!-- Guided Tour Overlay -->
+  <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+      <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+      <p id="tourText" class="small mb-3"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">Skip Guide</button>
+        <button class="btn btn-sm btn-primary px-3" id="tourNext">Next <i class="fa-solid fa-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-water text-primary me-2"></i> Bubble Sort Masterclass Simulation
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+          <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <a href="../index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
+      </div>
+    </header>
+
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Sorting Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="sortCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
+
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Bubble Sort repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. 
+            The pass through the list is repeated until the list is sorted.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">✅ Stable</span>
+            <span class="badge bg-secondary">✅ In-Place</span>
+            <span class="badge bg-secondary">✅ Adaptive (Early-Exit)</span>
+          </div>
+          <div class="comparison-stats">
+            <span>Best: <strong class="text-white">O(n)</strong></span>
+            <span>Avg: <strong class="text-white">O(n²)</strong></span>
+            <span>Worst: <strong class="text-white">O(n²)</strong></span>
+            <span>Space: <strong class="text-white">O(1)</strong></span>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware AI Instructor Chat
+          </div>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted)">
+            Ask me questions about Bubble Sort mechanics, complexity, or stability!
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs" style="max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 13px;"></div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why is it O(n²)?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Explain bubble sort simply" style="font-size: 11px">Explain it simply</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why is bubble sort O(n²)?" style="font-size: 11px">Why is it O(n²)?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="What is the best case?" style="font-size: 11px">What is the best case?</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="5" max="60" value="20" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">20</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Order:</label>
+             <select id="arrayOrder" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="random">Random</option>
+              <option value="nearly">Nearly Sorted</option>
+              <option value="reverse">Reversed</option>
+              <option value="sorted">Already Sorted</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="customArr">Custom:</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+            <button class="btn btn-sm btn-secondary" id="applyCustomBtn"><i class="fa-solid fa-check"></i></button>
+          </div>
+          
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Play</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-right-left"></i> Swaps: <span id="swpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-rotate"></i> Pass: <span id="passCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Unsorted</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></div> Comparing</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#ef4444;border-radius:2px;"></div> Swapping</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Sorted</div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-code">
+          <div class="panel-title">Execution Sync Code</div>
+          <div class="code-editor" id="codeEditorWrap" spellcheck="false" style="padding-left: 12px; height: 100%; min-height: 200px; max-height: 350px; overflow-y: auto;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none">
+    <div class="quiz-backdrop"></div>
+    <div class="quiz-modal">
+      <div class="quiz-header">
+        <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Bubble Sort Quiz</h3>
+        <div class="quiz-progress">
+          <span id="quizProgress">Question 1 of 10</span>
+        </div>
+      </div>
+      <div class="quiz-content">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+        <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+      </div>
+      <div class="quiz-results" id="quizResults" style="display: none">
+        <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+        <div class="quiz-score" id="quizScore"></div>
+        <div class="quiz-summary" id="quizSummary"></div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+          <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
+<script src="../assets/js/sorting-tour.js"></script>
+<script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
+<script>
+(function () {
+  'use strict';
+  const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
+
+  function getHighlightLine(s) {
+    if (s.type === 'pass')    return 4;  // for (let i = 0; i < n - 1; i++)
+    if (s.type === 'compare') return 6;  // for (let j = 0; j < n - 1 - i; j++)
+    if (s.type === 'swap')    return 7;  // if (arr[j] > arr[j + 1])
+    if (s.type === 'sorted')  return 14; // if (!swapped) break;
+    if (s.type === 'done')    return 17; // return arr;
+    return -1;
+  }
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  
+  // Need to wait slightly for layout to settle before initial resize
+  setTimeout(() => {
+    resizeCanvas();
+    draw();
+  }, 100);
+  
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // ── State ─────────────────────────────────────────────────
+  let arr = [], original = [], cmp = 0, swp = 0, pass = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0;
+  let sortedIndices = new Set();
+  let timerInterval = null, startTime = 0;
+
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
+  function computeSteps(a) {
+    const d = [...a], n = d.length, out = [];
+    for(let p=0; p<n-1; p++) {
+      let swapped = false;
+      out.push({type:'pass', pass:p+1, arr:[...d]});
+      for(let j=0; j<n-1-p; j++) {
+        out.push({type:'compare', a:j, b:j+1, arr:[...d]});
+        if(d[j] > d[j+1]) {
+          [d[j],d[j+1]] = [d[j+1],d[j]];
+          swapped = true;
+          out.push({type:'swap', a:j, b:j+1, arr:[...d]});
+        }
+      }
+      out.push({type:'sorted', idx:n-1-p, arr:[...d]});
+      if(!swapped) { out.push({type:'done', arr:[...d]}); break; }
+    }
+    if(out[out.length-1]?.type !== 'done') out.push({type:'done', arr:[...d]});
+    return out;
+  }
+
+  const COLORS = { base:'#3b82f6', compare:'#f59e0b', swap:'#ef4444', sorted:'#22c55e' };
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+  // Smooth animation state
+  let curStep   = null;
+  let animT     = 1.0;
+  let animStart = 0;
+  let animDur   = 160;
+
+  function draw(state, t = 1.0) {
+    const W=canvas.width, H=canvas.height, n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
+    if(!n) return;
+    const gap=6;
+    const boxSize=Math.max(28, Math.min(64, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2, sy=(H-boxSize)/2;
+    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
+
+    // Draw static slots (skipping the active swapping pair)
+    for(let k=0;k<n;k++){
+      if(state && state.type==='swap' && (k===state.a || k===state.b)) continue;
+      
+      const x=sx+k*(boxSize+gap), y=sy;
+      let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
+      if(state){
+        if(state.type==='done'||sortedIndices.has(k)){border='#22c55e';fill='#007a50';text='#ffffff';}
+        if(state.type==='compare'&&(k===state.a||k===state.b)){border='#f59e0b';fill='#1a1000';text='#fcd34d';glow='#f59e0b';glowSz=14;}
+      }
+      
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.fill();
+      if(glow){ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x,y,boxSize,boxSize,8);ctx.stroke();}
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[k], x+boxSize/2, y+boxSize/2);
+    }
+
+    // Draw swapping slots
+    if(state && state.type==='swap'){
+      const a = state.a, b = state.b;
+      const x_a_start = sx + b * (boxSize + gap);
+      const x_a_end   = sx + a * (boxSize + gap);
+      const x_b_start = sx + a * (boxSize + gap);
+      const x_b_end   = sx + b * (boxSize + gap);
+      
+      const x_a = lerpN(x_a_start, x_a_end, ep);
+      const x_b = lerpN(x_b_start, x_b_end, ep);
+      
+      const fill='#1a0808', border='#ef4444', text='#fca5a5', glow='#ef4444', glowSz=18;
+      
+      // Draw box A
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_a,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[a], x_a+boxSize/2, sy+boxSize/2);
+      
+      // Draw box B
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_b,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[b], x_b+boxSize/2, sy+boxSize/2);
+    }
+  }
+
+  function getCodeString(arrData) {
+    const arrStr = arrData.join(', ');
+    return `let array = [${arrStr}];
+
+function bubbleSort(arr) {
+  let n = arr.length;
+  for (let i = 0; i < n - 1; i++) {
+    let swapped = false;
+    for (let j = 0; j < n - 1 - i; j++) {
+      if (arr[j] > arr[j + 1]) {
+        let temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        swapped = true;
+      }
+    }
+    if (!swapped) break;
+  }
+  return arr;
+}
+bubbleSort(array);`;
+  }
+
+  function updateCodeView(arrData) {
+    const code = getCodeString(arrData);
+    codeSync.init(code);
+  }
+
+  function updateCounters() {
+    document.getElementById('cmpCount').textContent  = cmp;
+    document.getElementById('swpCount').textContent  = swp;
+    document.getElementById('passCount').textContent = pass;
+  }
+  function startClock() { startTime=Date.now(); timerInterval=setInterval(()=>{ document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s'; },100); }
+  function stopClock()  { clearInterval(timerInterval); }
+
+  function step(s) {
+    arr = [...s.arr];
+    if(s.type==='pass')    { pass=s.pass;  }
+    if(s.type==='compare') { cmp++; sortingAudio.playTone(arr[s.a], arr); }
+    if(s.type==='swap')    { swp++; sortingAudio.playTone(arr[s.a], arr); }
+    if(s.type==='sorted')  { sortedIndices.add(s.idx);  }
+    if(s.type==='done')    {
+      for(let k=0;k<arr.length;k++) sortedIndices.add(k);
+      done=true; running=false; stopClock();
+      document.getElementById('playBtn').disabled  = false;
+      document.getElementById('pauseBtn').disabled = true;
+      sortingAudio.playSweep(arr);
+    }
+    updateCounters();
+    const hlLine = getHighlightLine(s);
+    if (hlLine >= 0) codeSync.highlight(hlLine);
+  }
+
+  function tick(ts) {
+    if(!running) return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      // animation finished
+      lastTime = ts; msAcc = 0;
+    }
+
+    const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
+    const spd=getSpeed();
+
+    while(msAcc>=spd&&si<steps.length&&running){
+      msAcc -= spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      const needAnim = curStep.type==='swap';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 250));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return;
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
+    if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
+  }
+
+  function initState() {
+    sortingAudio.stop();
+    original=buildArr(); arr=[...original];
+    cmp=swp=pass=0; steps=[]; si=0; running=false; done=false;
+    sortedIndices=new Set(); curStep=null; animT=1.0;
+    cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent = '0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  }
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done){ initState(); return; }
+    if(!steps.length) steps=computeSteps([...arr]);
+    running=true;
+    document.getElementById('playBtn').disabled  = true;
+    document.getElementById('pauseBtn').disabled = false;
+    startClock(); lastTime=performance.now(); msAcc=0;
+    rafId=requestAnimationFrame(tick);
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+  });
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done) return;
+    if(!steps.length) steps=computeSteps([...arr]);
+    if(si<steps.length) step(steps[si++]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    arr=[...original]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+  document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock(); initState();
+  });
+  document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
+    document.getElementById('arraySizeVal').textContent=this.value;
+    if(!running) initState();
+  });
+  document.getElementById('applyCustomBtn').addEventListener('click', () => {
+    const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
+    const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
+    if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    original=parsed; arr=[...parsed]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedIndices=new Set();
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+
+  // AI assistant
+  const KB={
+    explain:'Bubble Sort makes repeated passes through the array. In each pass it compares adjacent pairs and swaps them if they are in the wrong order. Larger values "bubble" to the end each pass. It stops early when a full pass makes no swaps.',
+    'n²':'In the worst case (reversed array) there are n−1 passes each making up to n−1 comparisons - giving O(n²/2) ≈ O(n²) total.',
+    best:'The best case is O(n): when the array is already sorted, the first pass makes n−1 comparisons, finds zero swaps, and the early-exit flag terminates the algorithm immediately.',
+    early:'The early-exit optimisation tracks whether any swap happened in a pass. If none occurred, the array is sorted and the algorithm stops - avoiding unnecessary passes.',
+    stable:'Yes - Bubble Sort is stable. It only swaps adjacent elements when the left is strictly greater, so equal elements never swap past each other.',
+    default:'Watch the canvas: yellow bars are being compared, red means a swap is happening, and green bars are in their final sorted positions. Press Step to advance one comparison at a time.'
+  };
+  function aiAns(q){
+    const l=q.toLowerCase();
+    if(l.includes('explain')||l.includes('simple')||l.includes('how')) return KB.explain;
+    if(l.includes('n²')||l.includes('n2')||l.includes('quadratic')) return KB['n²'];
+    if(l.includes('best')) return KB.best;
+    if(l.includes('early')||l.includes('optimis')) return KB.early;
+    if(l.includes('stable')) return KB.stable;
+    return KB.default;
+  }
+  function pushMsg(text,role){ 
+    const d=document.createElement('div'); 
+    d.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+    d.textContent=text; 
+    document.getElementById('aiMsgs').appendChild(d); 
+    d.scrollIntoView({behavior:'smooth'}); 
+  }
+  function doSend(){
+    const inp=document.getElementById('aiInput'); const q=inp.value.trim(); if(!q) return;
+    pushMsg(q,'user'); inp.value='';
+    setTimeout(()=>pushMsg(aiAns(q),'bot'),280);
+  }
+  document.getElementById('aiSend').addEventListener('click', doSend);
+  document.getElementById('aiInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{ b.addEventListener('click',()=>{ document.getElementById('aiInput').value=b.dataset.q; doSend(); }); });
+
+  // Quiz Engine overlay logic
+  window.showQuizOverlay = function() {
+    window.quizModule.initQuiz(questionPool, "Bubble Sort Quiz");
+  };
+  window.hideQuizOverlay = function() {
+    window.quizModule.closeQuiz();
+  };
+
+  window.addEventListener('themechanged', () => { draw(); });
+
+  initState();
+})();
+</script>
+</body>
+</html>

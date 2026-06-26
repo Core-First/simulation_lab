@@ -11,8 +11,9 @@ This project aims to make learning Data Structures and Algorithms interactive, v
    - [Adding a New Simulation](#adding-a-new-simulation)
    - [Improving Existing Simulations](#improving-existing-simulations)
 3. [Development Setup](#-development-setup)
-4. [Pull Request Process](#-pull-request-process)
-5. [Style Guidelines](#-style-guidelines)
+4. [Deploying the Landing Page](#-deploying-the-landing-page)
+5. [Pull Request Process](#-pull-request-process)
+6. [Style Guidelines](#-style-guidelines)
 
 ---
 
@@ -71,7 +72,7 @@ The project is **self-contained** and requires no build tools. You can run it di
    cd simulation_lab
    ```
 
-Open index.html (the main dashboard) in your browser.
+Open `index.html` (the main dashboard) in your browser.
 
 Use Live Server (VS Code extension) or any HTTP server for best results (some simulations use fetch or modules).
 
@@ -83,69 +84,132 @@ Use Live Server (VS Code extension) or any HTTP server for best results (some si
 4. Work inside the corresponding folder: `part-X-<topic>/` (e.g., `part-1-sorting/`).
 5. Make your changes, test, then commit and push.
 
-Pull Request Process
-Fork the repository and create your feature branch (git checkout -b feature/amazing-simulation).
+---
 
-Commit your changes with clear, descriptive messages.
+## Deploying the Landing Page
 
-Test your changes locally.
+The project includes a GitHub Actions workflow that automatically deploys the `public/` directory to GitHub Pages whenever code is pushed to the `web` branch.
 
-Push to your fork and open a Pull Request against the main branch.
+### Prerequisites
 
-Ensure the PR includes:
+Before deploying, ensure GitHub Pages is enabled in the repository settings:
+- Go to `Settings > Pages` and set the source to GitHub Actions for the `web` branch (for the main landing page) or `main` branch (for full project).
 
-A clear description of what you changed.
+### Automatic Deployment via the `web` Branch
 
-Screenshots (if visual changes were made).
+1. **Switch to the `web` branch:**
+   ```bash
+   git checkout web
+   git pull origin web
+   ```
 
-If you added a simulation, include the link to it in the PR description.
+2. **Update files in `public/`:**
+   Make any changes to the files inside the `public/` directory. These are the files that will be published to the live site.
 
-Link any issues your PR addresses (e.g., "Closes #42").
+   ```bash
+   # Example: edit the landing page
+   code public/index.html
+   ```
 
-Tip: If you’re adding a new simulation, create it in a standalone HTML file first, test it, then link it from the main dashboard.
+3. **Stage, commit, and push to the `web` branch:**
+   ```bash
+   git add public/
+   git commit -m "chore(deploy): update landing page content"
+   git push origin web
+   ```
 
-Style Guidelines
-HTML
-Use semantic HTML5 elements (<nav>, <main>, <section>, etc.).
+4. **Trigger the GitHub Actions workflow:**
+    The workflow file `.github/workflows/github_pages_deploy.yml` is configured with:
 
-Keep inline styles minimal; use the shared CSS files instead.
+    ```yaml
+    on:
+      push:
+        branches: [ web ]
+      pull_request:
+        branches: [ web ]
+    ```
 
-Use data-\* attributes for interactive behavior where possible.
+    Pushing to `web` automatically triggers the `Deploy to GitHub Pages` job.
 
-CSS
-Use CSS Custom Properties (variables) for theming (light/dark mode).
+5. **Monitor the deployment:**
+    - Go to the `Actions` tab in the GitHub repository.
+    - Select the `Deploy to GitHub Pages` workflow run.
+    - Verify that the job completes successfully.
 
-Add your new styles to assets/css/main.css or assets/css/simulation-base.css.
+### Deployment Workflow Details
 
-Avoid !important unless absolutely necessary.
+The workflow performs the following steps:
 
-Keep classes BEM-like when appropriate.
+1. Checks out the repository.
+2. Sets up GitHub Pages.
+3. Uploads the `public/` directory as an artifact.
+4. Deploys to GitHub Pages.
 
-JavaScript
-Use vanilla ES6+ JavaScript.
+### Notes
 
-No libraries beyond Bootstrap 5 and FontAwesome.
+- Pull requests targeting the `web` branch also trigger the deployment workflow.
+- The `web` branch should be protected; only approved changes should be merged into it.
+- Do not commit secrets or API keys to the `public/` directory.
 
-Keep logic modular – separate rendering (draw()) from algorithm (step()).
+---
 
-Use descriptive variable names (e.g., comparisons, swaps, currentIndex).
+## Pull Request Process
 
-Add comments for non-obvious logic (e.g., merging, recursion, pivot selection).
+1. Fork the repository and create your feature branch:
+   ```bash
+   git checkout -b feature/amazing-simulation
+   ```
 
-Simulation Files
+2. Commit your changes with clear, descriptive messages.
+
+3. Test your changes locally.
+
+4. Push to your fork and open a Pull Request against the main branch.
+
+5. Ensure the PR includes:
+   - A clear description of what you changed.
+   - Screenshots (if visual changes were made).
+   - If you added a simulation, include the link to it in the PR description.
+   - Link any issues your PR addresses (e.g., "Closes #42").
+
+**Tip:** If you're adding a new simulation, create it in a standalone HTML file first, test it, then link it from the main dashboard.
+
+---
+
+## Style Guidelines
+
+### HTML
+
+- Use semantic HTML5 elements (`<nav>`, `<main>`, `<section>`, etc.).
+- Keep inline styles minimal; use the shared CSS files instead.
+- Use `data-*` attributes for interactive behavior where possible.
+
+### CSS
+
+- Use CSS Custom Properties (variables) for theming (light/dark mode).
+- Add your new styles to `assets/css/main.css` or `assets/css/simulation-base.css`.
+- Avoid `!important` unless absolutely necessary.
+- Keep classes BEM-like when appropriate.
+
+### JavaScript
+
+- Use vanilla ES6+ JavaScript.
+- No libraries beyond Bootstrap 5 and FontAwesome.
+- Keep logic modular – separate rendering (`draw()`) from algorithm (`step()`).
+- Use descriptive variable names (e.g., `comparisons`, `swaps`, `currentIndex`).
+- Add comments for non-obvious logic (e.g., merging, recursion, pivot selection).
+
+### Simulation Files
+
 Each simulation HTML file must include:
 
-A header with title and controls (speed, step, reset).
+- A header with title and controls (speed, step, reset).
+- A canvas or DOM-based visualizer.
+- A right panel with complexity counters and an AI Assistant box.
+- Dark/light mode support (via the shared CSS).
 
-A canvas or DOM-based visualizer.
+### Testing
 
-A right panel with complexity counters and an AI Assistant box.
-
-Dark/light mode support (via the shared CSS).
-
-Testing
-Test on Chrome, Firefox, and Safari.
-
-Test mobile layout (sidebar hidden, responsiveness).
-
-Validate that the simulation runs without console errors.
+- Test on Chrome, Firefox, and Safari.
+- Test mobile layout (sidebar hidden, responsiveness).
+- Validate that the simulation runs without console errors.

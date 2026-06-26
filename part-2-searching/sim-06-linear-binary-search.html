@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linear & Binary Search â€“ Part 2 | ATC SimLab</title>
+  <meta name="description" content="Interactive Linear and Binary Search visualisation with step-by-step Canvas animation, comparisons counter, and AI assistant." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
+</head>
+<body class="sim-page">
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-magnifying-glass text-primary me-2"></i> Search Algorithms Masterclass
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <a href="../index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
+      </div>
+    </header>
+
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Search Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="searchCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
+
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p id="algoDesc" style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Linear Search sequentially checks each element of the list for the target value until a match is found or until all the elements have been searched.
+          </p>
+          <div id="algoBadges" class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">âœ… Unsorted Arrays</span>
+            <span class="badge bg-secondary">âœ… O(1) Space</span>
+          </div>
+          <div class="comparison-stats" id="algoComplexity">
+            <span>Best: <strong class="text-white">O(1)</strong></span>
+            <span>Avg: <strong class="text-white">O(n)</strong></span>
+            <span>Worst: <strong class="text-white">O(n)</strong></span>
+            <span>Space: <strong class="text-white">O(1)</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Algorithm:</label>
+             <select id="algoSelect" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="linear">Linear Search</option>
+              <option value="binary">Binary Search</option>
+            </select>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="5" max="40" value="20" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">20</span>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="targetVal">Target:</label>
+            <input type="number" id="targetVal" value="42" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+          </div>
+
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Search</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New Array</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-crosshairs"></i> Index: <span id="idxFound" class="font-monospace text-white fw-bold">-</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Untested</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></div> Checking</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#ef4444;border-radius:2px;"></div> Not Found</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Found</div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title">
+            <span>Execution Code Synchronizer</span>
+            <i class="fa-solid fa-terminal" style="color: var(--muted)"></i>
+          </div>
+          <div class="code-editor-wrapper">
+            <div class="code-editor" id="codePlayground" style="min-height: 180px; max-height: 280px; overflow-y: auto;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none">
+    <div class="quiz-backdrop"></div>
+    <div class="quiz-modal">
+      <div class="quiz-header">
+        <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Searching Algorithms Quiz</h3>
+        <div class="quiz-progress"><span id="quizProgress">Question 1 of 5</span></div>
+      </div>
+      <div class="quiz-content">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+        <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+      </div>
+      <div class="quiz-results" id="quizResults" style="display: none">
+        <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+        <div class="quiz-score" id="quizScore"></div>
+        <div class="quiz-summary" id="quizSummary"></div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+          <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
+<script src="../assets/js/code-sync.js"></script>
+<script>
+(function () {
+  'use strict';
+  let simAudio = null;
+  if(window.simAudio) {
+      simAudio = window.simAudio;
+  }
+
+  // ── Code Playground ──────────────────────────────────────────
+  const codeSync = new CodeSync('codePlayground');
+
+  const codeTemplates = {
+    linear:
+`function linearSearch(arr, target) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === target) {
+      return i; // Found at index i
+    }
+  }
+  return -1; // Not found
+}`,
+    binary:
+`function binarySearch(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    let mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) {
+      return mid; // Found
+    } else if (arr[mid] < target) {
+      left = mid + 1; // Search right half
+    } else {
+      right = mid - 1; // Search left half
+    }
+  }
+  return -1; // Not found
+}`
+  };
+
+  // line index to highlight for each step type per algorithm
+  const codeLineMap = {
+    linear: { compare: 1, found: 2, miss: 1, notfound: 5 },
+    binary: { bounds: 2, compare: 3, found: 4, miss: 5, notfound: 11 }
+  };
+
+  function initCodePlayground(algo) {
+    codeSync.init(codeTemplates[algo]);
+  }
+
+  // â”€â”€ Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const canvas = document.getElementById('searchCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  setTimeout(() => { resizeCanvas(); draw(); }, 100);
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let arr = [], cmp = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0;
+  let timerInterval = null, startTime = 0;
+  let targetValue = 42;
+  let foundIndex = -1;
+  let algoType = 'linear';
+
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // â”€â”€ Array generators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkSorted(n) {
+      let start = Math.floor(Math.random() * 20);
+      return Array.from({length:n}, (_,i) => {
+          start += Math.floor(Math.random() * 5) + 1;
+          return start;
+      });
+  }
+
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    return algoType === 'binary' ? mkSorted(n) : mkRandom(n);
+  }
+  function resetSim() {
+    arr = buildArr();
+    // Guarantee target is in array sometimes, sometimes not
+    if (Math.random() > 0.3) {
+        targetValue = arr[Math.floor(Math.random() * arr.length)];
+    } else {
+        targetValue = Math.floor(Math.random() * 100) + 10;
+    }
+    document.getElementById('targetVal').value = targetValue;
+
+    cmp = 0; foundIndex = -1;
+    running = false; done = false; steps = []; si = 0; msAcc = 0;
+    if(rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    clearInterval(timerInterval); startTime = 0;
+
+    document.getElementById('cmpCount').innerText = '0';
+    document.getElementById('idxFound').innerText = '-';
+    document.getElementById('elapsedTime').innerText = '0.0s';
+    updateBtns(); draw();
+    initCodePlayground(algoType);
+  }
+
+  // â”€â”€ Algorithms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function computeLinearSteps() {
+    let s = [];
+    for(let i = 0; i < arr.length; i++) {
+        s.push({ type: 'compare', idx: i, desc: `Checking index ${i} == ${targetValue}` });
+        if (arr[i] === targetValue) {
+            s.push({ type: 'found', idx: i, desc: `Found target ${targetValue} at index ${i}` });
+            return s;
+        } else {
+            s.push({ type: 'miss', idx: i, desc: `${arr[i]} != ${targetValue}` });
+        }
+    }
+    s.push({ type: 'notfound', desc: `Target ${targetValue} not found in array` });
+    return s;
+  }
+
+  function computeBinarySteps() {
+    let s = [];
+    let left = 0, right = arr.length - 1;
+    while(left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        s.push({ type: 'bounds', left, right, mid, desc: `Search bounds [${left}, ${right}], mid = ${mid}` });
+        s.push({ type: 'compare', left, right, mid, idx: mid, desc: `Checking arr[${mid}] == ${targetValue}` });
+
+        if (arr[mid] === targetValue) {
+            s.push({ type: 'found', left, right, mid, idx: mid, desc: `Found target ${targetValue} at index ${mid}` });
+            return s;
+        } else if (arr[mid] < targetValue) {
+            s.push({ type: 'miss', left, right, mid, idx: mid, desc: `${arr[mid]} < ${targetValue}, adjusting left = ${mid + 1}` });
+            left = mid + 1;
+        } else {
+            s.push({ type: 'miss', left, right, mid, idx: mid, desc: `${arr[mid]} > ${targetValue}, adjusting right = ${mid - 1}` });
+            right = mid - 1;
+        }
+    }
+    s.push({ type: 'notfound', desc: `Target ${targetValue} not found in array` });
+    return s;
+  }
+
+  // â”€â”€ Drawing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const n = arr.length;
+    const padding = 40;
+    const usableW = canvas.width - padding * 2;
+    const barW = usableW / n;
+    const maxVal = Math.max(...arr, 100);
+    const scale = (canvas.height - 80) / maxVal;
+
+    let currentStep = si > 0 ? steps[si - 1] : null;
+    if (si === 0) currentStep = null;
+
+    for (let i = 0; i < n; i++) {
+      const x = padding + i * barW;
+      const h = arr[i] * scale;
+      const y = canvas.height - 40 - h;
+
+      let fill = '#3b82f6'; // default: untestd
+
+      if (currentStep) {
+          if (algoType === 'linear') {
+              if (currentStep.type === 'compare' && currentStep.idx === i) fill = '#f59e0b';
+              else if (currentStep.type === 'found' && currentStep.idx === i) fill = '#22c55e';
+              else if (i < (currentStep.idx !== undefined ? currentStep.idx : n)) fill = '#ef4444'; // passed
+          } else if (algoType === 'binary') {
+              if (currentStep.type === 'compare' && currentStep.idx === i) fill = '#f59e0b';
+              else if (currentStep.type === 'found' && currentStep.idx === i) fill = '#22c55e';
+              else if (currentStep.left !== undefined && (i < currentStep.left || i > currentStep.right)) fill = '#ef4444'; // outside bounds
+              else fill = '#3b82f6'; // inside bounds
+          }
+
+          if (currentStep.type === 'notfound') {
+              fill = '#ef4444'; // all red
+          }
+      }
+
+      ctx.fillStyle = fill;
+      ctx.fillRect(x + 1, y, barW - 2, h);
+
+      // Values
+      if (barW > 15) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(arr[i], x + barW / 2, y - 5);
+      }
+
+      // Index
+      if (barW > 20 || i % Math.ceil(20/barW) === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(i, x + barW / 2, canvas.height - 20);
+      }
+    }
+  }
+
+  // â”€â”€ Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function doStep() {
+    if (si >= steps.length) {
+      running = false; done = true;
+      clearInterval(timerInterval);
+      // Victory sweep — same as Part 1 sort completion
+      if(simAudio) simAudio.playSweep(arr);
+      updateBtns();
+      return;
+    }
+    const s = steps[si];
+    if (s.type === 'compare') {
+      cmp++;
+      // Pitch-mapped to the element being checked — identical to Part 1 compare
+      if(simAudio) simAudio.playTone(arr[s.idx !== undefined ? s.idx : 0], arr);
+    } else if (s.type === 'found') {
+      foundIndex = s.idx;
+      document.getElementById('idxFound').innerText = foundIndex;
+      // High success tone: play the found element pitched high
+      if(simAudio) { simAudio.playSound(1200, 120); setTimeout(() => simAudio.playSound(1500, 180), 100); }
+    } else if (s.type === 'notfound') {
+      document.getElementById('idxFound').innerText = 'None';
+      // Crack/failure sound — same as Part 1 bad swap feel
+      if(simAudio) simAudio.playCrackSound();
+    }
+
+    document.getElementById('cmpCount').innerText = cmp;
+    // Highlight corresponding code line
+    const lineMap = codeLineMap[algoType];
+    if (lineMap && lineMap[s.type] !== undefined) {
+      codeSync.highlight(lineMap[s.type]);
+    }
+    si++;
+    draw();
+  }
+
+  function loop(ts) {
+    if(!running) return;
+    const dt = ts - lastTime;
+    msAcc += dt;
+    lastTime = ts;
+    const spd = getSpeed();
+    while (msAcc >= spd && running) {
+      msAcc -= spd;
+      doStep();
+    }
+    if(running) rafId = requestAnimationFrame(loop);
+  }
+
+  // â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function updateBtns() {
+    const p = document.getElementById('playBtn'), pa = document.getElementById('pauseBtn'), st = document.getElementById('stepBtn');
+    p.disabled = running || done;
+    pa.disabled = !running || done;
+    st.disabled = running || done;
+  }
+
+
+  function updateAlgoInfo() {
+      algoType = document.getElementById('algoSelect').value;
+      const desc = document.getElementById('algoDesc');
+      const badges = document.getElementById('algoBadges');
+      const cx = document.getElementById('algoComplexity');
+      initCodePlayground(algoType);
+
+      if (algoType === 'linear') {
+          desc.innerText = "Linear Search sequentially checks each element of the list for the target value until a match is found.";
+          badges.innerHTML = `<span class="badge bg-secondary">âœ… Unsorted Arrays</span><span class="badge bg-secondary">âœ… O(1) Space</span>`;
+          cx.innerHTML = `<span>Best: <strong class="text-white">O(1)</strong></span><span>Avg: <strong class="text-white">O(n)</strong></span><span>Worst: <strong class="text-white">O(n)</strong></span><span>Space: <strong class="text-white">O(1)</strong></span>`;
+      } else {
+          desc.innerText = "Binary Search compares the target value to the middle element of the sorted array, cutting the search space in half each iteration.";
+          badges.innerHTML = `<span class="badge bg-primary">âš ï¸ Requires Sorted Array</span><span class="badge bg-secondary">âœ… O(1) Space</span>`;
+          cx.innerHTML = `<span>Best: <strong class="text-white">O(1)</strong></span><span>Avg: <strong class="text-white">O(log n)</strong></span><span>Worst: <strong class="text-white">O(log n)</strong></span><span>Space: <strong class="text-white">O(1)</strong></span>`;
+      }
+      resetSim();
+  }
+
+  document.getElementById('playBtn').onclick = () => {
+    if(simAudio) simAudio.initContext();
+    if(done) return;
+    if(si === 0) {
+        targetValue = parseInt(document.getElementById('targetVal').value);
+        if (isNaN(targetValue)) targetValue = 42;
+        steps = algoType === 'linear' ? computeLinearSteps() : computeBinarySteps();
+        if(!startTime) {
+            startTime = Date.now();
+            timerInterval = setInterval(()=>{ document.getElementById('elapsedTime').innerText = ((Date.now()-startTime)/1000).toFixed(1)+'s'; }, 100);
+        }
+    }
+    running = true; updateBtns();
+    lastTime = performance.now();
+    rafId = requestAnimationFrame(loop);
+  };
+  document.getElementById('pauseBtn').onclick = () => { running = false; updateBtns(); };
+  document.getElementById('stepBtn').onclick = () => {
+    if(simAudio) simAudio.initContext();
+    if(done) return;
+    if(si === 0) {
+        targetValue = parseInt(document.getElementById('targetVal').value);
+        if (isNaN(targetValue)) targetValue = 42;
+        steps = algoType === 'linear' ? computeLinearSteps() : computeBinarySteps();
+    }
+    doStep(); updateBtns();
+  };
+  document.getElementById('resetBtn').onclick = () => {
+    si = 0; cmp = 0; foundIndex = -1; done = false; running = false; msAcc = 0; steps = [];
+    document.getElementById('cmpCount').innerText = '0';
+    document.getElementById('idxFound').innerText = '-';
+    document.getElementById('elapsedTime').innerText = '0.0s';
+    clearInterval(timerInterval); startTime = 0;
+    updateBtns(); draw();
+  };
+  document.getElementById('newArrayBtn').onclick = resetSim;
+
+  document.getElementById('arraySize').oninput = (e) => { document.getElementById('arraySizeVal').innerText = e.target.value; resetSim(); };
+  document.getElementById('algoSelect').onchange = updateAlgoInfo;
+
+  // Quiz setup
+  const quizData = [
+    { q: "What is the worst-case time complexity of Binary Search?", o: ["O(1)", "O(log n)", "O(n)", "O(nÂ²)"], a: 1 },
+    { q: "Linear search works efficiently on which type of array?", o: ["Only Sorted Arrays", "Both Sorted & Unsorted Arrays", "Only Arrays with negative numbers", "Strings only"], a: 1 },
+    { q: "What is a major requirement for Binary Search to work?", o: ["The array must be randomly ordered", "The array must be sorted", "The array must contain only integers", "The array size must be even"], a: 1 },
+    { q: "In a worst-case scenario, how many comparisons does Linear Search make in an array of size n?", o: ["n/2", "log n", "n", "n-1"], a: 2 },
+    { q: "What is the space complexity of iterative Binary Search?", o: ["O(1)", "O(log n)", "O(n)", "O(n log n)"], a: 0 }
+  ];
+  window.showQuizOverlay = function() { window.quizModule.initQuiz(quizData, "Search Algorithms Quiz"); };
+  window.hideQuizOverlay = function() { window.quizModule.closeQuiz(); };
+
+  resetSim();
+})();
+</script>
+</body>
+</html>

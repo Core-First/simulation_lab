@@ -18,6 +18,24 @@
     --red:      #ef4444;
     --text:     #e6edf3;
     --muted:    #8b949e;
+<title>Simulation 11: AVL Tree / Red-Black Tree – ATC SimLab</title>
+<meta name="description" content="Learn AVL Trees and Red-Black Trees: self-balancing BSTs with rotations, guaranteed O(log n) operations, and interactive theory panels."/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #0d1117;
+    --surface: #161b22;
+    --surface2:#1f2937;
+    --border:  #30363d;
+    --accent:  #3b82f6;
+    --accent2: #6366f1;
+    --green:   #22c55e;
+    --yellow:  #f59e0b;
+    --red:     #ef4444;
+    --purple:  #a78bfa;
+    --text:    #e6edf3;
+    --muted:   #8b949e;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,6 +50,13 @@
   }
 
   /* ── Top bar ── */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header */
   header {
     display: flex;
     align-items: center;
@@ -190,6 +215,281 @@
     .panel-body { padding: 12px 14px; }
     header { padding: 0 14px; }
   }
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .breadcrumb span { color: var(--accent); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    text-decoration: none;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sim-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, rgba(59,130,246,.12) 0%, rgba(99,102,241,.08) 50%, rgba(167,139,250,.1) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 40px 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99,102,241,.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .coming-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,.15);
+    border: 1px solid rgba(245,158,11,.4);
+    color: var(--yellow);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #e6edf3 30%, var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 620px;
+    margin: 0 auto 24px;
+    line-height: 1.65;
+  }
+
+  /* Content Layout */
+  .page-content { display: flex; flex: 1; overflow: hidden; }
+
+  /* Left Theory Panel */
+  .theory-panel {
+    width: 300px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .theory-panel-header {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+  }
+  .theory-panel-header h2 {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .theory-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theory-section p {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #c9d1d9;
+    margin-bottom: 8px;
+  }
+  .theory-section ul {
+    list-style: none;
+    margin-top: 4px;
+  }
+  .theory-section ul li {
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #c9d1d9;
+    padding-left: 14px;
+    position: relative;
+  }
+  .theory-section ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  /* Complexity table */
+  .complexity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    margin-top: 8px;
+  }
+  .complexity-table th {
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 5px 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9.5px;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+  }
+  .complexity-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: #c9d1d9; }
+  .good { color: var(--green) !important; }
+  .ok   { color: var(--yellow) !important; }
+
+  /* Main content */
+  .main-content { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover {
+    border-color: var(--accent2);
+    box-shadow: 0 0 20px rgba(99,102,241,.12);
+  }
+  .card-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .card-icon.avl   { background: rgba(59,130,246,.15); color: var(--accent); }
+  .card-icon.rb    { background: rgba(239,68,68,.15);  color: var(--red); }
+  .card-icon.comp  { background: rgba(99,102,241,.15); color: var(--accent2); }
+  .card-header h3 { font-size: 14px; font-weight: 600; }
+  .card-header small { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+  .card-body { padding: 18px 20px; }
+  .card-body p { font-size: 12.5px; line-height: 1.7; color: #c9d1d9; margin-bottom: 10px; }
+
+  /* Visual tree diagram */
+  .tree-diagram {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tree-diagram canvas { max-width: 100%; }
+
+  /* Tag chips */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 2px 2px 0 0;
+  }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .tag-red    { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+  .tag-purple { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+  .tag-green  { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .tag-yellow { background: rgba(245,158,11,.12); color: #fbbf24; border: 1px solid rgba(245,158,11,.25); }
+
+  /* Progress section */
+  .coming-soon-banner {
+    margin: 0 28px 28px;
+    background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(239,68,68,.06));
+    border: 1px solid rgba(245,158,11,.25);
+    border-radius: 10px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .coming-soon-banner .icon { font-size: 32px; opacity: .7; }
+  .coming-soon-banner h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--yellow); }
+  .coming-soon-banner p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+  /* Rotation illustration */
+  .rotation-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .rotation-box pre { white-space: pre-wrap; line-height: 1.8; }
+  .rotation-box .kw  { color: var(--accent); }
+  .rotation-box .hl  { color: var(--yellow); }
 </style>
 </head>
 <body>
@@ -311,6 +611,139 @@
             <button class="btn btn-ghost" onclick="avlInsertRandom()">Random</button>
             <button class="btn btn-danger" onclick="clearAVL()">Clear</button>
             <button class="btn btn-ghost" onclick="runAVLTrace()">Run Trace</button>
+<!-- Header -->
+<header>
+  <div class="breadcrumb">
+    Part 4: Recursive Data Structures &nbsp;›&nbsp; <span>Simulation 11</span>
+  </div>
+  <div class="header-actions">
+    <a href="sim-10-bst.html" class="back-btn">
+      <i class="fa-solid fa-arrow-left"></i> BST Sim
+    </a>
+    <a href="../index.html" class="back-btn">
+      <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+    </a>
+    <div class="sim-badge">Module 4</div>
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="coming-badge">
+    <i class="fa-solid fa-hourglass-half"></i> Interactive Simulation Coming Soon
+  </div>
+  <h1>AVL Tree &amp; Red-Black Tree</h1>
+  <p>Self-balancing Binary Search Trees that guarantee <strong>O(log n)</strong> worst-case performance for all operations — eliminating the O(n) degradation of unbalanced BSTs.</p>
+</div>
+
+<div class="page-content">
+
+  <!-- Left Theory Panel -->
+  <div class="theory-panel">
+    <div class="theory-panel-header">
+      <h2>Theory &amp; Concepts</h2>
+    </div>
+
+    <div class="theory-section">
+      <h3>Why Self-Balancing?</h3>
+      <p>A standard BST can degrade into a linked list (O(n) height) with sorted insertions. Self-balancing trees maintain height as O(log n) automatically.</p>
+    </div>
+
+    <div class="theory-section">
+      <h3>AVL Tree Rules</h3>
+      <ul>
+        <li>Every node stores a <strong>balance factor</strong> = height(right) – height(left)</li>
+        <li>Balance factor must be <strong>–1, 0, or +1</strong> at all times</li>
+        <li>Violation triggers one or two <strong>rotations</strong></li>
+        <li>Height guaranteed ≤ 1.44 × log₂(n+2)</li>
+      </ul>
+    </div>
+
+    <div class="theory-section">
+      <h3>AVL Rotations</h3>
+      <ul>
+        <li><strong>Left Rotate</strong> — right-heavy imbalance</li>
+        <li><strong>Right Rotate</strong> — left-heavy imbalance</li>
+        <li><strong>Left-Right</strong> — left child is right-heavy</li>
+        <li><strong>Right-Left</strong> — right child is left-heavy</li>
+      </ul>
+    </div>
+
+    <div class="theory-section">
+      <h3>Red-Black Rules</h3>
+      <ul>
+        <li>Every node is <span style="color:#f87171">Red</span> or Black</li>
+        <li>Root is always Black</li>
+        <li>Red node cannot have Red children</li>
+        <li>All paths to leaves have equal Black height</li>
+        <li>NULL leaves are considered Black</li>
+      </ul>
+    </div>
+
+    <div class="theory-section">
+      <h3>Time Complexity</h3>
+      <table class="complexity-table">
+        <thead><tr><th>Op</th><th>AVL</th><th>R-B</th></tr></thead>
+        <tbody>
+          <tr><td>Search</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+          <tr><td>Insert</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+          <tr><td>Delete</td><td class="good">O(log n)</td><td class="good">O(log n)</td></tr>
+          <tr><td>Rotations/Insert</td><td class="ok">up to 2</td><td class="good">up to 3</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="theory-section">
+      <h3>When to Use?</h3>
+      <ul>
+        <li><strong>AVL</strong> — more rigid balance, faster lookups</li>
+        <li><strong>Red-Black</strong> — fewer rotations, faster inserts/deletes</li>
+        <li>R-B used in: Linux scheduler, Java TreeMap, C++ STL map</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Coming Soon Banner -->
+    <div style="padding:28px 28px 0">
+      <div class="coming-soon-banner">
+        <div class="icon">🛠️</div>
+        <div>
+          <h3>Interactive Simulation In Development</h3>
+          <p>The live AVL and Red-Black Tree visualiser with step-by-step rotation animations, balance factor overlays, and colour-flip demonstrations is actively being built. Review the theory panels and diagrams below to prepare.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="cards-grid">
+
+      <!-- AVL Tree Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon avl"><i class="fa-solid fa-code-branch"></i></div>
+          <div>
+            <h3>AVL Tree</h3>
+            <small>Height-balanced BST (Adelson-Velsky &amp; Landis, 1962)</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>An AVL tree maintains a <strong>balance factor</strong> at each node. After every insertion or deletion, the tree checks for imbalance and restores it via rotations.</p>
+          <div class="rotation-box">
+            <pre><span class="kw">Before (Left-Heavy):</span>    <span class="kw">After Right Rotate:</span>
+
+      <span class="hl">30</span> [BF=-2]            <span class="hl">20</span> [BF=0]
+     /                   /    \
+   <span class="hl">20</span> [BF=-1]          10     30
+   /
+  10</pre>
+          </div>
+          <div style="margin-top:12px">
+            <span class="tag tag-blue">Height ≤ 1.44·log n</span>
+            <span class="tag tag-green">Strict balance</span>
+            <span class="tag tag-purple">O(log n) all ops</span>
           </div>
         </div>
       </div>
@@ -331,6 +764,30 @@
             <button class="btn btn-ghost" onclick="rbInsertPreset()">Preset</button>
             <button class="btn btn-ghost" onclick="runRBTrace()">Run Trace</button>
             <button class="btn btn-danger" onclick="clearRB()">Clear</button>
+      <!-- Red-Black Tree Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon rb"><i class="fa-solid fa-circle-half-stroke"></i></div>
+          <div>
+            <h3>Red-Black Tree</h3>
+            <small>Relaxed-balance BST (Bayer, 1972)</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>Red-Black trees use <strong>node colouring</strong> with 5 invariants to maintain approximate balance. They allow slightly more height variance but require fewer rotations than AVL.</p>
+          <div class="rotation-box">
+            <pre><span class="kw">Example R-B Tree:</span>
+
+         <span class="hl">10B</span>
+        /     \
+      <span style="color:#f87171">5R</span>       <span style="color:#f87171">20R</span>
+     / \      /  \
+   3B   7B  15B  25B</pre>
+          </div>
+          <div style="margin-top:12px">
+            <span class="tag tag-red">Red/Black nodes</span>
+            <span class="tag tag-green">Fewer rotations</span>
+            <span class="tag tag-yellow">Used in OS kernels</span>
           </div>
         </div>
       </div>
@@ -683,5 +1140,58 @@ document.fonts.ready.then(() => {
   resizeAVL(); resizeRB(); showPanel('avl'); checkAndLoadPresets();
 });
 </script>
+      <!-- Comparison Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon comp"><i class="fa-solid fa-scale-balanced"></i></div>
+          <div>
+            <h3>AVL vs Red-Black</h3>
+            <small>Tradeoffs &amp; use cases</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="complexity-table" style="margin-top:0">
+            <thead><tr><th>Property</th><th>AVL</th><th>Red-Black</th></tr></thead>
+            <tbody>
+              <tr><td>Balance strictness</td><td class="good">Strict</td><td class="ok">Relaxed</td></tr>
+              <tr><td>Max height</td><td>1.44·log n</td><td>2·log n</td></tr>
+              <tr><td>Rotations/insert</td><td class="ok">Up to 2</td><td class="good">Up to 3</td></tr>
+              <tr><td>Lookup speed</td><td class="good">Faster</td><td class="ok">Slightly slower</td></tr>
+              <tr><td>Insert/delete speed</td><td class="ok">Slower</td><td class="good">Faster</td></tr>
+              <tr><td>Real-world usage</td><td>Databases</td><td>OS, STL</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rotation Types Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon avl"><i class="fa-solid fa-rotate"></i></div>
+          <div>
+            <h3>Rotation Cases</h3>
+            <small>Four imbalance patterns</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>AVL uses 4 rotation patterns to restore balance after insertions:</p>
+          <ul style="list-style:none; margin-top:8px">
+            <li style="margin-bottom:8px; font-size:12.5px; color:#c9d1d9; padding-left:14px; position:relative"><span style="position:absolute;left:0;color:var(--accent);font-weight:700">›</span> <strong>LL Case</strong> — single right rotation</li>
+            <li style="margin-bottom:8px; font-size:12.5px; color:#c9d1d9; padding-left:14px; position:relative"><span style="position:absolute;left:0;color:var(--accent);font-weight:700">›</span> <strong>RR Case</strong> — single left rotation</li>
+            <li style="margin-bottom:8px; font-size:12.5px; color:#c9d1d9; padding-left:14px; position:relative"><span style="position:absolute;left:0;color:var(--accent);font-weight:700">›</span> <strong>LR Case</strong> — left rotate child, then right rotate root</li>
+            <li style="font-size:12.5px; color:#c9d1d9; padding-left:14px; position:relative"><span style="position:absolute;left:0;color:var(--accent);font-weight:700">›</span> <strong>RL Case</strong> — right rotate child, then left rotate root</li>
+          </ul>
+          <div style="margin-top:12px">
+            <span class="tag tag-blue">Single rotations: O(1)</span>
+            <span class="tag tag-purple">Double rotations: O(1)</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards-grid -->
+  </div><!-- /main-content -->
+</div><!-- /page-content -->
+
+<script src="../assets/js/theme-toggle.js"></script>
 </body>
 </html>

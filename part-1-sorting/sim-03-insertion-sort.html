@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Insertion Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Insertion Sort visualisation: key element slides leftward into sorted region with dashed boundary marker." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
+</head>
+<body class="sim-page">
+
+  <!-- Guided Tour Overlay -->
+  <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+      <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+      <p id="tourText" class="small mb-3"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">Skip Guide</button>
+        <button class="btn btn-sm btn-primary px-3" id="tourNext">Next <i class="fa-solid fa-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-indent text-primary me-2"></i> Insertion Sort Masterclass Simulation
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+          <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <a href="../index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
+      </div>
+    </header>
+
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Sorting Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="sortCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
+
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Insertion Sort is a simple sorting algorithm that builds the final sorted array one item at a time. It iterates, consuming one input element each repetition, and growing a sorted output list.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">✅ Stable</span>
+            <span class="badge bg-secondary">✅ In-Place</span>
+            <span class="badge bg-secondary">✅ Adaptive (O(n) best case)</span>
+          </div>
+          <div class="comparison-stats">
+            <span>Best: <strong class="text-white">O(n)</strong></span>
+            <span>Avg: <strong class="text-white">O(n²)</strong></span>
+            <span>Worst: <strong class="text-white">O(n²)</strong></span>
+            <span>Space: <strong class="text-white">O(1)</strong></span>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware AI Instructor Chat
+          </div>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted)">
+            👋 Hi! Ask about Insertion Sort mechanics, why it's used inside Timsort, or how it handles nearly-sorted data.
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs" style="max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 13px;"></div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why O(n) best?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Explain insertion sort with an example" style="font-size: 11px">Explain it</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why is insertion sort O(n) for nearly sorted arrays?" style="font-size: 11px">Why O(n) best?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="What does adaptive mean for insertion sort?" style="font-size: 11px">Adaptive?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Is insertion sort stable?" style="font-size: 11px">Stable?</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="5" max="60" value="20" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">20</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Order:</label>
+             <select id="arrayOrder" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="random">Random</option>
+              <option value="nearly">Nearly Sorted</option>
+              <option value="reverse">Reversed</option>
+              <option value="sorted">Already Sorted</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="customArr">Custom:</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+            <button class="btn btn-sm btn-secondary" id="applyCustomBtn"><i class="fa-solid fa-check"></i></button>
+          </div>
+          
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Play</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-right-left"></i> Shifts: <span id="swpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-rotate"></i> Inserted: <span id="passCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Unsorted</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#a78bfa;border-radius:2px;"></div> Key</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></div> Shifting</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Sorted</div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-code">
+          <div class="panel-title">Execution Sync Code</div>
+          <div class="code-editor" id="codeEditorWrap" spellcheck="false" style="padding-left: 12px; height: 100%; min-height: 200px; max-height: 350px; overflow-y: auto;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none">
+    <div class="quiz-backdrop"></div>
+    <div class="quiz-modal">
+      <div class="quiz-header">
+        <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Insertion Sort Quiz</h3>
+        <div class="quiz-progress">
+          <span id="quizProgress">Question 1 of 10</span>
+        </div>
+      </div>
+      <div class="quiz-content">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+        <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+      </div>
+      <div class="quiz-results" id="quizResults" style="display: none">
+        <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+        <div class="quiz-score" id="quizScore"></div>
+        <div class="quiz-summary" id="quizSummary"></div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+          <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
+<script src="../assets/js/sorting-tour.js"></script>
+<script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
+<script>
+(function () {
+  'use strict';
+  const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
+
+  function getHighlightLine(s) {
+    if (s.t === 'pick')  return 5;
+    if (s.t === 'cmp')   return 7;
+    if (s.t === 'shift') return 8;
+    if (s.t === 'place') return 11;
+    if (s.t === 'done')  return 13;
+    return -1;
+  }
+
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  
+  setTimeout(() => {
+    resizeCanvas();
+    draw();
+  }, 100);
+  
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // ── State ─────────────────────────────────────────────────
+  let arr = [], original = [], cmp = 0, shifts = 0, inserted = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0;
+  let timerInterval = null, startTime = 0;
+
+  // Smooth animation state
+  let curStep   = null;  // logical step currently being rendered
+  let animT     = 1.0;   // lerp progress 0→1
+  let animStart = 0;     // performance.now() when anim began
+  let animDur   = 160;   // ms
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
+  function computeSteps(a) {
+    const d=[...a],n=d.length,out=[];
+    for(let i=1;i<n;i++){
+      const key=d[i];
+      out.push({t:'pick',key:i,keyVal:key,boundary:i,arr:[...d]});
+      let j=i-1;
+      while(j>=0&&d[j]>key){
+        out.push({t:'cmp',j,key:i,keyVal:key,boundary:i,arr:[...d]});
+        d[j+1]=d[j];
+        out.push({t:'shift',from:j,to:j+1,key:i,keyVal:key,boundary:i,arr:[...d]});
+        j--;
+      }
+      d[j+1]=key;
+      out.push({t:'place',pos:j+1,key:i,keyVal:key,boundary:i+1,arr:[...d]});
+    }
+    out.push({t:'done',arr:[...d]});
+    return out;
+  }
+
+  const C={base:'#3b82f6',key:'#a78bfa',shift:'#f59e0b',sorted:'#22c55e'};
+
+  function _box(x,y,sz,fill,brd,txt,val,fs,glow,gsz){
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,sz,sz,9); ctx.fill();
+    if(glow){ctx.shadowBlur=gsz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;
+      ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+      ctx.shadowBlur=0;ctx.shadowColor='transparent';}
+    ctx.strokeStyle=brd;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.fillStyle=txt;ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
+  function _ghost(x,y,sz){
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#0a1818';ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.fill();
+    ctx.strokeStyle='#1a5858';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  function _keyBox(x,y,sz,val,fs){
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#f5a623';ctx.font=`bold 11px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('key',x+sz/2,y-3);
+    ctx.fillStyle='#1c1000';ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.fill();
+    ctx.shadowBlur=22;ctx.shadowColor='#f5a623';
+    ctx.strokeStyle='#f5a623';ctx.lineWidth=3;
+    ctx.beginPath();ctx.roundRect(x,y,sz,sz,9);ctx.stroke();
+    ctx.shadowBlur=0;ctx.shadowColor='transparent';
+    ctx.fillStyle='#ffffff';ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+sz/2,y+sz/2);
+  }
+
+  function lerpColor(c1, c2, factor) {
+    const r1 = parseInt(c1.slice(1, 3), 16);
+    const g1 = parseInt(c1.slice(3, 5), 16);
+    const b1 = parseInt(c1.slice(5, 7), 16);
+    const r2 = parseInt(c2.slice(1, 3), 16);
+    const g2 = parseInt(c2.slice(3, 5), 16);
+    const b2 = parseInt(c2.slice(5, 7), 16);
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function draw(state, t=1.0) {
+    const W=canvas.width, H=canvas.height, n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+    if(!n) return;
+
+    const gap=8;
+    const boxSize=Math.max(26, Math.min(56, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2;
+    const rowY=Math.round(H*0.62);        // main row
+    const floatY=rowY-boxSize-22;         // floating key y
+    const fs=Math.max(10,Math.min(20,Math.floor(boxSize*0.44)));
+    const ep=easeOut(Math.min(1,Math.max(0,t)));
+    const s=state;
+
+    // ── What's the current 'insertion-hole' ghost slot? ─────
+    // It starts at the pick position (s.key = i) and moves LEFT
+    // after each shift.  During 'cmp' j, hole is at j+1.
+    // During 'shift', hole animates from s.to → s.from.
+    let ghostSlot = -1;
+    if(s){
+      if(s.t==='pick')  ghostSlot = s.key;
+      else if(s.t==='cmp') ghostSlot = s.j+1;
+      else if(s.t==='shift') ghostSlot = s.from; // after shift completes
+    }
+
+    // Animated ghost x (for shift: moves right-to-left)
+    let ghostX;
+    if(s && s.t==='shift'){
+      ghostX = lerpN(sx+s.to*(boxSize+gap), sx+s.from*(boxSize+gap), ep);
+    } else if(ghostSlot>=0){
+      ghostX = sx+ghostSlot*(boxSize+gap);
+    }
+
+    // Key hovers at ghost X
+    let keyX, keyY;
+    if(s && (s.t==='pick'||s.t==='cmp'||s.t==='shift')){
+      keyX = ghostX;
+      keyY = (s.t==='pick') ? lerpN(rowY, floatY, ep) : floatY;
+    } else if(s && s.t==='place'){
+      keyX = sx+s.pos*(boxSize+gap);
+      keyY = lerpN(floatY, rowY, ep);
+    }
+
+    // ── Draw regular slots ──────────────────────────────────
+    const skipSlots = new Set();
+    if(s && s.t==='shift'){
+      skipSlots.add(s.from);
+      skipSlots.add(s.to);
+    } else if(s && s.t==='place' && ep < 1.0){
+      skipSlots.add(s.pos);
+    } else if(ghostSlot>=0){
+      skipSlots.add(ghostSlot);
+    }
+
+    // Draw animating shift element (slides right)
+    if(s && s.t==='shift'){
+      const elemX = lerpN(sx+s.from*(boxSize+gap), sx+s.to*(boxSize+gap), ep);
+      _box(elemX,rowY,boxSize,'#241800','#fb923c','#fff',arr[s.to],fs,'#fb923c',14);
+    }
+
+    // Draw animated ghost
+    if(ghostX!==undefined){
+      _ghost(ghostX, rowY, boxSize);
+    }
+
+    // Draw static slots
+    for(let k=0;k<n;k++){
+      if(skipSlots.has(k)) continue;
+      const kx=sx+k*(boxSize+gap);
+
+      // Default teal
+      let fill='#0c2e2c',brd='#00bfa0',txt='#ccfff4',glow=null,gsz=0;
+
+      if(s){
+        // SORTED → solid bright green fill
+        if(s.t==='done'||(s.boundary&&k<s.boundary)){
+          fill='#007a50';brd='#22c55e';txt='#ffffff';
+        }
+        // Comparison target → amber glow
+        if(s.t==='cmp'&&k===s.j){
+          fill='#2a1600';brd='#f59e0b';txt='#fcd34d';glow='#f59e0b';gsz=14;
+        }
+        // Placed → green fill with green glow
+        if(s.t==='place'&&k===s.pos){
+          fill='#007a50';brd='#22c55e';txt='#ffffff';glow='#22c55e';gsz=16;
+        }
+      }
+      _box(kx,rowY,boxSize,fill,brd,txt,arr[k],fs,glow,gsz);
+    }
+
+    // ── Floating key (pick / cmp / shift) ──────────────────
+    if(s&&(s.t==='pick'||s.t==='cmp'||s.t==='shift')&&s.keyVal!=null){
+      _keyBox(keyX, keyY, boxSize, s.keyVal, fs);
+      // dashed connector
+      if(keyY<rowY-4){
+        ctx.strokeStyle='rgba(245,166,35,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(keyX+boxSize/2,keyY+boxSize);
+        ctx.lineTo(keyX+boxSize/2,rowY);ctx.stroke();ctx.setLineDash([]);
+      }
+    }
+
+    // ── Key dropping during place ───────────────────────────
+    if(s&&s.t==='place'&&ep<1.0){
+      // Lerp colors from gold (key) to green (placed/sorted)
+      const fillColor = lerpColor('#1c1000', '#007a50', ep);
+      const borderColor = lerpColor('#f5a623', '#22c55e', ep);
+      const textColor = '#ffffff';
+      
+      const glowColor = lerpColor('#f5a623', '#22c55e', ep);
+      const glowSize = lerpN(22, 16, ep);
+      
+      // Draw key label fading out
+      if(ep<0.8){
+        ctx.save();
+        ctx.globalAlpha=1-ep/0.8;
+        ctx.fillStyle='#f5a623';ctx.font=`bold 11px 'Segoe UI',sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        ctx.fillText('key',keyX+boxSize/2,keyY-3);
+        ctx.restore();
+      }
+      
+      _box(keyX, keyY, boxSize, fillColor, borderColor, textColor, s.keyVal != null ? s.keyVal : arr[s.pos], fs, glowColor, glowSize);
+    }
+
+    // ── Boundary divider ────────────────────────────────────
+    if(s&&s.boundary&&s.boundary<n&&s.t!=='done'){
+      const lx=sx+s.boundary*(boxSize+gap)-gap/2;
+      ctx.shadowBlur=0;ctx.strokeStyle='rgba(167,139,250,0.5)';ctx.lineWidth=2;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(lx,rowY-14);ctx.lineTo(lx,rowY+boxSize+14);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  function getCodeString(arrData) {
+    const arrStr = arrData.join(', ');
+    return `let array = [${arrStr}];
+
+function insertionSort(arr) {
+  let n = arr.length;
+  for (let i = 1; i < n; i++) {
+    let key = arr[i];
+    let j = i - 1;
+    while (j >= 0 && arr[j] > key) {
+      arr[j + 1] = arr[j];
+      j--;
+    }
+    arr[j + 1] = key;
+  }
+  return arr;
+}
+insertionSort(array);`;
+  }
+
+  function updateCodeView(arrData) {
+    const code = getCodeString(arrData);
+    codeSync.init(code);
+  }
+
+  function updateCounters() {
+    document.getElementById('cmpCount').textContent  = cmp;
+    document.getElementById('swpCount').textContent  = shifts;
+    document.getElementById('passCount').textContent = inserted;
+  }
+  function startClock() { startTime=Date.now(); timerInterval=setInterval(()=>{ document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s'; },100); }
+  function stopClock()  { clearInterval(timerInterval); }
+
+  function step(s) {
+    arr=[...s.arr];
+    if(s.t==='pick'){inserted++; sortingAudio.playTone(s.keyVal, arr);}
+    else if(s.t==='cmp'){cmp++; sortingAudio.playTone(arr[s.j], arr);}
+    else if(s.t==='shift'){shifts++; sortingAudio.playTone(arr[s.to], arr);}
+    else if(s.t==='place'){sortingAudio.playTone(arr[s.pos], arr);}
+    else if(s.t==='done'){done=true;running=false;stopClock();
+      document.getElementById('playBtn').disabled=false;
+      document.getElementById('pauseBtn').disabled=true;
+      sortingAudio.playSweep(arr);}
+    updateCounters();
+    const hlLine = getHighlightLine(s);
+    if (hlLine >= 0) codeSync.highlight(hlLine);
+    // draw() is called by tick() with animation progress
+  }
+
+  function tick(ts) {
+    if(!running) return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      // animation finished — continue to step advancement below
+      lastTime = ts; msAcc = 0;
+    }
+
+    const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
+    const spd=getSpeed();
+
+    while(msAcc>=spd && si<steps.length && running){
+      msAcc -= spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      // Determine if this step needs smooth animation
+      const needAnim = curStep.t==='shift'||curStep.t==='pick'||curStep.t==='place';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 220));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return; // pause step loop, wait for animation
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
+
+    if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
+  }
+
+  function initState() {
+    sortingAudio.stop();
+    original=buildArr(); arr=[...original];
+    cmp=shifts=inserted=0; steps=[]; si=0; running=false; done=false;
+    cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent = '0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  }
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done){ initState(); return; }
+    if(!steps.length) steps=computeSteps([...arr]);
+    running=true;
+    document.getElementById('playBtn').disabled  = true;
+    document.getElementById('pauseBtn').disabled = false;
+    startClock(); lastTime=performance.now(); msAcc=0;
+    rafId=requestAnimationFrame(tick);
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+  });
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done) return;
+    if(!steps.length) steps=computeSteps([...arr]);
+    if(si<steps.length) step(steps[si++]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    arr=[...original]; cmp=shifts=inserted=0; steps=[]; si=0; done=false;
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+  document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock(); initState();
+  });
+  document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
+    document.getElementById('arraySizeVal').textContent=this.value;
+    if(!running) initState();
+  });
+  document.getElementById('applyCustomBtn').addEventListener('click', () => {
+    const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
+    const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
+    if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    original=parsed; arr=[...parsed]; cmp=shifts=inserted=0; steps=[]; si=0; done=false;
+    document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+
+  // AI assistant
+  const KB={explain:'Insertion Sort builds the final sorted array one item at a time. It iterates, consuming one input element each repetition, and growing a sorted output list by inserting the element into its correct position.',adaptive:'Insertion Sort is adaptive. If the input is already sorted, it runs in O(n) time because the inner loop immediately terminates.',stable:'Yes, Insertion Sort is stable. It does not change the relative order of elements with equal keys because it only shifts elements strictly greater than the key.',online:'It is an online algorithm, meaning it can sort a list as it receives it, one element at a time.',default:'Watch the purple bar (boundary/key), yellow (shifting), and green (sorted). Each pass the key element is placed in its sorted position among the previously sorted elements.'};
+  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('how'))return KB.explain;if(l.includes('adaptive')||l.includes('o(n)'))return KB.adaptive;if(l.includes('stable'))return KB.stable;if(l.includes('online'))return KB.online;return KB.default;}
+  function pushMsg(text,role){ 
+    const d=document.createElement('div'); 
+    d.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+    d.textContent=text; 
+    document.getElementById('aiMsgs').appendChild(d); 
+    d.scrollIntoView({behavior:'smooth'}); 
+  }
+  function doSend(){
+    const inp=document.getElementById('aiInput'); const q=inp.value.trim(); if(!q) return;
+    pushMsg(q,'user'); inp.value='';
+    setTimeout(()=>pushMsg(aiAns(q),'bot'),280);
+  }
+  document.getElementById('aiSend').addEventListener('click', doSend);
+  document.getElementById('aiInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{ b.addEventListener('click',()=>{ document.getElementById('aiInput').value=b.dataset.q; doSend(); }); });
+
+  // Quiz Engine overlay logic
+  window.showQuizOverlay = function() {
+    window.quizModule.initQuiz(questionPool, "Insertion Sort Quiz");
+  };
+  window.hideQuizOverlay = function() {
+    window.quizModule.closeQuiz();
+  };
+
+  // Initialize tour after DOM is fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTourDOMElements);
+  } else {
+    initTourDOMElements();
+  }
+
+  const questionPool = [
+    { q: "What is the best-case time complexity of Insertion Sort?", o: ["O(n)", "O(n log n)", "O(n²)", "O(1)"], a: 0, e: "When the array is already sorted, the inner loop terminates immediately, resulting in O(n) time." },
+    { q: "What is the worst-case time complexity of Insertion Sort?", o: ["O(n)", "O(n log n)", "O(n²)", "O(n³)"], a: 2, e: "When the array is reverse sorted, every element must be shifted, leading to O(n²) time." },
+    { q: "Is Insertion Sort an in-place sorting algorithm?", o: ["Yes", "No", "Only for small arrays", "Only for integers"], a: 0, e: "It requires O(1) auxiliary space, making it in-place." },
+    { q: "Is Insertion Sort a stable sorting algorithm?", o: ["Yes", "No", "Depends on the implementation", "Only for strings"], a: 0, e: "It preserves the relative order of equal elements because it only shifts elements strictly greater than the key." },
+    { q: "Which of the following sorting algorithms is Insertion Sort most similar to in terms of how it builds the sorted region?", o: ["Selection Sort", "Merge Sort", "Quick Sort", "Radix Sort"], a: 0, e: "Like Selection Sort, it builds a sorted region at the beginning of the array, but it inserts rather than selects the minimum." },
+    { q: "What is the main advantage of Insertion Sort over Selection Sort?", o: ["It is always faster in the worst case", "It is adaptive and performs well on nearly sorted data", "It uses less memory", "It requires fewer swaps in the worst case"], a: 1, e: "Insertion Sort can exit its inner loop early if the element is already in place, making it very fast for nearly sorted arrays." },
+    { q: "Why is Insertion Sort often used in combination with other algorithms like Quick Sort or Merge Sort?", o: ["It has a better worst-case time complexity", "It is very efficient for small sub-arrays", "It requires less stack space", "It can parallelize easily"], a: 1, e: "For small arrays (e.g., < 10-20 elements), Insertion Sort has very low overhead and is faster than more complex O(n log n) algorithms." },
+    { q: "In the inner loop of Insertion Sort, what operation is typically performed to make room for the key element?", o: ["Swapping", "Shifting", "Deleting", "Overwriting"], a: 1, e: "Elements greater than the key are shifted one position to the right to create an open slot." },
+    { q: "What does it mean that Insertion Sort is an 'online' algorithm?", o: ["It requires an internet connection", "It can sort data as it receives it", "It runs in linear time", "It uses an external API"], a: 1, e: "An online algorithm can process its input piece-by-piece in a serial fashion." },
+    { q: "If an array is sorted in reverse order, how many shifts will Insertion Sort perform for an array of size n?", o: ["n", "n(n-1)/2", "n log n", "0"], a: 1, e: "Every element must be shifted past all previously sorted elements, resulting in the maximum number of shifts." }
+  ];
+
+  window.addEventListener('themechanged', () => { draw(); });
+
+  initState();
+})();
+</script>
+</body>
+</html>

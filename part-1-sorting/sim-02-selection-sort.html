@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selection Sort – Part 1 | ATC SimLab</title>
+  <meta name="description" content="Interactive Selection Sort visualisation: minimum tracking, sorted region growth, step-by-step Canvas animation." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="../assets/css/simulation-base.css" rel="stylesheet" />
+</head>
+<body class="sim-page">
+
+  <!-- Guided Tour Overlay -->
+  <div class="guided-tour-overlay" id="guidedTour" style="display: none">
+    <div class="tour-backdrop"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+      <h5 id="tourTitle" class="fw-bold fs-6 text-primary mb-2"></h5>
+      <p id="tourText" class="small mb-3"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-sm btn-secondary opacity-75" id="tourSkip">Skip Guide</button>
+        <button class="btn btn-sm btn-primary px-3" id="tourNext">Next <i class="fa-solid fa-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="page-title">
+        <i class="fa-solid fa-crosshairs text-primary me-2"></i> Selection Sort Masterclass Simulation
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" id="startTourBtn">
+          <i class="fa-regular fa-lightbulb me-1"></i> Quick Tour
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="audioToggle" title="Mute Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <a href="../index.html" class="back-btn">
+          <i class="fa-solid fa-arrow-left-long"></i> Back to Dashboard
+        </a>
+      </div>
+    </header>
+
+    <div class="sim-body">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <div class="panel-title" id="tour-canvas">
+          <span><i class="fa-solid fa-chart-bar text-info me-1"></i> Interactive Sorting Canvas</span>
+        </div>
+        <div class="canvas-wrap" style="width: 100%; min-height: 280px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <canvas id="sortCanvas" style="width: 100%; height: 100%;"></canvas>
+        </div>
+
+        <div class="panel-title" id="tour-info" style="margin-top: 15px;">Algorithm Information</div>
+        <div class="panel-card mb-3">
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 10px;">
+            Selection Sort divides the input list into two parts: a sorted sublist of items which is built up from left to right at the front, and a sublist of the remaining unsorted items. The algorithm repeatedly finds the smallest element from the unsorted sublist and swaps it with the leftmost unsorted element.
+          </p>
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge bg-secondary">❌ Unstable</span>
+            <span class="badge bg-secondary">✅ In-Place</span>
+            <span class="badge bg-secondary">❌ Non-Adaptive</span>
+          </div>
+          <div class="comparison-stats">
+            <span>Best: <strong class="text-white">O(n²)</strong></span>
+            <span>Avg: <strong class="text-white">O(n²)</strong></span>
+            <span>Worst: <strong class="text-white">O(n²)</strong></span>
+            <span>Space: <strong class="text-white">O(1)</strong></span>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-ai">
+          <div class="panel-title">
+            <i class="fa-solid fa-robot text-primary me-1"></i> Context-Aware AI Instructor Chat
+          </div>
+          <div class="ai-box mb-2" id="aiResponse" style="min-height: 44px; font-size: 12.5px; color: var(--muted)">
+            👋 Ask me about Selection Sort - mechanics, complexity, or how it compares to other sorts.
+          </div>
+          <div class="ai-msgs-full" id="aiMsgs" style="max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 13px;"></div>
+          <div class="d-flex gap-2">
+            <input type="text" id="aiInput" class="form-control form-control-sm" placeholder="e.g., Why always O(n²)?" />
+            <button id="aiSend" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Explain selection sort" style="font-size: 11px">Explain it</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Why is selection sort always O(n²)?" style="font-size: 11px">Always O(n²)?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Is selection sort stable?" style="font-size: 11px">Stable?</button>
+            <button class="btn btn-xs btn-outline-secondary py-1 px-2 small ai-chip-full" data-q="Compare selection sort vs bubble sort" style="font-size: 11px">vs Bubble?</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="panel-card" id="tour-controls">
+          <div class="panel-title">Controls & Configuration</div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Size:</label>
+            <input type="range" id="arraySize" min="5" max="60" value="20" class="form-range mx-2" />
+            <span id="arraySizeVal" class="badge bg-secondary font-monospace">20</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+            <label class="small text-nowrap" style="color: var(--muted)">Speed:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5" class="form-range mx-2" />
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+             <label class="small text-nowrap" style="color: var(--muted)">Order:</label>
+             <select id="arrayOrder" class="form-select form-select-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);">
+              <option value="random">Random</option>
+              <option value="nearly">Nearly Sorted</option>
+              <option value="reverse">Reversed</option>
+              <option value="sorted">Already Sorted</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <label class="small text-nowrap" style="color: var(--muted)" for="customArr">Custom:</label>
+            <input type="text" id="customArr" placeholder="e.g. 45,12,67,3" class="form-control form-control-sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);" />
+            <button class="btn btn-sm btn-secondary" id="applyCustomBtn"><i class="fa-solid fa-check"></i></button>
+          </div>
+          
+          <div class="controls-row">
+             <button class="btn-control btn-play" id="playBtn"><i class="fa-solid fa-play"></i> Play</button>
+             <button class="btn-control btn-pause" id="pauseBtn" disabled><i class="fa-solid fa-pause"></i> Pause</button>
+             <button class="btn-control btn-step" id="stepBtn"><i class="fa-solid fa-arrow-right"></i> Step</button>
+             <button class="btn-control btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+             <button class="btn-control btn-reset" id="newArrayBtn"><i class="fa-solid fa-shuffle"></i> New</button>
+             <button class="btn-control btn-quiz visible" id="btnQuiz" onclick="showQuizOverlay()" style="display:inline-flex;"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-stats">
+          <div class="panel-title">Real-time Statistics</div>
+          <div class="stats">
+            <div class="stat-item"><i class="fa-solid fa-code-compare"></i> Comps: <span id="cmpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-right-left"></i> Swaps: <span id="swpCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-rotate"></i> Pass: <span id="passCount" class="font-monospace text-white fw-bold">0</span></div>
+            <div class="stat-item"><i class="fa-solid fa-stopwatch"></i> Time: <span id="elapsedTime" class="font-monospace text-white fw-bold">0.0s</span></div>
+          </div>
+          <hr class="my-3 opacity-25" />
+          <div class="d-flex flex-wrap gap-3 small">
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#3b82f6;border-radius:2px;"></div> Unsorted</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#a78bfa;border-radius:2px;"></div> Boundary</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f59e0b;border-radius:2px;"></div> Scanning</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#f87171;border-radius:2px;"></div> Min Found</div>
+             <div class="d-flex align-items-center gap-1"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div> Sorted</div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="tour-code">
+          <div class="panel-title">Execution Sync Code</div>
+          <div class="code-editor" id="codeEditorWrap" spellcheck="false" style="padding-left: 12px; height: 100%; min-height: 200px; max-height: 350px; overflow-y: auto;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Overlay -->
+  <div class="quiz-overlay" id="quizOverlay" style="display: none">
+    <div class="quiz-backdrop"></div>
+    <div class="quiz-modal">
+      <div class="quiz-header">
+        <h3 id="quizTitle"><i class="fa-solid fa-circle-question"></i> Selection Sort Quiz</h3>
+        <div class="quiz-progress">
+          <span id="quizProgress">Question 1 of 10</span>
+        </div>
+      </div>
+      <div class="quiz-content">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn-control btn-reset" id="quizSkip" style="display: none">Skip Quiz</button>
+        <button class="btn-control btn-play" id="quizSubmit" disabled>Submit Answer</button>
+      </div>
+      <div class="quiz-results" id="quizResults" style="display: none">
+        <h4><i class="fa-solid fa-star"></i> Quiz Complete!</h4>
+        <div class="quiz-score" id="quizScore"></div>
+        <div class="quiz-summary" id="quizSummary"></div>
+        <div class="quiz-actions">
+          <button class="btn-control btn-step" id="quizRestart">Retry Quiz</button>
+          <button class="btn-control btn-reset" id="quizClose">Continue Learning</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/theme-toggle.js"></script>
+<script src="../assets/js/quiz.js"></script>
+<script src="../assets/js/sorting-tour.js"></script>
+<script src="../assets/js/code-sync.js"></script>
+<script src="../assets/js/sim-audio.js"></script>
+<script>
+(function () {
+  'use strict';
+  const codeSync = new CodeSync('codeEditorWrap');
+  const sortingAudio = new SortingAudio();
+
+  function getHighlightLine(s) {
+    if (s.type === 'pass')    return 4;
+    if (s.type === 'compare') return 7;
+    if (s.type === 'newMin')  return 8;
+    if (s.type === 'swap')    return 12;
+    if (s.type === 'sorted')  return 11;
+    if (s.type === 'done')    return 17;
+    return -1;
+  }
+
+  // ── Canvas ────────────────────────────────────────────────
+  const canvas = document.getElementById('sortCanvas');
+  const ctx    = canvas.getContext('2d');
+  function resizeCanvas() {
+    canvas.width  = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  
+  setTimeout(() => {
+    resizeCanvas();
+    draw();
+  }, 100);
+  
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // ── State ─────────────────────────────────────────────────
+  let arr = [], original = [], cmp = 0, swp = 0, pass = 0;
+  let running = false, done = false, rafId = null, lastTime = 0;
+  let steps = [], si = 0, msAcc = 0;
+  let sortedSet = new Set();
+  let timerInterval = null, startTime = 0;
+
+  const getSpeed = () => Math.round(1200 / parseInt(document.getElementById('speedRange').value));
+
+  // ── Array generators ──────────────────────────────────────
+  function mkRandom(n) { return Array.from({length:n}, () => Math.floor(Math.random()*90)+10); }
+  function mkNearly(n) {
+    const a = Array.from({length:n}, (_,i) => Math.round((i+1)*100/n));
+    for(let k=0; k<Math.max(1,n>>3); k++){const x=Math.random()*n|0,y=Math.random()*n|0;[a[x],a[y]]=[a[y],a[x]];}
+    return a;
+  }
+  function mkRev(n) { return Array.from({length:n}, (_,i) => Math.round((n-i)*100/n)); }
+  function mkSorted(n) { return Array.from({length:n}, (_,i) => Math.round((i+1)*100/n)); }
+  function buildArr() {
+    const n = parseInt(document.getElementById('arraySize').value);
+    const o = document.getElementById('arrayOrder').value;
+    return o==='nearly'?mkNearly(n):o==='reverse'?mkRev(n):o==='sorted'?mkSorted(n):mkRandom(n);
+  }
+
+  function computeSteps(a) {
+    const d=[...a],n=d.length,out=[];
+    for(let i=0;i<n-1;i++){
+      let minIdx=i;
+      out.push({type:'pass',pass:i+1,arr:[...d]});
+      for(let j=i+1;j<n;j++){
+        out.push({type:'compare',current:i,scan:j,minIdx,arr:[...d]});
+        if(d[j]<d[minIdx]){minIdx=j;out.push({type:'newMin',minIdx,arr:[...d]});}
+      }
+      if(minIdx!==i){[d[i],d[minIdx]]=[d[minIdx],d[i]];out.push({type:'swap',a:i,b:minIdx,arr:[...d]});}
+      out.push({type:'sorted',idx:i,arr:[...d]});
+    }
+    out.push({type:'sorted',idx:n-1,arr:[...d]});
+    out.push({type:'done',arr:[...d]});
+    return out;
+  }
+
+  function easeOut(t){ return 1-(1-t)**3; }
+  function lerpN(a,b,t){ return a+(b-a)*t; }
+
+  // Smooth animation state
+  let curStep   = null;
+  let animT     = 1.0;
+  let animStart = 0;
+  let animDur   = 160;
+
+  function draw(state, t = 1.0) {
+    const W=canvas.width, H=canvas.height, n=arr.length;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
+    if(!n) return;
+    const gap=6;
+    const boxSize=Math.max(28, Math.min(64, Math.floor((W-20)/n) - gap));
+    const totalW=n*(boxSize+gap)-gap;
+    const sx=(W-totalW)/2, sy=(H-boxSize)/2;
+    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
+    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
+
+    // Draw static slots (skipping the active swapping pair)
+    for(let k=0;k<n;k++){
+      if(state && state.type==='swap' && (k===state.a || k===state.b)) continue;
+      
+      const x=sx+k*(boxSize+gap), y=sy;
+      let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
+      if(state){
+        if(state.type==='done'||sortedSet.has(k)){border='#22c55e';fill='#007a50';text='#ffffff';}
+        if(state.type==='compare'||state.type==='newMin'){
+          if(k===state.current){border='#a78bfa';fill='#100e1f';text='#c4b5fd';glow='#a78bfa';glowSz=14;}
+          if(k===state.scan){border='#f59e0b';fill='#1a1000';text='#fcd34d';}
+          if(k===state.minIdx){border='#f87171';fill='#1a0808';text='#fca5a5';glow='#f87171';glowSz=12;}
+        }
+      }
+      
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.fill();
+      if(glow){ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x,y,boxSize,boxSize,8);ctx.stroke();}
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x,y,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[k], x+boxSize/2, y+boxSize/2);
+    }
+
+    // Draw swapping slots
+    if(state && state.type==='swap'){
+      const a = state.a, b = state.b;
+      const x_a_start = sx + b * (boxSize + gap);
+      const x_a_end   = sx + a * (boxSize + gap);
+      const x_b_start = sx + a * (boxSize + gap);
+      const x_b_end   = sx + b * (boxSize + gap);
+      
+      const x_a = lerpN(x_a_start, x_a_end, ep);
+      const x_b = lerpN(x_b_start, x_b_end, ep);
+      
+      const fill='#1a0808', border='#ef4444', text='#fca5a5', glow='#ef4444', glowSz=18;
+      
+      // Draw box A
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_a,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[a], x_a+boxSize/2, sy+boxSize/2);
+      
+      // Draw box B
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_b,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.shadowBlur=0; ctx.shadowColor='transparent';
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(arr[b], x_b+boxSize/2, sy+boxSize/2);
+    }
+  }
+
+  function getCodeString(arrData) {
+    const arrStr = arrData.join(', ');
+    return `let array = [${arrStr}];
+
+function selectionSort(arr) {
+  let n = arr.length;
+  for (let i = 0; i < n - 1; i++) {
+    let minIdx = i;
+    for (let j = i + 1; j < n; j++) {
+      if (arr[j] < arr[minIdx]) {
+        minIdx = j;
+      }
+    }
+    if (minIdx !== i) {
+      let temp = arr[i];
+      arr[i] = arr[minIdx];
+      arr[minIdx] = temp;
+    }
+  }
+  return arr;
+}
+selectionSort(array);`;
+  }
+
+  function updateCodeView(arrData) {
+    const code = getCodeString(arrData);
+    codeSync.init(code);
+  }
+
+  function updateCounters() {
+    document.getElementById('cmpCount').textContent  = cmp;
+    document.getElementById('swpCount').textContent  = swp;
+    document.getElementById('passCount').textContent = pass;
+  }
+  function startClock() { startTime=Date.now(); timerInterval=setInterval(()=>{ document.getElementById('elapsedTime').textContent=((Date.now()-startTime)/1e3).toFixed(1)+'s'; },100); }
+  function stopClock()  { clearInterval(timerInterval); }
+
+  function step(s) {
+    arr=[...s.arr];
+    if(s.type==='pass'){pass=s.pass;}
+    else if(s.type==='compare'){cmp++; sortingAudio.playTone(arr[s.scan], arr);}
+    else if(s.type==='newMin'){sortingAudio.playTone(arr[s.minIdx], arr);}
+    else if(s.type==='swap'){swp++; sortingAudio.playTone(arr[s.a], arr);}
+    else if(s.type==='sorted'){sortedSet.add(s.idx);}
+    else if(s.type==='done'){for(let k=0;k<arr.length;k++)sortedSet.add(k);done=true;running=false;stopClock();document.getElementById('playBtn').disabled=false;document.getElementById('pauseBtn').disabled=true;sortingAudio.playSweep(arr);}
+    updateCounters();
+    const hlLine = getHighlightLine(s);
+    if (hlLine >= 0) codeSync.highlight(hlLine);
+  }
+
+  function tick(ts) {
+    if(!running) return;
+
+    // If mid-animation, update lerp and redraw
+    if(animT < 1.0){
+      animT = Math.min(1.0, (ts - animStart) / animDur);
+      draw(curStep, animT);
+      if(animT < 1.0){ rafId=requestAnimationFrame(tick); return; }
+      // animation finished
+      lastTime = ts; msAcc = 0;
+    }
+
+    const dt=ts-lastTime; lastTime=ts; msAcc+=dt;
+    const spd=getSpeed();
+
+    while(msAcc>=spd&&si<steps.length&&running){
+      msAcc -= spd;
+      curStep = steps[si];
+      step(steps[si++]);
+
+      const needAnim = curStep.type==='swap';
+      if(needAnim){
+        animT     = 0;
+        animStart = ts;
+        animDur   = Math.max(80, Math.min(spd*0.85, 250));
+        draw(curStep, 0);
+        rafId=requestAnimationFrame(tick);
+        return;
+      } else {
+        animT = 1.0;
+        draw(curStep, 1.0);
+      }
+    }
+    if(si<steps.length&&running) rafId=requestAnimationFrame(tick);
+  }
+
+  function initState() {
+    sortingAudio.stop();
+    original=buildArr(); arr=[...original];
+    cmp=swp=pass=0; steps=[]; si=0; running=false; done=false;
+    sortedSet=new Set(); curStep=null; animT=1.0;
+    cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent = '0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  }
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done){ initState(); return; }
+    if(!steps.length) steps=computeSteps([...arr]);
+    running=true;
+    document.getElementById('playBtn').disabled  = true;
+    document.getElementById('pauseBtn').disabled = false;
+    startClock(); lastTime=performance.now(); msAcc=0;
+    rafId=requestAnimationFrame(tick);
+  });
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+  });
+  document.getElementById('stepBtn').addEventListener('click', () => {
+    sortingAudio.initContext();
+    if(done) return;
+    if(!steps.length) steps=computeSteps([...arr]);
+    if(si<steps.length) step(steps[si++]);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    arr=[...original]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedSet=new Set();
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled  = false;
+    document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+  document.getElementById('newArrayBtn').addEventListener('click', () => {
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock(); initState();
+  });
+  document.getElementById('arraySize').addEventListener('input', function() {
+    sortingAudio.stop();
+    document.getElementById('arraySizeVal').textContent=this.value;
+    if(!running) initState();
+  });
+  document.getElementById('applyCustomBtn').addEventListener('click', () => {
+    const raw=document.getElementById('customArr').value.trim(); if(!raw) return;
+    const parsed=raw.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)&&n>=1&&n<=999);
+    if(parsed.length<2){alert('Enter at least 2 valid numbers (e.g. 45,12,67)');return;}
+    sortingAudio.stop();
+    running=false; cancelAnimationFrame(rafId); stopClock();
+    original=parsed; arr=[...parsed]; cmp=swp=pass=0; steps=[]; si=0; done=false; sortedSet=new Set();
+    curStep=null; animT=1.0;
+    document.getElementById('playBtn').disabled=false; document.getElementById('pauseBtn').disabled=true;
+    document.getElementById('elapsedTime').textContent='0.0s';
+    updateCounters(); updateCodeView(arr); draw();
+  });
+
+  // AI assistant
+  const KB={explain:'Selection Sort finds the minimum of the unsorted region and swaps it into the first unsorted position. This "selects" one element per pass and grows the sorted region by one each time.',always:'Selection Sort always scans every unsorted element to find the minimum - even on already-sorted data - giving exactly n(n-1)/2 comparisons regardless of input.',stable:'Standard Selection Sort is NOT stable. Swapping the minimum into position can move equal elements past each other.',swaps:'Selection Sort makes at most n−1 swaps - one per pass. This makes it useful when writes are expensive (e.g. flash memory).',bubble:'Both are O(n²) but Bubble Sort is stable and exits early on sorted data (O(n) best). Selection Sort is not stable and always runs O(n²), but makes far fewer swaps.',default:'Watch the purple bar (boundary), yellow (scanning), red (current minimum), and green (sorted). Each pass the minimum is swapped into its final position.'};
+  function aiAns(q){const l=q.toLowerCase();if(l.includes('explain')||l.includes('how'))return KB.explain;if(l.includes('always')||l.includes('n²')||l.includes('n2'))return KB.always;if(l.includes('stable'))return KB.stable;if(l.includes('swap'))return KB.swaps;if(l.includes('bubble')||l.includes('vs'))return KB.bubble;return KB.default;}
+  function pushMsg(text,role){ 
+    const d=document.createElement('div'); 
+    d.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+    d.textContent=text; 
+    document.getElementById('aiMsgs').appendChild(d); 
+    d.scrollIntoView({behavior:'smooth'}); 
+  }
+  function doSend(){
+    const inp=document.getElementById('aiInput'); const q=inp.value.trim(); if(!q) return;
+    pushMsg(q,'user'); inp.value='';
+    setTimeout(()=>pushMsg(aiAns(q),'bot'),280);
+  }
+  document.getElementById('aiSend').addEventListener('click', doSend);
+  document.getElementById('aiInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  document.querySelectorAll('.ai-chip-full').forEach(b=>{ b.addEventListener('click',()=>{ document.getElementById('aiInput').value=b.dataset.q; doSend(); }); });
+
+  // Quiz Engine overlay logic
+  window.showQuizOverlay = function() {
+    window.quizModule.initQuiz(questionPool, "Selection Sort Quiz");
+  };
+  window.hideQuizOverlay = function() {
+    window.quizModule.closeQuiz();
+  };
+
+  // Initialize tour after DOM is fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTourDOMElements);
+  } else {
+    initTourDOMElements();
+  }
+
+  const questionPool = [
+    { q: "What is the time complexity of Selection Sort in the best case?", o: ["O(n)", "O(n log n)", "O(n²)", "O(1)"], a: 2, e: "Selection Sort always runs in O(n²) time because it lacks early exit and scan loops are always executed." },
+    { q: "How many swaps does Selection Sort perform in the worst case?", o: ["O(n²)", "O(n)", "O(n log n)", "O(1)"], a: 1, e: "Selection Sort makes exactly n-1 swaps, which is O(n)." },
+    { q: "Why is Selection Sort considered 'unstable'?", o: ["It uses recursion", "Swaps can shift elements past equal elements", "It requires O(n) space", "It does not swap elements"], a: 1, e: "Swapping the minimum element into its position can shift an equal element past another, breaking their original order." },
+    { q: "What is the space complexity of Selection Sort?", o: ["O(n)", "O(log n)", "O(1)", "O(n²)"], a: 2, e: "Selection Sort is an in-place algorithm requiring O(1) auxiliary space." },
+    { q: "Which property is a key advantage of Selection Sort over Bubble Sort?", o: ["It is stable", "It performs fewer swaps", "It runs in O(n) in the best case", "It is recursive"], a: 1, e: "Selection Sort performs at most n-1 swaps, making it highly optimal when writing to memory is expensive." },
+    { q: "In Selection Sort, what does the boundary index separate?", o: ["Odd and even numbers", "Sorted prefix and unsorted suffix", "Small and large numbers", "Integers and floats"], a: 1, e: "The boundary divides the array into a sorted sublist on the left and an unsorted sublist on the right." },
+    { q: "What is the number of comparisons made by Selection Sort for an array of size n?", o: ["n", "n log n", "n(n - 1) / 2", "n²"], a: 2, e: "It executes exactly n(n - 1) / 2 comparisons on all inputs." },
+    { q: "If the input array is already sorted, Selection Sort:", o: ["Exits early in O(n)", "Makes O(n²) comparisons anyway", "Performs O(n²) swaps", "Throws an error"], a: 1, e: "Selection Sort is non-adaptive; it performs O(n²) comparisons regardless of the initial order." },
+    { q: "What happens during a single pass of Selection Sort?", o: ["Adjacent elements are swapped iteratively", "The minimum unsorted value is found and swapped to its correct spot", "The array is divided in half", "Elements are shifted to open a gap"], a: 1, e: "A pass scans the remaining unsorted elements to identify the smallest value, then swaps it with the first unsorted item." },
+    { q: "How does the size of the sorted region change in each pass?", o: ["It doubles", "It stays the same", "It increases by 1", "It decreases by 1"], a: 2, e: "Each pass places exactly one element in its final sorted position, growing the sorted prefix by 1." }
+  ];
+
+  window.addEventListener('themechanged', () => { draw(); });
+
+  initState();
+})();
+</script>
+</body>
+</html>
