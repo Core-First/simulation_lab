@@ -217,6 +217,15 @@
 
   .code-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .log-area { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .code-line.active-line { background: rgba(59,130,246,0.18); border-left: 3px solid var(--accent); padding-left: 6px; }
+
+  /* Responsive: stack panels for narrow screens */
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .code-panel, .sim-panel { width: 100%; height: 50vh; }
+    .sim-controls { flex-wrap: wrap; gap: 6px; }
+    .back-btn { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -339,10 +348,12 @@
     <div class="sim-header">
       <h2>Live Simulation</h2>
       <div class="sim-controls">
+        <button class="load-btn" onclick="loadCurrentSimulation()">Load Current Tree</button>
         <button class="load-btn" onclick="loadPreset()">Load Tree</button>
         <button class="trav-btn" onclick="runTraversal('inorder')">▶ In-order</button>
         <button class="trav-btn" onclick="runTraversal('preorder')">▶ Pre-order</button>
         <button class="trav-btn" onclick="runTraversal('postorder')">▶ Post-order</button>
+        <button class="trav-btn" onclick="runCodeTrace()">Run Trace</button>
       </div>
     </div>
     <canvas id="bst-canvas"></canvas>
@@ -372,6 +383,13 @@ const ctx = canvas.getContext('2d');
 const R = 22;
 const V_GAP = 70;
 const animSpeed = 400;
+let zoom = 1;
+const MIN_ZOOM = 0.7;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.08;
+
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
 
 function resizeCanvas() {
   canvas.width = canvas.offsetWidth;
@@ -400,7 +418,10 @@ function layoutTree() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.setTransform(zoom, 0, 0, zoom, 0, 0);
   if (!root) {
+    ctx.restore();
     ctx.fillStyle = '#30363d';
     ctx.font = "14px 'Sora', sans-serif";
     ctx.textAlign = 'center';
@@ -409,7 +430,9 @@ function draw() {
   }
   drawEdges(root);
   drawNodes(root);
+  ctx.restore();
 }
+
 
 function drawEdges(node) {
   if (!node) return;
@@ -438,9 +461,16 @@ function drawNodes(node) {
   let textColor = '#e6edf3';
 
   if (node.traversed) {
-    fill = 'rgba(99,102,241,0.25)';
-    stroke = '#6366f1';
-    textColor = '#a5b4fc';
+    fill = 'rgba(56,189,248,0.28)';
+    stroke = '#38bdf8';
+    textColor = '#e0f2fe';
+    ctx.shadowColor = 'rgba(56,189,248,0.45)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  } else {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
   }
 
   ctx.beginPath();
@@ -480,6 +510,52 @@ function preorder(node, arr = []) {
   return arr;
 }
 
+const STORAGE_KEY = 'sim10-bst-tree';
+
+function serializeTree(node) {
+  if (!node) return null;
+  return {
+    val: node.val,
+    left: serializeTree(node.left),
+    right: serializeTree(node.right)
+  };
+}
+
+function deserializeTree(data) {
+  if (!data) return null;
+  const node = new BSTNode(data.val);
+  node.left = deserializeTree(data.left);
+  node.right = deserializeTree(data.right);
+  return node;
+}
+
+function saveCurrentSimulation() {
+  if (!root) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTree(root)));
+}
+
+function loadCurrentSimulation() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) {
+    log('No current simulation found. Load a tree or preset.');
+    return false;
+  }
+  try {
+    root = deserializeTree(JSON.parse(stored));
+    clearTraversed(root);
+    layoutTree();
+    draw();
+    log('Current simulation loaded');
+    return true;
+  } catch (err) {
+    log('Unable to load current simulation');
+    return false;
+  }
+}
+
 function postorder(node, arr = []) {
   if (node) {
     postorder(node.left, arr);
@@ -506,6 +582,7 @@ function loadPreset() {
   [50, 25, 75, 12, 37, 62, 87].forEach(v => { root = insert(root, v); });
   layoutTree();
   draw();
+  saveCurrentSimulation();
   log('Tree loaded: 50, 25, 75, 12, 37, 62, 87');
 }
 
@@ -525,6 +602,7 @@ async function runTraversal(type) {
   for (let i = 0; i < nodes.length; i++) {
     nodes[i].traversed = true;
     log(`Visiting: ${nodes[i].val} (${i + 1}/${nodes.length})`);
+    playTraversalTone(i, nodes.length);
     draw();
     await new Promise(r => setTimeout(r, animSpeed));
   }
@@ -539,6 +617,32 @@ function clearTraversed(node) {
   clearTraversed(node.left);
   clearTraversed(node.right);
 }
+
+function playTraversalTone(step, total) {
+  if (!AudioContextClass) return;
+  if (!audioCtx) audioCtx = new AudioContextClass();
+  if (audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const minFreq = 220;
+  const maxFreq = 880;
+  const freq = minFreq + ((maxFreq - minFreq) * (step / Math.max(total - 1, 1)));
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.value = 0.12;
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+  osc.stop(audioCtx.currentTime + 0.09);
+}
+
+window.addEventListener('storage', () => { loadCurrentSimulation(); });
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + (e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP)));
+  draw();
+});
 
 // Code highlighting
 document.querySelectorAll('[data-segment]').forEach(line => {
@@ -558,8 +662,27 @@ document.querySelectorAll('[data-segment]').forEach(line => {
   });
 });
 
+// Play code trace for a traversal type by animating relevant segments
+async function playCodeTrace(segments, delay=400) {
+  const allLines = document.querySelectorAll('[data-segment]');
+  function clearActive() { allLines.forEach(l=>l.classList.remove('active-line')); }
+  for (let s of segments) {
+    clearActive();
+    document.querySelectorAll(`[data-segment="${s}"]`).forEach(n=>n.classList.add('active-line'));
+    if (s.includes('def')) log(`Executing: ${s}`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  clearActive();
+  log('Trace complete');
+}
+
+function runCodeTrace() {
+  // Demo sequence: show inorder, then preorder, then postorder function bodies
+  playCodeTrace(['inorder-def','inorder-step','preorder-def','preorder-step','postorder-def','postorder-step'], 450);
+}
+
 window.addEventListener('resize', resizeCanvas);
-document.fonts.ready.then(() => { resizeCanvas(); });
+document.fonts.ready.then(() => { resizeCanvas(); if (!loadCurrentSimulation()) log('No saved simulation found. Load current tree or create one.'); });
 </script>
 <script src="../assets/js/theme-toggle.js"></script>
 </body>
