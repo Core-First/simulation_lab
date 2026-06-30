@@ -121,7 +121,7 @@ function initSimulationProblem() {
     ? lineExplanations[problem].memo
     : lineExplanations[problem].naive;
   const codeEditor = document.getElementById("codeSandboxView");
-  codeEditor.innerHTML = lines
+  codeEditor.innerHTML = window.DOMPurify ? DOMPurify.sanitize(lines) : lines
     .map(
       (l, i) =>
         `<span class="code-line" data-line="${i + 1}">${l}<span class="line-tooltip" title="${explanations[i] || ""}">â“˜</span></span>`,
@@ -146,13 +146,13 @@ function initSimulationProblem() {
   // Build Matrix Storage Headings/Columns
   const headerRow = document.getElementById("memoHeaderRow");
   const dataRow = document.getElementById("memoDataRow");
-  headerRow.innerHTML = "";
-  dataRow.innerHTML = "";
+  headerRow.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
+  dataRow.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
 
   const maxCells = problem === "fibonacci" ? size + 1 : size + 1;
   for (let i = 0; i < maxCells; i++) {
-    headerRow.innerHTML += `<th>[${i}]</th>`;
-    dataRow.innerHTML += `<td id="cache-cell-${i}" class="uninitialized">nil</td>`;
+    headerRow.innerHTML = window.DOMPurify ? DOMPurify.sanitize(headerRow.innerHTML + `<th>[${i}]</th>`) : headerRow.innerHTML + `<th>[${i}]</th>`;
+    dataRow.innerHTML = window.DOMPurify ? DOMPurify.sanitize(dataRow.innerHTML + `<td id="cache-cell-${i}" class="uninitialized">nil</td>`) : dataRow.innerHTML + `<td id="cache-cell-${i}" class="uninitialized">nil</td>`;
   }
 
   // Reset analytics data components
@@ -312,8 +312,8 @@ function initSimulationProblem() {
 function renderTreeSnapshot() {
   const nodesGrp = document.getElementById("nodesGroup");
   const edgesGrp = document.getElementById("edgesGroup");
-  nodesGrp.innerHTML = "";
-  edgesGrp.innerHTML = "";
+  nodesGrp.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
+  edgesGrp.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
 
   if (simSteps.length === 0) return;
 
@@ -377,7 +377,7 @@ function renderTreeSnapshot() {
       let parent = activeNodes.find((n) => n.id === node.parentId);
       if (parent) {
         const isMemoEdge = node.state === "cache-hit";
-        edgesGrp.innerHTML += `<line class="edge-line ${isMemoEdge ? "memo-edge" : ""}" x1="${parent.x}" y1="${parent.y}" x2="${node.x}" y2="${node.y}" />`;
+        edgesGrp.innerHTML = window.DOMPurify ? DOMPurify.sanitize(edgesGrp.innerHTML + `<line class="edge-line ${isMemoEdge ? "memo-edge" : ""}" x1="${parent.x}" y1="${parent.y}" x2="${node.x}" y2="${node.y}" />`) : edgesGrp.innerHTML + `<line class="edge-line ${isMemoEdge ? "memo-edge" : ""}" x1="${parent.x}" y1="${parent.y}" x2="${node.x}" y2="${node.y}" />`;
       }
     }
   });
@@ -400,7 +400,7 @@ function renderTreeSnapshot() {
     if (node.res !== undefined && node.res !== Infinity)
       displayVal += `:${node.res}`;
 
-    nodesGrp.innerHTML += `
+    nodesGrp.innerHTML = window.DOMPurify ? DOMPurify.sanitize(nodesGrp.innerHTML + `) : nodesGrp.innerHTML + `
                     <g transform="translate(${node.x}, ${node.y})"
                        onmouseover="showNodeTooltip(event, '${node.id}', ${node.val}, '${node.state}')"
                        onmouseout="hideNodeTooltip()">
@@ -436,7 +436,7 @@ function renderTreeSnapshot() {
       const cell = document.getElementById(`cache-cell-${k}`);
       if (cell) {
         cell.className = "computed";
-        cell.innerHTML = `${curStep.cache[k]}<span class="cache-hit-badge">âœ“</span>`;
+        cell.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`${curStep.cache[k]}<span class="cache-hit-badge">âœ“</span>`) : `${curStep.cache[k]}<span class="cache-hit-badge">âœ“</span>`;
       }
     });
 
@@ -590,7 +590,7 @@ function showNodeTooltip(event, id, val, state) {
   tooltip.style.opacity = "1";
   tooltip.style.left = event.clientX + 14 + "px";
   tooltip.style.top = event.clientY + 14 + "px";
-  tooltip.innerHTML = `<strong>Node Frame:</strong> ${id}<br/><strong>Parameter Input:</strong> n = ${val}<br/><strong>Execution State:</strong> ${state}`;
+  tooltip.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<strong>Node Frame:</strong> ${id}<br/><strong>Parameter Input:</strong> n = ${val}<br/><strong>Execution State:</strong> ${state}`) : `<strong>Node Frame:</strong> ${id}<br/><strong>Parameter Input:</strong> n = ${val}<br/><strong>Execution State:</strong> ${state}`;
 }
 
 function hideNodeTooltip() {

@@ -16,7 +16,8 @@ function initQuiz(questions, title) {
   
   const titleEl = document.getElementById("quizTitle");
   if (titleEl && title) {
-    titleEl.innerHTML = `<i class="fa-solid fa-circle-question"></i> ${title}`;
+    const html = `<i class="fa-solid fa-circle-question"></i> ${title}`;
+    titleEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   }
   
   // Ensure correct sub-panels are visible/hidden
@@ -55,9 +56,10 @@ function renderQuizQuestion(questions) {
   if (progressEl) progressEl.innerText = `Question ${quizState.currentQuestion + 1} of ${questions.length}`;
   if (questionEl) questionEl.innerText = questionText;
   if (optionsEl) {
-    optionsEl.innerHTML = optionsList
+    const html = optionsList
       .map((opt, i) => `<div class="quiz-option" data-index="${i}" onclick="selectQuizOption(this, ${i})">${opt}</div>`)
       .join("");
+    optionsEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   }
   
   const feedbackEl = document.getElementById("quizFeedback");
@@ -135,16 +137,20 @@ function showQuizResults(questions) {
   if (resultsEl) resultsEl.style.display = "block";
   
   const scoreEl = document.getElementById("quizScore");
-  if (scoreEl) scoreEl.innerHTML = `<i class="fa-solid fa-star"></i> ${score}%`;
+  if (scoreEl) {
+    const html = `<i class="fa-solid fa-star"></i> ${score}%`;
+    scoreEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  }
   
   const summaryEl = document.getElementById("quizSummary");
   if (summaryEl) {
-    summaryEl.innerHTML = quizState.answers.map((a, i) => {
+    const html = quizState.answers.map((a, i) => {
       return `<div class="quiz-summary-item">
         <span>Q${i + 1}: ${a.selected === a.correct ? '<span style="color:var(--success)">Correct</span>' : '<span style="color:var(--danger)">Incorrect</span>'}</span>
         <span>${a.selected === a.correct ? '✓' : '✗'}</span>
       </div>`;
     }).join("");
+    summaryEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   }
   
   quizState.completed = true;

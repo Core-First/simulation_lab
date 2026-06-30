@@ -162,6 +162,7 @@
     .op-log-entry:last-child { border-bottom: none; }
     .op-log-err { color: var(--danger); }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body class="sim-page">
 <div class="main">
@@ -434,7 +435,7 @@ void resetQueue() {
     const log = document.getElementById('opLog');
     const t   = new Date().toLocaleTimeString();
     const cls = isError ? 'op-log-err' : '';
-    log.innerHTML = `<div class="op-log-entry ${cls}">[${t}] ${msg}</div>` + log.innerHTML;
+    log.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<div class="op-log-entry ${cls}">[${t}] ${msg}</div>` + log.innerHTML) : `<div class="op-log-entry ${cls}">[${t}] ${msg}</div>` + log.innerHTML;
     document.getElementById('statOps').textContent = ++opCount;
   }
 
@@ -451,10 +452,10 @@ void resetQueue() {
     const viz = document.getElementById('stackViz');
     updateStatBadge('statStackSize', 'stackSizeBadge', stack.length);
     if (stack.length === 0) {
-      viz.innerHTML = '<div class="ds-empty-msg">Stack is empty — Top = −1</div>';
+      viz.innerHTML = window.DOMPurify ? DOMPurify.sanitize('<div class="ds-empty-msg">Stack is empty — Top = −1</div>') : '<div class="ds-empty-msg">Stack is empty — Top = −1</div>';
       return;
     }
-    viz.innerHTML = stack.map((val, i) => {
+    viz.innerHTML = window.DOMPurify ? DOMPurify.sanitize(stack.map((val, i) => {) : stack.map((val, i) => {
       const isTop = (i === stack.length - 1);
       return `<div class="stack-item ${isTop ? 'top-marker' : ''}">${val}
               <span style="font-size:0.65rem; opacity:0.6; margin-left:6px;">[idx ${i}]</span></div>`;
@@ -465,10 +466,10 @@ void resetQueue() {
     const viz = document.getElementById('queueViz');
     updateStatBadge('statQueueSize', 'queueSizeBadge', queue.length);
     if (queue.length === 0) {
-      viz.innerHTML = '<div class="ds-empty-msg">Queue is empty — Front = Rear = −1</div>';
+      viz.innerHTML = window.DOMPurify ? DOMPurify.sanitize('<div class="ds-empty-msg">Queue is empty — Front = Rear = −1</div>') : '<div class="ds-empty-msg">Queue is empty — Front = Rear = −1</div>';
       return;
     }
-    viz.innerHTML = queue.map((val, i) => {
+    viz.innerHTML = window.DOMPurify ? DOMPurify.sanitize(queue.map((val, i) => {) : queue.map((val, i) => {
       let label = '';
       if (i === 0 && queue.length === 1) label = 'FRONT/REAR';
       else if (i === 0) label = 'FRONT';
@@ -580,7 +581,7 @@ void resetQueue() {
   document.getElementById('btnQueueFront').onclick   = queueFront;
   document.getElementById('btnQueueReset').onclick   = resetQueue;
   document.getElementById('clearLogBtn').onclick     = () => {
-    document.getElementById('opLog').innerHTML = '';
+    document.getElementById('opLog').innerHTML = window.DOMPurify ? DOMPurify.sanitize('') : '';
   };
 
   // ── Quiz ──────────────────────────────────────────────────────

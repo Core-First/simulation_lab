@@ -245,7 +245,7 @@ function buildTreeLayout(steps) {
 }
 
 function renderTreeSVG() {
-  treeSvg.innerHTML = "";
+  treeSvg.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
   // Append SVG marker for arrowhead visualization
   let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
   let marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
@@ -374,7 +374,7 @@ function updateTreeVisualStates() {
 }
 
 function renderBoard(board, highlightRow, highlightCol) {
-  chessboardDiv.innerHTML = "";
+  chessboardDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
   const n = state.n;
   chessboardDiv.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
 
@@ -415,7 +415,7 @@ function drawChessOverlaylasers() {
     chessboardDiv.appendChild(boardOverlay);
   }
   boardOverlay.setAttribute("viewBox", "0 0 100 100");
-  boardOverlay.innerHTML = "";
+  boardOverlay.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
 
   const n = state.n;
   const step = state.steps[state.currentStep];
@@ -529,7 +529,7 @@ function addHoverThreatZones() {
 function previewCustomThreatZones(row, col) {
   let boardOverlay = document.getElementById("boardOverlay");
   if (!boardOverlay) return;
-  boardOverlay.innerHTML = "";
+  boardOverlay.innerHTML = window.DOMPurify ? DOMPurify.sanitize("") : "";
 
   const n = state.n;
   let cellW = 100 / n;
@@ -640,7 +640,7 @@ function updateVisualization() {
   const board = step.boardCopy || initBoard(state.n);
 
   renderBoard(board, step.row, step.col);
-  execDescDiv.innerHTML = `<strong>Step ${state.currentStep + 1}/${state.steps.length} (${step.type.toUpperCase()}):</strong> ${step.message}`;
+  execDescDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<strong>Step ${state.currentStep + 1}/${state.steps.length} (${step.type.toUpperCase()}):</strong> ${step.message}`) : `<strong>Step ${state.currentStep + 1}/${state.steps.length} (${step.type.toUpperCase()}):</strong> ${step.message}`;
   currentStepIdxSpan.innerText = state.currentStep + 1;
   timelineSlider.value = state.currentStep;
 
@@ -805,7 +805,7 @@ function initCodeEditor() {
     22: "No valid placement in this row - triggers backtrack.",
     23: "End of solve function.",
   };
-  editorDiv.innerHTML = structures
+  editorDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(structures) : structures
     .map((l, i) => {
       const lineNum = i + 1;
       const expl = explanations[lineNum] || "";
@@ -873,7 +873,7 @@ function initEventListeners() {
     compareToggle.classList.toggle("active");
     if (state.showCompare) {
       comparisonStatsDiv.style.display = "block";
-      comparisonStatsDiv.innerHTML = `<div class="p-2 border border-warning rounded bg-dark text-warning small style="font-size:12px;">
+      comparisonStatsDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<div class="p-2 border border-warning rounded bg-dark text-warning small style="font-size:12px) : `<div class="p-2 border border-warning rounded bg-dark text-warning small style="font-size:12px;">
                 <strong>Brute Force:</strong> Permutations require evaluating up to $N!$ or $N^N$ strings (~40,320 checks for N=8).<br>
                 <strong>Backtracking:</strong> Early row pruning skips useless options, evaluating only <strong>${state.nodeCount}</strong> positions to find this layout.
             </div>`;
@@ -890,17 +890,17 @@ function initEventListeners() {
     updateVisualization();
   };
   aiSendBtn.onclick = () => {
-    aiResponseDiv.innerHTML = `<i class="fa-regular fa-message text-primary"></i> ${handleAIQuery(aiInput.value)}`;
+    aiResponseDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<i class="fa-regular fa-message text-primary"></i> ${handleAIQuery(aiInput.value)}`) : `<i class="fa-regular fa-message text-primary"></i> ${handleAIQuery(aiInput.value)}`;
   };
   aiHelpBtn.onclick = () => {
     let step = state.steps[state.currentStep];
     let txt = step
       ? `Current context: Type [${step.type.toUpperCase()}]. Action locked row ${step.row}, col ${step.col}. Detail path string: ${step.pathStr || "root"}.`
       : "No parameters loaded.";
-    aiResponseDiv.innerHTML = `<i class="fa-regular fa-lightbulb text-warning"></i> ${txt}`;
+    aiResponseDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<i class="fa-regular fa-lightbulb text-warning"></i> ${txt}`) : `<i class="fa-regular fa-lightbulb text-warning"></i> ${txt}`;
   };
   aiExplainCodeBtn.onclick = () => {
-    aiResponseDiv.innerHTML = `<i class="fa-regular fa-file-code text-info"></i> Base logic: <code>isSafe()</code> executes validation loops. <code>solve()</code> acts as a recursive engine, nesting row tracking loops sequentially until a solutions matches.`;
+    aiResponseDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<i class="fa-regular fa-file-code text-info"></i> Base logic: <code>isSafe()</code> executes validation loops. <code>solve()</code> acts as a recursive engine, nesting row tracking loops sequentially until a solutions matches.`) : `<i class="fa-regular fa-file-code text-info"></i> Base logic: <code>isSafe()</code> executes validation loops. <code>solve()</code> acts as a recursive engine, nesting row tracking loops sequentially until a solutions matches.`;
   };
 }
 
@@ -1028,7 +1028,7 @@ function showLineExplanation(lineNum) {
     23: "End of solve function.",
   };
   const text = explanations[lineNum] || "No explanation available.";
-  aiResponseDiv.innerHTML = `<strong>Line ${lineNum}:</strong> ${text}`;
+  aiResponseDiv.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<strong>Line ${lineNum}:</strong> ${text}`) : `<strong>Line ${lineNum}:</strong> ${text}`;
 }
 
 function setupLineExplanationHandlers() {

@@ -106,7 +106,7 @@ dsaData.forEach((p, i) => {
   const partId = `dsaPart${i}`;
   const isReady = i === 0 || i === 1 || i === 2 || i === 3 || i === 5;
   const li = document.createElement("li");
-  li.innerHTML = `
+  const html = `
     <button class="nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${partId}" aria-expanded="false">
       <i class="fa-solid fa-book lead-icon"></i> ${p.part}${isReady ? '<span class="status-dot valid" style="width:10px;height:10px;"></span>' : ""}
       <i class="fa-solid fa-chevron-right chev"></i>
@@ -123,6 +123,7 @@ dsaData.forEach((p, i) => {
       </ul>
     </div>
   `;
+  li.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   dsaRoot.appendChild(li);
 });
 

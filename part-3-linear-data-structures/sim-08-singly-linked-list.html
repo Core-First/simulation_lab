@@ -126,6 +126,7 @@
     }
     .sim-input:focus { outline: none; border-color: var(--primary); }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body class="sim-page">
 <div class="main">
@@ -404,7 +405,7 @@ int search(struct Node* head, int target) {
     setTimeout(() => statN.classList.remove('updated'), 400);
 
     if (list.length === 0) {
-      canvas.innerHTML = '<div class="ll-empty">Empty list → Head = <strong>NULL</strong></div>';
+      canvas.innerHTML = window.DOMPurify ? DOMPurify.sanitize('<div class="ll-empty">Empty list → Head = <strong>NULL</strong></div>') : '<div class="ll-empty">Empty list → Head = <strong>NULL</strong></div>';
       return;
     }
 
@@ -422,14 +423,14 @@ int search(struct Node* head, int target) {
             : '<span class="ll-arrow" style="color:var(--muted)">→</span><span class="ll-null">NULL</span>'}
         </div>`;
     });
-    canvas.innerHTML = html;
+    canvas.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
   }
 
   // ── Log ───────────────────────────────────────────────────────
   function addLog(msg) {
     const log = document.getElementById('opLog');
     const t   = new Date().toLocaleTimeString();
-    log.innerHTML = `<div class="op-log-entry">[${t}] ${msg}</div>` + log.innerHTML;
+    log.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<div class="op-log-entry">[${t}] ${msg}</div>` + log.innerHTML) : `<div class="op-log-entry">[${t}] ${msg}</div>` + log.innerHTML;
     document.getElementById('statOps').textContent = ++opCount;
   }
 
@@ -536,7 +537,7 @@ int search(struct Node* head, int target) {
   document.getElementById('btnSearch').onclick   = search;
   document.getElementById('btnReset').onclick    = resetList;
   document.getElementById('clearLogBtn').onclick = () => {
-    document.getElementById('opLog').innerHTML = '';
+    document.getElementById('opLog').innerHTML = window.DOMPurify ? DOMPurify.sanitize('') : '';
   };
 
   // ── Quiz ──────────────────────────────────────────────────────

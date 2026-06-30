@@ -67,11 +67,12 @@ class CodeSync {
     // Split into lines
     const rawLines = highlightedCode.split(/\n/);
     
-    this.container.innerHTML = rawLines
+    const html = rawLines
       .map((ln, i) =>
         `<pre class="code-line" data-line="${i}"><span class="code-line-num">${i + 1}</span>${ln}</pre>`
       )
       .join('');
+    this.container.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
     this.lines = this.container.querySelectorAll('.code-line');
   }
 

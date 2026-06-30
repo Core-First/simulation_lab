@@ -169,6 +169,30 @@ except:
     pass
 
 # -------------------------
+# SENTINEL SCANNER ANALYSIS
+# -------------------------
+
+sentinel_output = ""
+sentinel_failed = False
+
+try:
+    with open("sentinel-report.txt", "r", encoding="utf-8", errors="ignore") as f:
+        sentinel_raw = f.read()
+    
+    if "SENTINEL_FAILED" in sentinel_raw:
+        sentinel_failed = True
+        sentinel_raw = sentinel_raw.replace("SENTINEL_FAILED", "").strip()
+        score = max(score, 75)  # Ensure it fails the high-risk gate
+        reasons.append("Sentinel Scanner found critical vulnerabilities")
+    
+    # Strip ANSI escape sequences for clean markdown
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    sentinel_output = ansi_escape.sub('', sentinel_raw).strip()
+    
+except Exception:
+    pass
+
+# -------------------------
 # FINALIZE SCORE
 # -------------------------
 
@@ -205,6 +229,20 @@ report += """
 - Verify business logic manually
 - Enforce test quality
 - Review for hidden security flaws
+"""
+
+if sentinel_output:
+    status = "FAILED ❌" if sentinel_failed else "PASSED ✅"
+    report += f"""
+## Sentinel Security Scan ({status})
+
+<details>
+<summary>View Output and AI Fixes</summary>
+
+```text
+{sentinel_output}
+```
+</details>
 """
 
 with open("low-code-report.txt", "w") as f:
