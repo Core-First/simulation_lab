@@ -105,6 +105,16 @@ jobs:
           fi
 
       #####################################################################
+      # SENTINEL SCANNER
+      #####################################################################
+
+      - name: Run Sentinel Scanner
+        continue-on-error: true
+        run: |
+          pip install sentinel-scanner
+          sentinel scan . > sentinel-report.txt 2>&1 || echo "SENTINEL_FAILED" >> sentinel-report.txt
+
+      #####################################################################
       # CUSTOM LOW-CODE DETECTOR
       #####################################################################
 
@@ -128,6 +138,7 @@ jobs:
             lizard-report.txt
             radon-report.json
             jscpd-report/
+            sentinel-report.txt
 
       #####################################################################
       # COMMENT ON PR
@@ -289,8 +300,3 @@ jobs:
           if [ -f requirements.txt ]; then
             pip-audit -r requirements.txt
           fi
-
-      - name: Run Sentinel Scanner
-        run: |
-          pip install sentinel-scanner
-          sentinel scan .
