@@ -113,7 +113,7 @@ function showTourStep() {
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  document.getElementById('tourNext').innerHTML = currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next <i class="fa-solid fa-arrow-right ms-1"></i>';
+  document.getElementById('tourNext').innerHTML = window.DOMPurify ? DOMPurify.sanitize(currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next <i class="fa-solid fa-arrow-right ms-1"></i>') : currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next <i class="fa-solid fa-arrow-right ms-1"></i>';
 }
 
 function nextTourStep() {

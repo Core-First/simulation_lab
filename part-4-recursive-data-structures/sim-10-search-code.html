@@ -26,6 +26,7 @@
   #bst-canvas{flex:1;width:100%}
   .log-area{padding:12px 18px;border-top:1px solid var(--border);background:var(--surface);max-height:120px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body>
 <header>
@@ -105,7 +106,7 @@ function loadPreset(){ root = null; [50,25,75,12,37,62,87].forEach(v=>{ root = i
 document.querySelectorAll('[data-segment]').forEach(line=>{ line.addEventListener('mouseenter',()=>{ const s=line.dataset.segment; clearHighlights(root); if(s==='search-base') log('Base case: empty subtree -> not found'); else if(s==='search-compare') log('Compare and recurse left or right'); draw(); }); });
 
 // basic canvas mouse hover for nodes
-canvas.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; let found=null; function find(node){ if(!node) return null; const d=Math.hypot(mx-node.x,my-node.y); if(d<=R*1.4) return node; return find(node.left)||find(node.right); } found=find(root); document.getElementById('node-tooltip').classList.remove('visible'); if(found){ found.hovered=true; document.getElementById('node-tooltip').innerHTML=`Value: <span class="tval">${found.val}</span>`; const tip=document.getElementById('node-tooltip'); tip.classList.add('visible'); tip.style.left=(e.clientX+10)+'px'; tip.style.top=(e.clientY+10)+'px'; } else { if(root) clearHighlights(root); } draw();});
+canvas.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; let found=null; function find(node){ if(!node) return null; const d=Math.hypot(mx-node.x,my-node.y); if(d<=R*1.4) return node; return find(node.left)||find(node.right); } found=find(root); document.getElementById('node-tooltip').classList.remove('visible'); if(found){ found.hovered=true; document.getElementById('node-tooltip').innerHTML = window.DOMPurify ? DOMPurify.sanitize(`Value: <span class="tval">${found.val}</span>`) : `Value: <span class="tval">${found.val}</span>`; const tip=document.getElementById('node-tooltip'); tip.classList.add('visible'); tip.style.left=(e.clientX+10)+'px'; tip.style.top=(e.clientY+10)+'px'; } else { if(root) clearHighlights(root); } draw();});
 
 // init
 resizeCanvas(); loadPreset();

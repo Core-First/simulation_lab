@@ -19,6 +19,12 @@ The project is built entirely with client-side web technologies and requires no 
 
 All dependencies are loaded via CDN. The project follows a modular architecture with shared assets and separate HTML files for each simulation.
 
+## Security and Code Quality
+
+This project employs strict automated security and code quality gates using **Sentinel Scanner** and custom heuristics.
+- **Cross-Site Scripting (XSS) Prevention:** Sentinel scans the codebase for vulnerable frontend patterns. All `innerHTML` assignments must be safely sanitized using DOMPurify.
+- **Automated PR Bot:** A custom `low_code_detector.py` script aggregates metrics from Sentinel and other tools (like Lizard and Radon) to provide automated, detailed feedback on all Pull Requests. High-risk PRs with failing Sentinel scans or poor entropy will automatically fail the CI build.
+
 ## Folder Structure
 ```html
 simulation_lab/

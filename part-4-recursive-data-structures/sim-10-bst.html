@@ -455,6 +455,7 @@
   .found-msg { color: var(--green); }
   .notfound-msg { color: var(--red); }
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body>
 
@@ -1018,7 +1019,7 @@ async function runTraversal(type) {
 
   // Build traversal strip
   const strip = document.getElementById('traversal-strip');
-  strip.innerHTML = `<span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px">${type}:</span>`;
+  strip.innerHTML = window.DOMPurify ? DOMPurify.sanitize(`<span style="color:var(--muted)) : `<span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px">${type}:</span>`;
 
   const allVals = nodes.map(n => n.val);
   for (let i = 0; i < nodes.length; i++) {
@@ -1059,8 +1060,7 @@ function clearTree() {
   hoveredNode = null;
   selectedNode = null;
   clearHighlights(root);
-  document.getElementById('traversal-strip').innerHTML =
-    '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
+  document.getElementById('traversal-strip').innerHTML = window.DOMPurify ? DOMPurify.sanitize('<span style="color:var(--muted)) : '<span style="color:var(--muted);font-size:11px">Run a traversal to see the visit order here</span>';
   draw();
   updateStats();
   log('Tree cleared');
@@ -1111,7 +1111,7 @@ function updateNodeInfo(node) {
     else if (node.right) info += `R:${node.right.val}`;
   }
   
-  tooltip.innerHTML = info;
+  tooltip.innerHTML = window.DOMPurify ? DOMPurify.sanitize(info) : info;
   tooltip.classList.add('visible');
   tooltip.style.left = (mouseX + 10) + 'px';
   tooltip.style.top = (mouseY + 10) + 'px';

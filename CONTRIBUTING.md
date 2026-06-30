@@ -171,6 +171,7 @@ The workflow performs the following steps:
    - Screenshots (if visual changes were made).
    - If you added a simulation, include the link to it in the PR description.
    - Link any issues your PR addresses (e.g., "Closes #42").
+   - **Ensure your code passes the automated Sentinel Security checks.**
 
 **Tip:** If you're adding a new simulation, create it in a standalone HTML file first, test it, then link it from the main dashboard.
 
@@ -198,6 +199,7 @@ The workflow performs the following steps:
 - Keep logic modular – separate rendering (`draw()`) from algorithm (`step()`).
 - Use descriptive variable names (e.g., `comparisons`, `swaps`, `currentIndex`).
 - Add comments for non-obvious logic (e.g., merging, recursion, pivot selection).
+- **Security Requirements:** All `.innerHTML` assignments must be sanitized to pass the Sentinel Security Scanner. Wrap your HTML strings using DOMPurify: `el.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;`.
 
 ### Simulation Files
 
