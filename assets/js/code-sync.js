@@ -3,6 +3,7 @@ class CodeSync {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     this.lines = [];
+    this.hasScrolledWindow = false;
   }
 
   highlightJS(code) {
@@ -52,6 +53,14 @@ class CodeSync {
   init(codeString) {
     if (!this.container || !codeString) return;
     
+    // Reset the window scroll tracker flag on re-initialization
+    this.hasScrolledWindow = false;
+    
+    // Ensure container is positioned so offsetTop of lines is relative to it
+    if (window.getComputedStyle(this.container).position === 'static') {
+      this.container.style.position = 'relative';
+    }
+    
     // Highlight the entire code block first
     const highlightedCode = this.highlightJS(codeString.trim());
     
@@ -69,8 +78,28 @@ class CodeSync {
   highlight(lineIdx) {
     this.lines.forEach(l => l.classList.remove('code-highlight'));
     if (lineIdx >= 0 && lineIdx < this.lines.length) {
-      this.lines[lineIdx].classList.add('code-highlight');
-      this.lines[lineIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const line = this.lines[lineIdx];
+      line.classList.add('code-highlight');
+      
+      const container = this.container;
+      if (container) {
+        // Force scroll the main window viewport to the code editor once, on the first highlight
+        if (!this.hasScrolledWindow) {
+          container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          this.hasScrolledWindow = true;
+        }
+
+        const containerHeight = container.clientHeight;
+        const lineTop = line.offsetTop;
+        const lineHeight = line.offsetHeight;
+        
+        // Calculate the scroll position to center the line within the container
+        const targetScrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
+        
+        // Set scrollTop directly. This is instant and guarantees that the browser
+        // will never scroll the main page/window viewport.
+        container.scrollTop = targetScrollTop;
+      }
     }
   }
 

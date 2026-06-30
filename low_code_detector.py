@@ -129,8 +129,11 @@ if src_files > 0:
 # -------------------------
 
 try:
+    base_branch = os.environ.get("BASE_BRANCH", "main")
+    target_ref = f"origin/{base_branch}" if not base_branch.startswith("origin/") else base_branch
+
     diff = subprocess.check_output(
-        ["git", "diff", "--shortstat", "origin/main"]
+        ["git", "diff", "--shortstat", target_ref]
     ).decode()
 
     numbers = re.findall(r"\d+", diff)
@@ -140,9 +143,9 @@ try:
 
         if changed_lines > 1500:
             score += 15
-            reasons.append("Huge PR size detected")
+            reasons.append(f"Huge PR size detected against {target_ref}")
 
-except:
+except Exception as e:
     pass
 
 # -------------------------
