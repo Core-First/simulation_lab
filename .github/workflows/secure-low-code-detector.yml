@@ -40,11 +40,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
       #####################################################################
       # INSTALL TOOLS
@@ -67,37 +69,41 @@ jobs:
       #####################################################################
 
       - name: Duplication Scan
+        continue-on-error: true
         run: |
           jscpd . \
             --min-lines 5 \
             --min-tokens 50 \
             --reporters json \
-            --output ./jscpd-report || true
+            --output ./jscpd-report
 
       #####################################################################
       # LIZARD
       #####################################################################
 
       - name: Complexity Scan
+        continue-on-error: true
         run: |
-          lizard . > lizard-report.txt || true
+          lizard . > lizard-report.txt
 
       #####################################################################
       # RADON
       #####################################################################
 
       - name: Maintainability Scan
+        continue-on-error: true
         run: |
-          radon cc . -j > radon-report.json || true
+          radon cc . -j > radon-report.json
 
       #####################################################################
       # ESLINT
       #####################################################################
 
       - name: Run ESLint
+        continue-on-error: true
         run: |
           if [ -f package.json ]; then
-            eslint . || true
+            eslint .
           fi
 
       #####################################################################
@@ -105,6 +111,8 @@ jobs:
       #####################################################################
 
       - name: Run Low-Code Detector
+        env:
+          BASE_BRANCH: ${{ github.base_ref || github.ref_name }}
         run: |
           python low_code_detector.py
 
@@ -116,6 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quality-reports
+          if-no-files-found: ignore
           path: |
             low-code-report.txt
             lizard-report.txt
@@ -196,14 +205,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Gitleaks Secret Scan
-        run: |
-          if [ -n "${{ secrets.GITLEAKS_LICENSE }}" ]; then
-            echo "GITLEAKS_LICENSE is set; scan would run here when a licensed runner is available."
-          else
-            echo "::warning::GITLEAKS_LICENSE secret is not configured. Skipping gitleaks scan."
-          fi
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   #########################################################################
   # SEMGREP
@@ -223,6 +231,7 @@ jobs:
         run: |
           semgrep scan \
             --config=auto \
+            --config=.semgrep/custom-rules.yml \
             --severity ERROR \
             --json \
             --output=semgrep-report.json
@@ -255,11 +264,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
       - name: Run npm audit
         run: |
           if [ -f package.json ]; then
-            npm install
+            npm ci
             npm audit --audit-level=high
           fi
 
@@ -271,6 +281,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Run pip audit
         run: |
