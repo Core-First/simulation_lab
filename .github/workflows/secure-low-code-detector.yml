@@ -290,3 +290,8 @@ jobs:
           if [ -f requirements.txt ]; then
             pip-audit -r requirements.txt
           fi
+
+      - name: Run Sentinel Scanner
+        run: |
+          pip install sentinel-scanner
+          sentinel-scanner .
