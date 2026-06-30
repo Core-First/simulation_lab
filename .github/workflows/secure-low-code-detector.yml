@@ -293,4 +293,4 @@ jobs:
       - name: Run Sentinel Scanner
         run: |
           pip install sentinel-scanner
-          sentinel-scanner .
+          sentinel scan .
