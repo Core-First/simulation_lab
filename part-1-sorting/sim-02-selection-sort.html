@@ -281,17 +281,42 @@
     ctx.fillStyle='#070d1a'; ctx.fillRect(0,0,W,H);
     if(!n) return;
     const gap=6;
-    const boxSize=Math.max(28, Math.min(64, Math.floor((W-20)/n) - gap));
-    const totalW=n*(boxSize+gap)-gap;
-    const sx=(W-totalW)/2, sy=(H-boxSize)/2;
-    const fs=Math.max(11,Math.min(20,Math.floor(boxSize*0.42)));
-    const ep=easeOut(Math.min(1.0, Math.max(0.0, t)));
+    
+    // Find optimal box size that fits the grid both horizontally and vertically
+    let boxSize = 60;
+    let cols = 1;
+    let numRows = 1;
+    let totalHeight = 0;
+    while (boxSize > 24) {
+      cols = Math.max(1, Math.floor((W - 20) / (boxSize + gap)));
+      numRows = Math.ceil(n / cols);
+      totalHeight = numRows * (boxSize + gap) - gap;
+      if (totalHeight <= H - 20) {
+        break;
+      }
+      boxSize--;
+    }
+    
+    const sy = (H - totalHeight) / 2;
+    const fs = Math.max(10, Math.min(18, Math.floor(boxSize * 0.45)));
+    const ep = easeOut(Math.min(1.0, Math.max(0.0, t)));
+
+    // Helper to compute centered screen coordinates for element at index k
+    function getCoords(k) {
+      const r = Math.floor(k / cols);
+      const c = k % cols;
+      const numItemsInRow = (r === numRows - 1) ? (n - r * cols) : cols;
+      const sx = (W - (numItemsInRow * (boxSize + gap) - gap)) / 2;
+      const x = sx + c * (boxSize + gap);
+      const y = sy + r * (boxSize + gap);
+      return { x, y };
+    }
 
     // Draw static slots (skipping the active swapping pair)
     for(let k=0;k<n;k++){
       if(state && state.type==='swap' && (k===state.a || k===state.b)) continue;
       
-      const x=sx+k*(boxSize+gap), y=sy;
+      const { x, y } = getCoords(k);
       let border='#00bfa0', fill='#0c2e2c', text='#ccfff4', glow=null, glowSz=0;
       if(state){
         if(state.type==='done'||sortedSet.has(k)){border='#22c55e';fill='#007a50';text='#ffffff';}
@@ -315,35 +340,37 @@
     // Draw swapping slots
     if(state && state.type==='swap'){
       const a = state.a, b = state.b;
-      const x_a_start = sx + b * (boxSize + gap);
-      const x_a_end   = sx + a * (boxSize + gap);
-      const x_b_start = sx + a * (boxSize + gap);
-      const x_b_end   = sx + b * (boxSize + gap);
+      const pos_a_start = getCoords(b);
+      const pos_a_end   = getCoords(a);
+      const pos_b_start = getCoords(a);
+      const pos_b_end   = getCoords(b);
       
-      const x_a = lerpN(x_a_start, x_a_end, ep);
-      const x_b = lerpN(x_b_start, x_b_end, ep);
+      const x_a = lerpN(pos_a_start.x, pos_a_end.x, ep);
+      const y_a = lerpN(pos_a_start.y, pos_a_end.y, ep);
+      const x_b = lerpN(pos_b_start.x, pos_b_end.x, ep);
+      const y_b = lerpN(pos_b_start.y, pos_b_end.y, ep);
       
       const fill='#1a0808', border='#ef4444', text='#fca5a5', glow='#ef4444', glowSz=18;
       
       // Draw box A
       ctx.shadowBlur=0; ctx.shadowColor='transparent';
-      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.fill();
-      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_a,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_a,y_a,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_a,y_a,boxSize,boxSize,8);ctx.stroke();
       ctx.shadowBlur=0; ctx.shadowColor='transparent';
-      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_a,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_a,y_a,boxSize,boxSize,8); ctx.stroke();
       ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(arr[a], x_a+boxSize/2, sy+boxSize/2);
+      ctx.fillText(arr[a], x_a+boxSize/2, y_a+boxSize/2);
       
       // Draw box B
       ctx.shadowBlur=0; ctx.shadowColor='transparent';
-      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.fill();
-      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_b,sy,boxSize,boxSize,8);ctx.stroke();
+      ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(x_b,y_b,boxSize,boxSize,8); ctx.fill();
+      ctx.shadowBlur=glowSz;ctx.shadowColor=glow;ctx.strokeStyle=glow;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x_b,y_b,boxSize,boxSize,8);ctx.stroke();
       ctx.shadowBlur=0; ctx.shadowColor='transparent';
-      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_b,sy,boxSize,boxSize,8); ctx.stroke();
+      ctx.strokeStyle=border; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x_b,y_b,boxSize,boxSize,8); ctx.stroke();
       ctx.fillStyle=text; ctx.font=`bold ${fs}px 'Segoe UI',sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(arr[b], x_b+boxSize/2, sy+boxSize/2);
+      ctx.fillText(arr[b], x_b+boxSize/2, y_b+boxSize/2);
     }
   }
 
